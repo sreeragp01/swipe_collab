@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat — SwipeCollab</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .chat-layout { display: grid; grid-template-columns: 280px 1fr; height: calc(100vh - 60px); overflow: hidden; }
+        .chat-sidebar { border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
+        .sidebar-header { border-bottom: 1px solid var(--border); font-family: var(--font-head); font-size: 0.95rem; font-weight: 600; padding: 1rem 1.25rem; }
+        .room-list { flex: 1; overflow-y: auto; }
+        .room-item { align-items: center; border-bottom: 1px solid var(--border); cursor: pointer; display: flex; gap: 0.85rem; padding: 0.9rem 1.25rem; transition: background var(--transition); }
+        .room-item:hover { background: var(--bg3); }
+        .room-item.active { background: var(--bg3); border-left: 2px solid var(--accent); }
+        .room-avatar { flex-shrink: 0; width: 40px; height: 40px; font-size: 1rem; }
+        .room-name { font-size: 0.875rem; font-weight: 500; }
+        .room-last { color: var(--text3); font-size: 0.78rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 140px; }
+        .room-unread { background: var(--accent); border-radius: 50%; color: #fff; font-size: 0.7rem; font-weight: 700; height: 18px; min-width: 18px; display: flex; align-items: center; justify-content: center; margin-left: auto; }
+        .chat-main { display: flex; flex-direction: column; overflow: hidden; }
+        .chat-header { align-items: center; border-bottom: 1px solid var(--border); display: flex; gap: 1rem; padding: 1rem 1.5rem; }
+        .chat-header-name { font-family: var(--font-head); font-size: 1rem; font-weight: 600; }
+        .chat-header-status { color: var(--text3); font-size: 0.78rem; }
+        .messages-area { flex: 1; overflow-y: auto; padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 0.6rem; }
+        .msg { display: flex; flex-direction: column; max-width: 68%; }
+        .msg.mine { align-items: flex-end; align-self: flex-end; }
+        .msg.theirs { align-items: flex-start; align-self: flex-start; }
+        .msg-bubble { border-radius: 16px; font-size: 0.875rem; line-height: 1.5; padding: 0.6rem 0.9rem; word-break: break-word; }
+        .msg.mine .msg-bubble { background: var(--accent); border-bottom-right-radius: 4px; color: #fff; }
+        .msg.theirs .msg-bubble { background: var(--bg3); border-bottom-left-radius: 4px; }
+        .msg-meta { color: var(--text3); font-size: 0.7rem; margin-top: 0.2rem; display: flex; align-items: center; gap: 0.3rem; }
+        .read-tick { color: var(--accent); font-size: 0.65rem; }
+        .reactions-row { display: flex; gap: 0.25rem; margin-top: 0.2rem; flex-wrap: wrap; }
+        .reaction-badge { background: var(--bg3); border: 1px solid var(--border); border-radius: 999px; cursor: pointer; font-size: 0.75rem; padding: 0.1rem 0.4rem; }
+        .typing-indicator { color: var(--text3); font-size: 0.78rem; font-style: italic; padding: 0 1.5rem 0.5rem; min-height: 1.2rem; }
+        .chat-input-area { border-top: 1px solid var(--border); display: flex; align-items: flex-end; gap: 0.75rem; padding: 1rem 1.5rem; }
+        .chat-input-area textarea { flex: 1; resize: none; min-height: 44px; max-height: 120px; }
+        .send-btn { background: var(--accent); border: none; border-radius: var(--radius-sm); color: #fff; cursor: pointer; font-size: 1rem; padding: 0.65rem 1rem; flex-shrink: 0; transition: background var(--transition); }
+        .send-btn:hover { background: #5a52e0; }
+        .emoji-row { display: flex; gap: 0.4rem; padding: 0 1.5rem 0.5rem; }
+        .emoji-btn { background: none; border: none; cursor: pointer; font-size: 1.1rem; opacity: 0.6; transition: opacity 0.15s; }
+        .emoji-btn:hover { opacity: 1; }
+        .no-chat { align-items: center; color: var(--text3); display: flex; flex-direction: column; flex: 1; gap: 0.5rem; justify-content: center; }
+        @media (max-width: 640px) { .chat-sidebar { display: none; } .chat-layout { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="/" class="nav-logo">Swipe<span style="color:var(--accent)">Collab</span></a>
+        <div class="nav-links">
+            <a href="/dashboard/" class="nav-link">Home</a>
+            <a href="/swipe/" class="nav-link">Swipe</a>
+            <a href="/matches/" class="nav-link">Matches</a>
+            <a href="/projects/" class="nav-link">Projects</a>
+            <a href="/profile/" class="nav-link">Profile</a>
+            <a href="/moderation/" class="nav-link" style="color:var(--red);">🛡️ Safety</a>
+            <button class="btn btn-ghost" style="padding:0.4rem 0.85rem;font-size:0.8rem;" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <div class="chat-layout">
+        <div class="chat-sidebar">
+            <div class="sidebar-header">💬 Messages</div>
+            <div class="room-list" id="room-list"></div>
+        </div>
+        <div class="chat-main">
+            <div class="no-chat" id="no-chat">
+                <div style="font-size:2.5rem;">💬</div>
+                <strong>Select a conversation</strong>
+                <p style="font-size:0.85rem;">Pick a match from the left to start chatting</p>
+            </div>
+            <div id="active-chat" style="display:none;flex-direction:column;height:100%;">
+                <div class="chat-header">
+                    <div class="avatar-placeholder room-avatar" id="chat-avatar" style="width:40px;height:40px;font-size:1rem;"></div>
+                    <div style="flex:1;">
+                        <div class="chat-header-name" id="chat-name"></div>
+                        <div class="chat-header-status" id="chat-status">Active now</div>
+                    </div>
+                    <div style="display:flex;gap:0.5rem;">
+                        <button onclick="viewChatProfile()" class="btn btn-ghost" style="font-size:0.78rem;padding:0.35rem 0.7rem;">👁️ Profile</button>
+                        <button onclick="openChatReport()" class="btn btn-ghost" style="font-size:0.78rem;padding:0.35rem 0.7rem;">🚩 Report</button>
+                        <button onclick="openChatBlock()" class="btn btn-ghost" style="font-size:0.78rem;padding:0.35rem 0.7rem;color:var(--red);border-color:var(--red);">🚫 Block</button>
+                    </div>
+                </div>
+                <div class="messages-area" id="messages-area"></div>
+                <div class="typing-indicator" id="typing-indicator"></div>
+                <div class="emoji-row">
+                    <button class="emoji-btn" onclick="sendReaction('👍')">👍</button>
+                    <button class="emoji-btn" onclick="sendReaction('❤️')">❤️</button>
+                    <button class="emoji-btn" onclick="sendReaction('🔥')">🔥</button>
+                    <button class="emoji-btn" onclick="sendReaction('😂')">😂</button>
+                    <button class="emoji-btn" onclick="sendReaction('🎉')">🎉</button>
+                </div>
+                <div class="chat-input-area">
+                    <textarea id="msg-input" placeholder="Type a message..." rows="1" onkeydown="handleKey(event)" oninput="onTyping()"></textarea>
+                    <button class="send-btn" onclick="sendMessage()">➤</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/api.js"></script>
+    <script>
+        requireAuth()
+        const currentUser = getUser()
+        let ws = null, activeRoomKey = null, typingTimeout = null, lastMsgId = null
+        const params = new URLSearchParams(location.search)
+        const autoRoom = params.get('room')
+
+        async function loadRooms() {
+            try {
+                const res = await api('/chat/rooms/')
+                if (res && res.ok) {
+                    const data = await res.json()
+                    const rooms = data.rooms || []
+                    const list = document.getElementById('room-list')
+                    list.innerHTML = ''
+                    rooms.forEach(room => {
+                        const lastMsg = room.last_message?.content || 'No messages yet'
+                        const unread = room.unread_count || 0
+                        const otherUser = room.other_user || {}
+                        const displayName = otherUser.display_name || otherUser.username || (otherUser.email ? otherUser.email.split('@')[0] : (room.other_email || 'User'))
+                        const item = document.createElement('div')
+                        item.className = `room-item${room.room_key === activeRoomKey ? ' active' : ''}`
+                        item.dataset.key = room.room_key
+                        item.innerHTML = `
+                            <div class="avatar-placeholder room-avatar">${displayName[0].toUpperCase()}</div>
+                            <div style="flex:1;min-width:0;">
+                                <div class="room-name">${escapeHtml(displayName)}</div>
+                                <div class="room-last">${escapeHtml(lastMsg)}</div>
+                            </div>
+                            ${unread > 0 ? `<div class="room-unread">${unread}</div>` : ''}`
+                        item.onclick = () => openChat(room.room_key, otherUser)
+                        list.appendChild(item)
+                    })
+                    if (autoRoom) { const matched = rooms.find(r => r.room_key === autoRoom); if (matched) openChat(matched.room_key, matched.other_user || {}) }
+                }
+            } catch {}
+        }
+
+        async function openChat(roomKey, otherUser) {
+            if (ws) ws.close()
+            activeRoomKey = roomKey
+            document.getElementById('no-chat').style.display = 'none'
+            document.getElementById('active-chat').style.display = 'flex'
+            const displayName = typeof otherUser === 'string' ? otherUser : (otherUser?.display_name || otherUser?.username || (otherUser?.email ? otherUser.email.split('@')[0] : 'User'))
+            document.getElementById('chat-name').textContent = displayName
+            chatOtherUserId = (typeof otherUser === 'object' && otherUser) ? (otherUser.id || null) : null
+            document.getElementById('chat-avatar').textContent = displayName[0].toUpperCase()
+            document.querySelectorAll('.room-item').forEach(i => i.classList.toggle('active', i.dataset.key === roomKey))
+            await loadMessages(roomKey)
+            connectWS(roomKey)
+        }
+
+        async function loadMessages(roomKey) {
+            try {
+                const res = await api(`/chat/rooms/${roomKey}/messages/`)
+                if (res && res.ok) {
+                    const data = await res.json()
+                    const area = document.getElementById('messages-area')
+                    area.innerHTML = ''
+                    const msgs = data.messages || []
+                    msgs.forEach(m => appendMessage(m))
+                    scrollToBottom()
+                    if (msgs.length > 0) lastMsgId = msgs[msgs.length - 1].id
+                }
+            } catch {}
+        }
+
+        function appendMessage(m) {
+            const isMine = m.sender_email === currentUser?.email
+            const area = document.getElementById('messages-area')
+            const time = new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            const div = document.createElement('div')
+            div.className = `msg ${isMine ? 'mine' : 'theirs'}`
+            div.id = `msg-${m.id}`
+            div.innerHTML = `
+                <div class="msg-bubble">${escapeHtml(m.content)}</div>
+                <div class="msg-meta">${time} ${isMine ? `<span class="read-tick">${m.is_read ? '✓✓' : '✓'}</span>` : ''}</div>
+                <div class="reactions-row" id="reactions-${m.id}"></div>`
+            area.appendChild(div)
+            if (!isMine && !m.is_read && ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ type: 'read_receipt', message_id: m.id }))
+            }
+            lastMsgId = m.id
+        }
+
+        function connectWS(roomKey) {
+            const token = getToken()
+            if (!token) {
+                showToast('Please log in to use chat.', 'error')
+                window.location.href = '/login/'
+                return
+            }
+            const wsUrl = `ws://127.0.0.1:8000/ws/chat/${roomKey}/?token=${token}`
+            console.log('Connecting to WebSocket:', wsUrl)
+            ws = new WebSocket(wsUrl)
+            ws.onopen = () => {
+                console.log('WebSocket connected')
+                document.getElementById('chat-status').textContent = 'Connected ✓'
+                document.getElementById('chat-status').style.color = 'var(--green)'
+            }
+            ws.onclose = (e) => {
+                console.log('WebSocket closed:', e.code, e.reason)
+                document.getElementById('chat-status').textContent = 'Disconnected'
+                document.getElementById('chat-status').style.color = 'var(--red)'
+            }
+            ws.onerror = (err) => {
+                console.error('WebSocket error:', err)
+                document.getElementById('chat-status').textContent = 'Connection error'
+                document.getElementById('chat-status').style.color = 'var(--red)'
+                showToast('Chat connection failed. Make sure daphne is running.', 'error')
+            }
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data)
+                if (data.type === 'message') { appendMessage({ id: data.message_id, sender_email: data.sender_email, content: data.content, message_type: data.message_type, is_read: false, created_at: data.created_at }); scrollToBottom(); loadRooms() }
+                if (data.type === 'typing') {
+                    const typingName = data.sender_username || (data.sender_email ? data.sender_email.split('@')[0] : 'User')
+                    document.getElementById('typing-indicator').textContent = data.is_typing ? `${typingName} is typing...` : ''
+                }
+                if (data.type === 'read_receipt') { const el = document.getElementById(`msg-${data.message_id}`); if (el) { const tick = el.querySelector('.read-tick'); if (tick) tick.textContent = '✓✓' } }
+                if (data.type === 'reaction') { const row = document.getElementById(`reactions-${data.message_id}`); if (row) { const b = document.createElement('span'); b.className = 'reaction-badge'; b.textContent = data.emoji; row.appendChild(b) } }
+            }
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('msg-input')
+            const content = input.value.trim()
+            if (!content || !ws || ws.readyState !== WebSocket.OPEN) return
+            ws.send(JSON.stringify({ type: 'message', message_type: 'text', content }))
+            input.value = ''
+            ws.send(JSON.stringify({ type: 'typing', is_typing: false }))
+        }
+
+        function sendReaction(emoji) { if (!lastMsgId || !ws || ws.readyState !== WebSocket.OPEN) return; ws.send(JSON.stringify({ type: 'reaction', message_id: lastMsgId, emoji })) }
+
+        function onTyping() {
+            if (!ws || ws.readyState !== WebSocket.OPEN) return
+            ws.send(JSON.stringify({ type: 'typing', is_typing: true }))
+            clearTimeout(typingTimeout)
+            typingTimeout = setTimeout(() => ws.send(JSON.stringify({ type: 'typing', is_typing: false })), 2000)
+        }
+
+        function handleKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage() } }
+        function scrollToBottom() { const a = document.getElementById('messages-area'); a.scrollTop = a.scrollHeight }
+        function escapeHtml(t) { return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') }
+
+        loadRooms()
+        let chatOtherUserId = null
+
+        function viewChatProfile() {
+            if (!chatOtherUserId) return showToast('Profile not available.', 'error')
+            window.open('/view-profile/?id=' + chatOtherUserId + '&from=chat', '_blank')
+        }
+
+        function openChatReport() {
+            document.getElementById('chat-report-modal').style.display = 'flex'
+        }
+        function closeChatReport() {
+            document.getElementById('chat-report-modal').style.display = 'none'
+        }
+        async function submitChatReport() {
+            if (!chatOtherUserId) return showToast('No user selected.', 'error')
+            const category = document.getElementById('chat-report-category').value
+            const reason = document.getElementById('chat-report-reason').value.trim()
+            if (!reason) return showToast('Please enter a reason.', 'error')
+            const res = await api('/moderation/report/', {
+                method: 'POST',
+                body: JSON.stringify({ reported_user: chatOtherUserId, category, reason })
+            })
+            if (res && res.ok) { showToast('Report submitted. Our team will review it.'); closeChatReport() }
+            else { showToast('Failed to submit report.', 'error') }
+        }
+
+        function openChatBlock() {
+            document.getElementById('chat-block-modal').style.display = 'flex'
+        }
+        function closeChatBlock() {
+            document.getElementById('chat-block-modal').style.display = 'none'
+        }
+        async function confirmChatBlock() {
+            if (!chatOtherUserId) return
+            const res = await api('/moderation/block/', {
+                method: 'POST',
+                body: JSON.stringify({ blocked: chatOtherUserId, reason: 'Blocked from chat' })
+            })
+            if (res && res.ok) {
+                showToast('User blocked. You will no longer see each other.')
+                closeChatBlock()
+                if (ws) ws.close()
+                document.getElementById('active-chat').style.display = 'none'
+                document.getElementById('no-chat').style.display = 'flex'
+                await loadRooms()
+            } else { showToast('Failed to block user.', 'error') }
+        }
+
+    </script>
+
+    <!-- Report modal -->
+    <div id="chat-report-modal" style="background:rgba(0,0,0,0.75);display:none;align-items:center;justify-content:center;position:fixed;inset:0;z-index:9999;">
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);max-width:440px;padding:1.75rem;width:90%;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">
+                <h3 style="font-size:1rem;">Report this user</h3>
+                <button onclick="closeChatReport()" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:1.25rem;">×</button>
+            </div>
+            <div class="form-group">
+                <label>Category</label>
+                <select id="chat-report-category">
+                    <option value="harassment">Harassment</option>
+                    <option value="inappropriate_content">Inappropriate Content</option>
+                    <option value="fake_profile">Fake Profile</option>
+                    <option value="spam">Spam</option>
+                    <option value="hate_speech">Hate Speech</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Reason</label>
+                <textarea id="chat-report-reason" rows="3" placeholder="Describe what happened..."></textarea>
+            </div>
+            <button class="btn btn-danger btn-full" onclick="submitChatReport()">Submit report</button>
+        </div>
+    </div>
+
+    <!-- Block confirm modal -->
+    <div id="chat-block-modal" style="background:rgba(0,0,0,0.75);display:none;align-items:center;justify-content:center;position:fixed;inset:0;z-index:9999;">
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);max-width:380px;padding:1.75rem;width:90%;text-align:center;">
+            <div style="font-size:2.5rem;margin-bottom:0.75rem;">🚫</div>
+            <h3 style="font-size:1rem;margin-bottom:0.5rem;">Block this user?</h3>
+            <p style="color:var(--text2);font-size:0.875rem;margin-bottom:1.5rem;" id="block-confirm-msg">They won't be able to see your profile or message you.</p>
+            <div style="display:flex;gap:0.75rem;">
+                <button class="btn btn-ghost btn-full" onclick="closeChatBlock()">Cancel</button>
+                <button class="btn btn-danger btn-full" onclick="confirmChatBlock()">Yes, block</button>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

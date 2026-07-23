@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upgrade — SwipeCollab</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <style>
+        body { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; background: radial-gradient(ellipse at 50% 0%, rgba(108,99,255,0.1) 0%, transparent 60%); }
+        .pay-wrap { width: 100%; max-width: 480px; padding: 1.5rem; }
+        .pay-logo { font-family: var(--font-head); font-size: 1.4rem; font-weight: 700; text-align: center; margin-bottom: 2rem; text-decoration: none; display: block; color: var(--text); }
+        .pay-logo span { color: var(--accent); }
+        .price-hero { text-align: center; margin-bottom: 2rem; }
+        .price-tag { font-family: var(--font-head); font-size: 3.5rem; font-weight: 700; line-height: 1; color: var(--text); }
+        .price-tag sup { font-size: 1.5rem; vertical-align: super; color: var(--accent); }
+        .price-tag span { color: var(--accent); }
+        .price-desc { color: var(--text2); font-size: 0.9rem; margin-top: 0.5rem; }
+        .benefits { list-style: none; margin-bottom: 0; }
+        .benefits li { align-items: center; display: flex; gap: 0.75rem; color: var(--text2); font-size: 0.9rem; padding: 0.6rem 0; border-bottom: 1px solid var(--border); }
+        .benefits li:last-child { border-bottom: none; }
+        .benefit-icon { font-size: 1.1rem; flex-shrink: 0; }
+        .already-paid-box { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); border-radius: var(--radius); color: var(--green); padding: 2rem; text-align: center; display: none; }
+        .trial-note { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25); border-radius: var(--radius-sm); color: var(--red); font-size: 0.875rem; padding: 0.75rem 1rem; margin-bottom: 1.5rem; display: none; }
+        .trial-active-note { background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.25); border-radius: var(--radius-sm); color: var(--green); font-size: 0.875rem; padding: 0.75rem 1rem; margin-bottom: 1.5rem; display: none; }
+        .secure-note { color: var(--text3); font-size: 0.78rem; margin-top: 1rem; text-align: center; }
+        .pay-btn-wrap { margin-top: 1.5rem; }
+        .error-box { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: var(--radius-sm); color: var(--red); font-size: 0.85rem; padding: 0.75rem 1rem; margin-top: 1rem; display: none; }
+    </style>
+</head>
+<body>
+    <div class="pay-wrap">
+        <a href="/" class="pay-logo">Swipe<span>Collab</span></a>
+
+        <!-- Already paid -->
+        <div id="already-paid-box" class="already-paid-box">
+            <div style="font-size:2.5rem;margin-bottom:0.75rem;">✅</div>
+            <strong style="font-size:1.1rem;">You're already on the paid plan!</strong>
+            <p style="color:var(--text2);font-size:0.875rem;margin-top:0.5rem;margin-bottom:1.25rem;">Enjoy unlimited access to all SwipeCollab features.</p>
+            <a href="/dashboard/" class="btn btn-primary">Go to dashboard →</a>
+        </div>
+
+        <!-- Payment content -->
+        <div id="pay-content">
+            <div class="price-hero">
+                <div class="price-tag"><sup>₹</sup><span>49</span></div>
+                <div class="price-desc">One-time payment &nbsp;·&nbsp; Lifetime access &nbsp;·&nbsp; No renewals ever</div>
+            </div>
+
+            <div id="trial-expired-note" class="trial-note">
+                ⚠️ Your free trial has expired. Pay ₹49 once to continue using SwipeCollab.
+            </div>
+            <div id="trial-active-note" class="trial-active-note">
+                🎉 Your trial is active! Upgrade now to lock in lifetime access.
+            </div>
+
+            <div class="card" style="margin-bottom:0;">
+                <ul class="benefits">
+                    <li><span class="benefit-icon">♾️</span><div><strong>Unlimited swipes</strong><br><span style="font-size:0.8rem;">Swipe as much as you want, forever</span></div></li>
+                    <li><span class="benefit-icon">⚡</span><div><strong>Super likes every day</strong><br><span style="font-size:0.8rem;">3 super likes daily to stand out</span></div></li>
+                    <li><span class="benefit-icon">👁️</span><div><strong>See who liked you</strong><br><span style="font-size:0.8rem;">Know who's interested before you swipe</span></div></li>
+                    <li><span class="benefit-icon">💬</span><div><strong>Unlimited chat &amp; sessions</strong><br><span style="font-size:0.8rem;">Message and collab with all your matches</span></div></li>
+                    <li><span class="benefit-icon">📋</span><div><strong>Apply to all projects</strong><br><span style="font-size:0.8rem;">No limits on project applications</span></div></li>
+                    <li><span class="benefit-icon">📊</span><div><strong>Full analytics dashboard</strong><br><span style="font-size:0.8rem;">See your profile views, likes, and match stats</span></div></li>
+                    <li><span class="benefit-icon">🏅</span><div><strong>Verified member badge</strong><br><span style="font-size:0.8rem;">Stand out with a paid member badge</span></div></li>
+                </ul>
+            </div>
+
+            <div class="pay-btn-wrap">
+                <button class="btn btn-primary btn-full" id="pay-btn" onclick="startPayment()" style="font-size:1.05rem;padding:1rem;">
+                    Pay ₹49 — Unlock everything
+                </button>
+                <p class="secure-note">🔒 Secured by Razorpay &nbsp;·&nbsp; Your card details are never stored with us</p>
+            </div>
+
+            <div id="error-box" class="error-box"></div>
+
+            <div style="text-align:center;margin-top:1.5rem;">
+                <a href="/dashboard/" style="color:var(--text3);font-size:0.85rem;">← Back to dashboard</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/api.js"></script>
+    <script>
+        requireAuth()
+        const user = getUser()
+
+        function showErrorBox(msg) {
+            const box = document.getElementById('error-box')
+            box.textContent = msg
+            box.style.display = 'block'
+        }
+
+        function hideErrorBox() {
+            document.getElementById('error-box').style.display = 'none'
+        }
+
+        function init() {
+            if (!user) {
+                window.location.href = '/login/'
+                return
+            }
+
+            if (user.is_paid) {
+                document.getElementById('already-paid-box').style.display = 'block'
+                document.getElementById('pay-content').style.display = 'none'
+                return
+            }
+
+            if (user.is_trial_active) {
+                document.getElementById('trial-active-note').style.display = 'block'
+            } else {
+                document.getElementById('trial-expired-note').style.display = 'block'
+            }
+        }
+
+        async function startPayment() {
+            hideErrorBox()
+
+            if (typeof Razorpay === 'undefined') {
+                showErrorBox('Razorpay failed to load. Please check your internet connection and refresh.')
+                return
+            }
+
+            const btn = document.getElementById('pay-btn')
+            btn.disabled = true
+            btn.textContent = 'Creating order...'
+
+            try {
+                const res = await api('/payments/create-order/', { method: 'POST' })
+
+                if (!res) {
+                    showErrorBox('Could not connect to server. Make sure Django is running.')
+                    btn.disabled = false
+                    btn.textContent = 'Pay ₹49 — Unlock everything'
+                    return
+                }
+
+                if (!res.ok) {
+                    let errMsg = 'Failed to create payment order.'
+                    try {
+                        const d = await res.json()
+                        errMsg = d.detail || errMsg
+                    } catch {}
+                    showErrorBox(errMsg)
+                    btn.disabled = false
+                    btn.textContent = 'Pay ₹49 — Unlock everything'
+                    return
+                }
+
+                const order = await res.json()
+
+                if (!order.key || !order.order_id) {
+                    showErrorBox('Invalid order response from server. Check your Razorpay keys in settings.py.')
+                    btn.disabled = false
+                    btn.textContent = 'Pay ₹49 — Unlock everything'
+                    return
+                }
+
+                const options = {
+                    key: order.key,
+                    amount: order.amount,
+                    currency: 'INR',
+                    name: 'SwipeCollab',
+                    description: 'Lifetime access — one-time payment',
+                    order_id: order.order_id,
+                    prefill: {
+                        email: user.email || '',
+                        name: user.email ? user.email.split('@')[0] : '',
+                    },
+                    theme: { color: '#6c63ff' },
+                    handler: async function(response) {
+                        btn.textContent = 'Verifying payment...'
+                        hideErrorBox()
+
+                        try {
+                            const verifyRes = await api('/payments/verify/', {
+                                method: 'POST',
+                                body: JSON.stringify({
+                                    rzp_order_id: response.razorpay_order_id,
+                                    rzp_payment_id: response.razorpay_payment_id,
+                                    rzp_signature: response.razorpay_signature,
+                                })
+                            })
+
+                            if (verifyRes && verifyRes.ok) {
+                                // Update local user state
+                                const u = getUser()
+                                if (u) {
+                                    u.is_paid = true
+                                    u.is_trial_active = false
+                                    saveUser(u)
+                                }
+                                showToast('Payment successful! Welcome to SwipeCollab 🎉')
+                                setTimeout(() => window.location.href = '/dashboard/', 1500)
+                            } else {
+                                let errMsg = 'Payment verification failed.'
+                                try {
+                                    const d = await verifyRes.json()
+                                    errMsg = d.detail || errMsg
+                                } catch {}
+                                showErrorBox(errMsg + ' Please contact support with your payment ID: ' + response.razorpay_payment_id)
+                                btn.disabled = false
+                                btn.textContent = 'Pay ₹49 — Unlock everything'
+                            }
+                        } catch {
+                            showErrorBox('Verification error. Please contact support.')
+                            btn.disabled = false
+                            btn.textContent = 'Pay ₹49 — Unlock everything'
+                        }
+                    },
+                    modal: {
+                        ondismiss: function() {
+                            btn.disabled = false
+                            btn.textContent = 'Pay ₹49 — Unlock everything'
+                            hideErrorBox()
+                        }
+                    }
+                }
+
+                const rzp = new Razorpay(options)
+
+                rzp.on('payment.failed', function(response) {
+                    showErrorBox('Payment failed: ' + (response.error.description || 'Unknown error'))
+                    btn.disabled = false
+                    btn.textContent = 'Pay ₹49 — Unlock everything'
+                })
+
+                rzp.open()
+
+            } catch (err) {
+                showErrorBox('Cannot connect to server. Make sure Django is running on port 8000.')
+                btn.disabled = false
+                btn.textContent = 'Pay ₹49 — Unlock everything'
+            }
+        }
+
+        init()
+    </script>
+</body>
+</html>

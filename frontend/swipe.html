@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swipe — SwipeCollab</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .swipe-page { display: flex; flex-direction: column; align-items: center; padding: 2rem 1rem; min-height: calc(100vh - 60px); }
+        .swipe-top { display: flex; align-items: center; justify-content: space-between; width: 100%; max-width: 420px; margin-bottom: 1.5rem; }
+        .super-likes-left { background: var(--bg2); border: 1px solid var(--border); border-radius: 999px; color: var(--text2); font-size: 0.8rem; font-weight: 500; padding: 0.35rem 0.85rem; }
+        .card-stack { position: relative; width: 100%; max-width: 380px; height: 520px; }
+        .swipe-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 20px; box-shadow: var(--shadow); cursor: grab; left: 0; padding: 1.75rem; position: absolute; top: 0; transition: transform 0.15s ease; width: 100%; user-select: none; }
+        .swipe-card:nth-child(2) { transform: translateY(10px) scale(0.97); z-index: 0; }
+        .swipe-card:nth-child(3) { transform: translateY(20px) scale(0.94); z-index: -1; }
+        .swipe-card.top { z-index: 10; }
+        .swipe-card.dragging { cursor: grabbing; transition: none; }
+        .swipe-card.fly-right { transform: translateX(120%) rotate(20deg) !important; transition: transform 0.35s ease; }
+        .swipe-card.fly-left  { transform: translateX(-120%) rotate(-20deg) !important; transition: transform 0.35s ease; }
+        .swipe-card.fly-up    { transform: translateY(-120%) !important; transition: transform 0.35s ease; }
+        .card-match-score { display: inline-flex; align-items: center; gap: 0.35rem; background: rgba(108,99,255,0.12); border: 1px solid rgba(108,99,255,0.25); border-radius: 999px; color: var(--accent); font-size: 0.78rem; font-weight: 600; padding: 0.25rem 0.65rem; margin-bottom: 1rem; }
+        .card-avatar { width: 70px; height: 70px; font-size: 1.75rem; margin-bottom: 1rem; }
+        .card-name { font-family: var(--font-head); font-size: 1.3rem; font-weight: 700; margin-bottom: 0.2rem; }
+        .card-role { color: var(--text2); font-size: 0.82rem; margin-bottom: 0.75rem; }
+        .card-bio { color: var(--text2); font-size: 0.875rem; line-height: 1.5; margin-bottom: 1rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        .card-skills { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1rem; }
+        .card-meta { color: var(--text3); font-size: 0.8rem; display: flex; gap: 1rem; }
+        .like-indicator { border: 3px solid var(--green); border-radius: 8px; color: var(--green); font-size: 1.5rem; font-weight: 800; opacity: 0; padding: 0.25rem 0.6rem; position: absolute; right: 20px; top: 20px; transform: rotate(15deg); transition: opacity 0.1s; }
+        .pass-indicator { border: 3px solid var(--red); border-radius: 8px; color: var(--red); font-size: 1.5rem; font-weight: 800; opacity: 0; padding: 0.25rem 0.6rem; position: absolute; left: 20px; top: 20px; transform: rotate(-15deg); transition: opacity 0.1s; }
+        .super-indicator { border: 3px solid var(--accent); border-radius: 8px; color: var(--accent); font-size: 1.5rem; font-weight: 800; opacity: 0; padding: 0.25rem 0.6rem; position: absolute; left: 50%; top: 20px; transform: translateX(-50%); transition: opacity 0.1s; }
+        .swipe-btns { display: flex; align-items: center; gap: 1.25rem; margin-top: 2rem; }
+        .swipe-btn { align-items: center; border: none; border-radius: 50%; cursor: pointer; display: flex; justify-content: center; transition: all var(--transition); }
+        .btn-pass  { background: var(--bg2); border: 2px solid var(--red); color: var(--red); font-size: 1.5rem; height: 60px; width: 60px; }
+        .btn-super { background: var(--bg2); border: 2px solid var(--accent); color: var(--accent); font-size: 1.25rem; height: 52px; width: 52px; }
+        .btn-like  { background: var(--bg2); border: 2px solid var(--green); color: var(--green); font-size: 1.5rem; height: 60px; width: 60px; }
+        .btn-pass:hover  { background: var(--red); color: #fff; }
+        .btn-super:hover { background: var(--accent); color: #fff; }
+        .btn-like:hover  { background: var(--green); color: #fff; }
+        .match-overlay { background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; height: 100%; left: 0; position: fixed; top: 0; width: 100%; z-index: 999; }
+        .match-box { background: var(--bg2); border: 1px solid var(--border); border-radius: 24px; max-width: 380px; padding: 2.5rem 2rem; text-align: center; width: 90%; }
+        .match-emoji { font-size: 3.5rem; margin-bottom: 1rem; }
+        .match-box h2 { font-size: 1.75rem; margin-bottom: 0.5rem; }
+        .match-box p { color: var(--text2); margin-bottom: 2rem; }
+        .match-btns { display: flex; flex-direction: column; gap: 0.75rem; }
+        .filter-btn { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text2); cursor: pointer; font-size: 0.8rem; padding: 0.4rem 0.85rem; }
+        .filter-btn:hover { border-color: var(--accent); color: var(--accent); }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="/" class="nav-logo">Swipe<span style="color:var(--accent)">Collab</span></a>
+        <div class="nav-links">
+            <a href="/dashboard/" class="nav-link">Home</a>
+            <a href="/swipe/" class="nav-link active">Swipe</a>
+            <a href="/matches/" class="nav-link">Matches</a>
+            <a href="/projects/" class="nav-link">Projects</a>
+            <a href="/profile/" class="nav-link">Profile</a>
+            <a href="/moderation/" class="nav-link" style="color:var(--red);">🛡️ Safety</a>
+            <button class="btn btn-ghost" style="padding:0.4rem 0.85rem;font-size:0.8rem;" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <div class="swipe-page">
+        <div class="swipe-top">
+            <h2 style="font-size:1.1rem;">Discover</h2>
+            <div style="display:flex;gap:0.5rem;align-items:center;">
+                <div class="super-likes-left">⚡ <span id="super-left">3</span> super likes left</div>
+                <button class="filter-btn" onclick="toggleFilter()">⚙️ Filter</button>
+            </div>
+        </div>
+
+        <div id="filter-panel" style="display:none;width:100%;max-width:380px;margin-bottom:1rem;">
+            <div class="card" style="padding:1rem;">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.75rem;">
+                    <div><label style="font-size:0.78rem;">Min exp (yrs)</label><input type="number" id="f-exp-min" value="0" min="0"></div>
+                    <div><label style="font-size:0.78rem;">Max exp (yrs)</label><input type="number" id="f-exp-max" value="30" max="50"></div>
+                </div>
+                <div style="margin-bottom:0.75rem;"><label style="font-size:0.78rem;">Country</label><input type="text" id="f-country" placeholder="India"></div>
+                <button class="btn btn-primary btn-full" onclick="saveFilter()">Apply filter</button>
+            </div>
+        </div>
+
+        <div class="card-stack" id="card-stack">
+            <div class="empty-state" id="empty-state" style="display:none;">
+                <div class="empty-state-icon">🎉</div>
+                <strong>You've seen everyone!</strong>
+                <p>Check back later for new profiles.</p>
+                <a href="/matches/" class="btn btn-primary" style="margin-top:0.5rem;">See your matches</a>
+            </div>
+        </div>
+
+        <div class="swipe-btns" id="swipe-btns" style="display:none;">
+            <button class="swipe-btn btn-pass" onclick="doSwipe('pass')" title="Pass">✕</button>
+            <button class="swipe-btn btn-super" onclick="doSwipe('super_like')" title="Super Like">⚡</button>
+            <button class="swipe-btn btn-like" onclick="doSwipe('like')" title="Like">♥</button>
+        </div>
+    </div>
+
+    <div class="match-overlay" id="match-overlay">
+        <div class="match-box">
+            <div class="match-emoji">🎉</div>
+            <h2>It's a Match!</h2>
+            <p>You and your match liked each other. Start chatting before the 48-hour timer runs out!</p>
+            <div class="match-btns">
+                <a href="/chat/" class="btn btn-primary" id="match-chat-btn">💬 Send a message</a>
+                <button class="btn btn-ghost" onclick="closeMatch()">Keep swiping</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/api.js"></script>
+    <script>
+        requireAuth()
+        let feed = [], currentIndex = 0, currentMatchId = null
+
+        async function loadFeed() {
+            try {
+                const res = await api('/swipe/feed/')
+                if (res && res.ok) {
+                    const data = await res.json()
+                    feed = data.feed || []
+                    document.getElementById('super-left').textContent = data.super_likes_remaining ?? 3
+                    renderCards()
+                } else if (res && res.status === 403) {
+                    const d = await res.json()
+                    document.getElementById('card-stack').innerHTML = `<div class="empty-state"><div class="empty-state-icon">🔒</div><strong>Access required</strong><p>${d.detail}</p><a href="/payment/" class="btn btn-primary" style="margin-top:0.5rem;">Pay ₹49 to unlock</a></div>`
+                }
+            } catch { showToast('Could not load feed.', 'error') }
+        }
+
+        function renderCards() {
+            const stack = document.getElementById('card-stack')
+            stack.querySelectorAll('.swipe-card').forEach(c => c.remove())
+            const visible = feed.slice(currentIndex, currentIndex + 3)
+            if (visible.length === 0) {
+                document.getElementById('empty-state').style.display = 'flex'
+                document.getElementById('swipe-btns').style.display = 'none'
+                return
+            }
+            document.getElementById('empty-state').style.display = 'none'
+            document.getElementById('swipe-btns').style.display = 'flex'
+            visible.reverse().forEach((profile, i) => stack.appendChild(buildCard(profile, i === visible.length - 1)))
+            setupDrag(stack.querySelector('.swipe-card.top'))
+        }
+
+        function buildCard(p, isTop) {
+            const card = document.createElement('div')
+            card.className = `swipe-card${isTop ? ' top' : ''}`
+            card.dataset.id = p.user_id || p.user || p.id
+            card.dataset.profileId = p.id
+            card.dataset.role = (p.description !== undefined && p.website_url !== undefined) ? 'company' : 'freelancer'
+            const score = p.skill_match_score != null ? `<div class="card-match-score">🎯 ${p.skill_match_score}% skill match</div>` : ''
+            const initials = (p.name || 'U')[0].toUpperCase()
+            const skills = (p.skills || []).slice(0, 4).map(s => `<span class="skill-tag">${s.name}</span>`).join('')
+            const meta = [p.city, p.country].filter(Boolean).join(', ')
+            const exp = p.experience_years !== undefined ? `${p.experience_years} yrs exp` : ''
+            const avail = p.availability ? p.availability.replace('_', ' ') : ''
+            card.innerHTML = `
+                <div class="like-indicator">LIKE</div>
+                <div class="pass-indicator">PASS</div>
+                <div class="super-indicator">SUPER</div>
+                ${score}
+                <div class="avatar-placeholder card-avatar">${initials}</div>
+                <div class="card-name" onclick="viewProfile(event, '${card.dataset.id}', '${p.skill_match_score || ''}')" style="cursor:pointer;text-decoration:underline;text-underline-offset:3px;">${p.name || 'Unknown'} 👁️</div>
+                <div class="card-role">${p.description ? 'Company' : 'Freelancer'} ${avail ? '· ' + avail : ''}</div>
+                <div class="card-bio">${p.bio || p.description || 'No bio added yet.'}</div>
+                <div class="card-skills">${skills}</div>
+                <div class="card-meta">${meta ? `📍 ${meta}` : ''} ${exp ? `· ${exp}` : ''}</div>
+                <div style="margin-top:0.75rem;display:flex;justify-content:space-between;align-items:center;">
+                    <button onclick="viewProfile(event, card)" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:0.78rem;font-weight:600;">👤 View full profile</button>
+                    <button onclick="openReportModal(event, '${card.dataset.id}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:0.75rem;">🚩 Report</button>
+                </div>`
+            return card
+        }
+
+        function setupDrag(card) {
+            if (!card) return
+            let startX = 0, startY = 0, curX = 0, curY = 0
+
+            const start = (e) => {
+                startX = e.clientX; startY = e.clientY
+                card.classList.add('dragging')
+                document.addEventListener('mousemove', move)
+                document.addEventListener('mouseup', end)
+            }
+            const move = (e) => {
+                curX = e.clientX - startX; curY = e.clientY - startY
+                card.style.transform = `translate(${curX}px, ${curY}px) rotate(${curX * 0.08}deg)`
+                card.querySelector('.like-indicator').style.opacity = Math.max(0, curX / 80)
+                card.querySelector('.pass-indicator').style.opacity = Math.max(0, -curX / 80)
+                card.querySelector('.super-indicator').style.opacity = Math.max(0, -curY / 80)
+            }
+            const end = () => {
+                card.classList.remove('dragging')
+                document.removeEventListener('mousemove', move)
+                document.removeEventListener('mouseup', end)
+                if (curX > 80) doSwipe('like')
+                else if (curX < -80) doSwipe('pass')
+                else if (curY < -80) doSwipe('super_like')
+                else { card.style.transform = ''; curX = 0; curY = 0 }
+            }
+            card.addEventListener('mousedown', start)
+            card.addEventListener('touchstart', e => start(e.touches[0]), { passive: true })
+        }
+
+        async function doSwipe(action) {
+            const card = document.querySelector('.swipe-card.top')
+            if (!card) return
+            const targetId = card.dataset.id
+            card.classList.add(action === 'like' ? 'fly-right' : action === 'pass' ? 'fly-left' : 'fly-up')
+            setTimeout(async () => { card.remove(); currentIndex++; renderCards() }, 350)
+            try {
+                const res = await api('/swipe/action/', { method: 'POST', body: JSON.stringify({ target_id: targetId, action }) })
+                if (res && res.ok) {
+                    const data = await res.json()
+                    document.getElementById('super-left').textContent = data.super_likes_remaining ?? 3
+                    if (data.matched) { currentMatchId = data.match_id; setTimeout(() => showMatch(data.match_id), 400) }
+                } else if (res && res.status === 429) { showToast('Super like daily limit reached!', 'error') }
+            } catch {}
+        }
+
+        function showMatch(matchId) {
+            document.getElementById('match-overlay').style.display = 'flex'
+            document.getElementById('match-chat-btn').href = `/chat/?match=${matchId}`
+        }
+        function closeMatch() { document.getElementById('match-overlay').style.display = 'none' }
+        function toggleFilter() { const p = document.getElementById('filter-panel'); p.style.display = p.style.display === 'none' ? 'block' : 'none' }
+
+        async function saveFilter() {
+            const body = { experience_min: parseInt(document.getElementById('f-exp-min').value) || 0, experience_max: parseInt(document.getElementById('f-exp-max').value) || 30, country: document.getElementById('f-country').value }
+            const res = await api('/swipe/filter/', { method: 'POST', body: JSON.stringify(body) })
+            if (res && res.ok) { showToast('Filter applied.'); toggleFilter(); currentIndex = 0; await loadFeed() }
+        }
+
+        function viewProfile(e, userId, score) {
+            e.stopPropagation()
+            let url = '/view-profile/?id=' + userId + '&from=swipe'
+            if (score) url += '&score=' + score
+            window.open(url, '_blank')
+        }
+
+
+        function viewProfile(e, card) {
+            e.stopPropagation()
+            const userId = card.dataset.id
+            const profileId = card.dataset.profileId
+            const role = card.dataset.role
+            window.location.href = `/profile-view/?id=${userId}&profile_id=${profileId}&role=${role}&from=swipe`
+        }
+
+        loadFeed()
+        let reportTargetId = null
+
+        function openReportModal(e, userId) {
+            e.stopPropagation()
+            reportTargetId = userId
+            document.getElementById('report-modal').style.display = 'flex'
+        }
+
+        function closeReportModal() {
+            document.getElementById('report-modal').style.display = 'none'
+            reportTargetId = null
+        }
+
+        async function submitReport() {
+            if (!reportTargetId) return
+            const category = document.getElementById('swipe-report-category').value
+            const reason = document.getElementById('swipe-report-reason').value.trim()
+            if (!reason) return showToast('Please enter a reason.', 'error')
+            const res = await api('/moderation/report/', {
+                method: 'POST',
+                body: JSON.stringify({ reported_user: reportTargetId, category, reason })
+            })
+            if (res && res.ok) { showToast('Report submitted.'); closeReportModal() }
+            else { showToast('Failed to submit report.', 'error') }
+        }
+
+        async function submitBlock() {
+            if (!reportTargetId) return
+            const res = await api('/moderation/block/', {
+                method: 'POST',
+                body: JSON.stringify({ blocked: reportTargetId, reason: 'Blocked from swipe feed' })
+            })
+            if (res && res.ok) { showToast('User blocked.'); closeReportModal(); doSwipe('pass') }
+            else { showToast('Failed to block user.', 'error') }
+        }
+
+    </script>
+
+    <!-- Report modal -->
+    <div class="modal-bg" id="report-modal" style="background:rgba(0,0,0,0.75);display:none;align-items:center;justify-content:center;position:fixed;inset:0;z-index:9999;">
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);max-width:440px;padding:1.75rem;width:90%;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">
+                <h3 style="font-size:1rem;">Report this user</h3>
+                <button onclick="closeReportModal()" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:1.25rem;">×</button>
+            </div>
+            <div class="form-group">
+                <label>Category</label>
+                <select id="swipe-report-category">
+                    <option value="harassment">Harassment</option>
+                    <option value="inappropriate_content">Inappropriate Content</option>
+                    <option value="fake_profile">Fake Profile</option>
+                    <option value="spam">Spam</option>
+                    <option value="hate_speech">Hate Speech</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Reason</label>
+                <textarea id="swipe-report-reason" rows="3" placeholder="Describe what happened..."></textarea>
+            </div>
+            <div style="display:flex;gap:0.75rem;">
+                <button class="btn btn-danger btn-full" onclick="submitReport()">Submit report</button>
+                <button class="btn btn-ghost" onclick="submitBlock()">Block user</button>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

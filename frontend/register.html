@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register — SwipeCollab</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        body { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+        .auth-wrap { width: 100%; max-width: 460px; padding: 1.5rem; }
+        .auth-logo { font-family: var(--font-head); font-size: 1.5rem; font-weight: 700; color: var(--text); margin-bottom: 2rem; text-align: center; }
+        .auth-logo span { color: var(--accent); }
+        .auth-title { font-size: 1.6rem; font-weight: 700; margin-bottom: 0.4rem; }
+        .auth-sub { color: var(--text2); font-size: 0.9rem; margin-bottom: 2rem; }
+        .auth-footer { color: var(--text2); font-size: 0.875rem; margin-top: 1.5rem; text-align: center; }
+        .role-picker { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1.25rem; }
+        .role-card { border: 2px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; padding: 1rem; text-align: center; transition: all var(--transition); }
+        .role-card:hover { border-color: var(--accent); }
+        .role-card.selected { border-color: var(--accent); background: rgba(108,99,255,0.08); }
+        .role-card-icon { font-size: 1.75rem; margin-bottom: 0.4rem; }
+        .role-card-label { font-family: var(--font-head); font-size: 0.9rem; font-weight: 600; }
+        .role-card-sub { color: var(--text2); font-size: 0.75rem; margin-top: 0.2rem; }
+        .trial-note { background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.25); border-radius: var(--radius-sm); color: var(--green); font-size: 0.82rem; padding: 0.6rem 0.85rem; margin-bottom: 1.25rem; display: none; }
+        .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+    </style>
+</head>
+<body>
+    <div class="auth-wrap">
+        <a href="/" class="auth-logo" style="display:block;text-decoration:none;">Swipe<span>Collab</span></a>
+        <div class="card">
+            <h1 class="auth-title">Create account</h1>
+            <p class="auth-sub">Join SwipeCollab and start collaborating</p>
+
+            <div class="form-group">
+                <label>I am a</label>
+                <div class="role-picker">
+                    <div class="role-card selected" id="role-freelancer" onclick="selectRole('freelancer')">
+                        <div class="role-card-icon">🧑‍💻</div>
+                        <div class="role-card-label">Freelancer</div>
+                        <div class="role-card-sub">Find projects & collabs</div>
+                    </div>
+                    <div class="role-card" id="role-company" onclick="selectRole('company')">
+                        <div class="role-card-icon">🏢</div>
+                        <div class="role-card-label">Company</div>
+                        <div class="role-card-sub">Find talent & post projects</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="trial-note" id="trial-note">🎉 Freelancers get 1 month free trial — no card needed!</div>
+
+            <div class="row2">
+                <div class="form-group"><label>First name</label><input type="text" id="first_name" placeholder="John"></div>
+                <div class="form-group"><label>Last name</label><input type="text" id="last_name" placeholder="Doe"></div>
+            </div>
+            <div class="form-group"><label>Username</label><input type="text" id="username" placeholder="johndoe"><div class="sc-error" id="err-username"></div></div>
+            <div class="form-group"><label>Email</label><input type="email" id="email" placeholder="you@example.com"><div class="sc-error" id="err-email"></div></div>
+            <div class="form-group"><label>Password</label><input type="password" id="password" placeholder="Min 8 characters"><div class="sc-error" id="err-password"></div></div>
+            <div class="form-group"><label>Confirm password</label><input type="password" id="password2" placeholder="Repeat password"><div class="sc-error" id="err-password2"></div></div>
+            <div class="sc-error" id="err-general"></div>
+            <button class="btn btn-primary btn-full" id="register-btn" onclick="register()">Create account</button>
+        </div>
+        <div class="auth-footer">Already have an account? <a href="/login/">Log in</a></div>
+    </div>
+
+    <script src="/static/js/api.js"></script>
+    <script>
+        if (getToken()) window.location.href = '/dashboard/'
+        let selectedRole = 'freelancer'
+
+        function selectRole(role) {
+            selectedRole = role
+            document.getElementById('role-freelancer').classList.toggle('selected', role === 'freelancer')
+            document.getElementById('role-company').classList.toggle('selected', role === 'company')
+            document.getElementById('trial-note').style.display = role === 'freelancer' ? 'block' : 'none'
+        }
+        selectRole('freelancer')
+
+        async function register() {
+            clearErrors()
+            const email = document.getElementById('email').value.trim()
+            const username = document.getElementById('username').value.trim()
+            const password = document.getElementById('password').value
+            const password2 = document.getElementById('password2').value
+
+            if (!username) return showError('err-username', 'Username is required.')
+            if (!email) return showError('err-email', 'Email is required.')
+            if (!password) return showError('err-password', 'Password is required.')
+            if (password !== password2) return showError('err-password2', 'Passwords do not match.')
+
+            const btn = document.getElementById('register-btn')
+            btn.disabled = true
+            btn.textContent = 'Creating account...'
+
+            try {
+                const res = await fetch(`${BASE_URL}/auth/register/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, username, password, password2, role: selectedRole })
+                })
+                const data = await res.json()
+                if (res.ok) {
+                    saveTokens(data.tokens.access, data.tokens.refresh)
+                    saveUser(data.user)
+                    showToast(data.message || 'Account created!', 'success')
+                    setTimeout(() => window.location.href = '/profile/', 1000)
+                } else {
+                    if (data.email) showError('err-email', data.email[0])
+                    else if (data.username) showError('err-username', data.username[0])
+                    else if (data.password) showError('err-password', data.password[0])
+                    else showError('err-general', data.detail || 'Registration failed.')
+                    btn.disabled = false
+                    btn.textContent = 'Create account'
+                }
+            } catch {
+                showError('err-general', 'Cannot connect to server.')
+                btn.disabled = false
+                btn.textContent = 'Create account'
+            }
+        }
+    </script>
+</body>
+</html>

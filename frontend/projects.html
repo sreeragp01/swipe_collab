@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projects — SwipeCollab</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .projects-layout { display: grid; grid-template-columns: 1fr 340px; gap: 2rem; }
+        .project-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1rem; transition: all var(--transition); }
+        .project-card:hover { border-color: var(--accent); }
+        .project-title { font-family: var(--font-head); font-size: 1rem; font-weight: 600; margin-bottom: 0.3rem; }
+        .project-company { color: var(--text2); font-size: 0.82rem; margin-bottom: 0.75rem; }
+        .project-desc { color: var(--text2); font-size: 0.875rem; line-height: 1.5; margin-bottom: 0.75rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .project-meta { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
+        .project-budget { color: var(--green); font-family: var(--font-head); font-size: 0.9rem; font-weight: 600; }
+        .project-skills { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1rem; }
+        .project-actions { display: flex; gap: 0.5rem; }
+        .project-actions .btn { font-size: 0.8rem; padding: 0.45rem 0.9rem; }
+        .post-panel { position: sticky; top: 80px; }
+        .tabs { display: flex; gap: 0.25rem; border-bottom: 1px solid var(--border); margin-bottom: 1.5rem; }
+        .tab { background: none; border: none; border-bottom: 2px solid transparent; color: var(--text2); cursor: pointer; font-family: var(--font-body); font-size: 0.875rem; font-weight: 500; margin-bottom: -1px; padding: 0.6rem 1rem; transition: all var(--transition); }
+        .tab.active { border-bottom-color: var(--accent); color: var(--accent); }
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+        .apply-modal-bg { background: rgba(0,0,0,0.75); display: none; align-items: center; justify-content: center; height: 100%; left: 0; position: fixed; top: 0; width: 100%; z-index: 999; }
+        .apply-modal { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); max-width: 460px; padding: 1.75rem; width: 90%; }
+        .search-bar { display: flex; gap: 0.75rem; margin-bottom: 1.5rem; }
+        .search-bar input { flex: 1; }
+        @media (max-width: 768px) { .projects-layout { grid-template-columns: 1fr; } .post-panel { position: static; } }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="/" class="nav-logo">Swipe<span style="color:var(--accent)">Collab</span></a>
+        <div class="nav-links">
+            <a href="/dashboard/" class="nav-link">Home</a>
+            <a href="/swipe/" class="nav-link">Swipe</a>
+            <a href="/matches/" class="nav-link">Matches</a>
+            <a href="/projects/" class="nav-link active">Projects</a>
+            <a href="/profile/" class="nav-link">Profile</a>
+            <a href="/moderation/" class="nav-link" style="color:var(--red);">🛡️ Safety</a>
+            <button class="btn btn-ghost" style="padding:0.4rem 0.85rem;font-size:0.8rem;" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <div class="page">
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('browse', this)">Browse projects</button>
+            <button class="tab" id="tab-mine-btn" onclick="switchTab('mine', this)" style="display:none">My projects</button>
+            <button class="tab" id="tab-apps-btn" onclick="switchTab('applications', this)" style="display:none">My applications</button>
+        </div>
+
+        <div id="tab-browse" class="tab-panel active">
+            <div class="projects-layout">
+                <div>
+                    <div class="search-bar">
+                        <input type="text" id="search-skill" placeholder="Search by skill...">
+                        <button class="btn btn-primary" onclick="loadProjects()">Search</button>
+                    </div>
+                    <div id="projects-list"></div>
+                    <div class="empty-state" id="projects-empty" style="display:none;"><div class="empty-state-icon">📋</div><strong>No projects found</strong></div>
+                </div>
+                <div class="post-panel" id="post-panel" style="display:none;">
+                    <div class="card">
+                        <h3 style="font-size:1rem;margin-bottom:1.25rem;">Post a project</h3>
+                        <div class="form-group"><label>Title</label><input type="text" id="p-title" placeholder="e.g. Build a Django REST API"></div>
+                        <div class="form-group"><label>Description</label><textarea id="p-desc" rows="3" placeholder="What do you need built?"></textarea></div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+                            <div class="form-group"><label>Budget min (₹)</label><input type="number" id="p-bmin" placeholder="5000"></div>
+                            <div class="form-group"><label>Budget max (₹)</label><input type="number" id="p-bmax" placeholder="20000"></div>
+                        </div>
+                        <div class="form-group"><label>Duration</label>
+                            <select id="p-duration">
+                                <option value="less_1_month">Less than 1 month</option>
+                                <option value="1_3_months">1 – 3 months</option>
+                                <option value="3_6_months">3 – 6 months</option>
+                                <option value="6_plus_months">6+ months</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary btn-full" onclick="postProject()">Post project</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-mine" class="tab-panel">
+            <div id="my-projects-list"></div>
+            <div class="empty-state" id="mine-empty" style="display:none;"><div class="empty-state-icon">📝</div><strong>No projects posted yet</strong></div>
+        </div>
+
+        <div id="tab-applications" class="tab-panel">
+            <div id="my-applications-list"></div>
+            <div class="empty-state" id="apps-empty" style="display:none;"><div class="empty-state-icon">📨</div><strong>No applications sent yet</strong></div>
+        </div>
+    </div>
+
+    <div class="apply-modal-bg" id="apply-modal">
+        <div class="apply-modal">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">
+                <h3 style="font-size:1rem;">Apply to project</h3>
+                <button onclick="closeApply()" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:1.25rem;">×</button>
+            </div>
+            <div class="form-group"><label>Cover letter</label><textarea id="cover-letter" rows="4" placeholder="Why are you a great fit for this project?"></textarea></div>
+            <div class="form-group"><label>Proposed rate (₹)</label><input type="number" id="proposed-rate" placeholder="e.g. 15000"></div>
+            <button class="btn btn-primary btn-full" onclick="submitApplication()">Send application</button>
+        </div>
+    </div>
+
+    <script src="/static/js/api.js"></script>
+    <script>
+        requireAuth()
+        const user = getUser()
+        let activeProjectId = null
+
+        function switchTab(tab, el) {
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'))
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'))
+            document.getElementById(`tab-${tab}`).classList.add('active')
+            el.classList.add('active')
+            if (tab === 'mine') loadMyProjects()
+            if (tab === 'applications') loadMyApplications()
+        }
+
+        async function loadProjects() {
+            const skill = document.getElementById('search-skill').value.trim()
+            const url = `/projects/${skill ? `?skill=${encodeURIComponent(skill)}` : ''}`
+            try {
+                const res = await api(url)
+                if (res && res.ok) {
+                    const data = await res.json()
+                    const list = document.getElementById('projects-list')
+                    list.innerHTML = ''
+                    if (!data.length) { document.getElementById('projects-empty').style.display = 'flex'; return }
+                    document.getElementById('projects-empty').style.display = 'none'
+                    data.forEach(p => list.appendChild(buildProjectCard(p, false)))
+                }
+            } catch {}
+        }
+
+        function buildProjectCard(p, isMine) {
+            const div = document.createElement('div')
+            div.className = 'project-card'
+            const skills = (p.skills || []).map(s => `<span class="skill-tag">${s.name}</span>`).join('')
+            div.innerHTML = `
+                <div class="project-title">${p.title}</div>
+                <div class="project-company">by ${p.company_name || 'Company'} · ${p.application_count || 0} applicants</div>
+                <div class="project-desc">${p.description}</div>
+                <div class="project-meta">
+                    <span class="project-budget">₹${Number(p.budget_min).toLocaleString()} – ₹${Number(p.budget_max).toLocaleString()}</span>
+                    <span class="badge badge-yellow">${(p.duration || '').replace(/_/g,' ')}</span>
+                    <span class="badge badge-green">${p.status}</span>
+                </div>
+                <div class="project-skills">${skills}</div>
+                <div class="project-actions">
+                    ${!isMine && user?.role === 'freelancer' ? `<button class="btn btn-primary" onclick="openApply(${p.id})">Apply now</button>` : ''}
+                    ${isMine ? `<button class="btn btn-ghost" onclick="deleteProject(${p.id})">Delete</button>` : ''}
+                </div>`
+            return div
+        }
+
+        async function loadMyProjects() {
+            try {
+                const res = await api('/projects/mine/')
+                if (res && res.ok) {
+                    const data = await res.json()
+                    const list = document.getElementById('my-projects-list')
+                    list.innerHTML = ''
+                    if (!data.length) { document.getElementById('mine-empty').style.display = 'flex'; return }
+                    document.getElementById('mine-empty').style.display = 'none'
+                    data.forEach(p => list.appendChild(buildProjectCard(p, true)))
+                }
+            } catch {}
+        }
+
+        async function loadMyApplications() {
+            try {
+                const res = await api('/projects/applications/mine/')
+                if (res && res.ok) {
+                    const data = await res.json()
+                    const list = document.getElementById('my-applications-list')
+                    list.innerHTML = ''
+                    if (!data.length) { document.getElementById('apps-empty').style.display = 'flex'; return }
+                    document.getElementById('apps-empty').style.display = 'none'
+                    data.forEach(a => {
+                        const div = document.createElement('div')
+                        div.className = 'project-card'
+                        div.innerHTML = `
+                            <div class="project-title">${a.project_title}</div>
+                            <div class="project-meta">
+                                <span class="project-budget">₹${Number(a.proposed_rate).toLocaleString()}</span>
+                                <span class="badge ${a.status === 'accepted' ? 'badge-green' : a.status === 'rejected' ? 'badge-red' : 'badge-yellow'}">${a.status}</span>
+                            </div>
+                            <div class="project-desc">${a.cover_letter || 'No cover letter.'}</div>`
+                        list.appendChild(div)
+                    })
+                }
+            } catch {}
+        }
+
+        async function postProject() {
+            const body = { title: document.getElementById('p-title').value, description: document.getElementById('p-desc').value, budget_min: parseFloat(document.getElementById('p-bmin').value), budget_max: parseFloat(document.getElementById('p-bmax').value), duration: document.getElementById('p-duration').value }
+            if (!body.title || !body.description || !body.budget_min || !body.budget_max) return showToast('Fill all required fields.', 'error')
+            const res = await api('/projects/create/', { method: 'POST', body: JSON.stringify(body) })
+            if (res && res.ok) { showToast('Project posted!'); loadProjects() }
+            else { const d = await res.json(); showToast(d.detail || 'Failed to post.', 'error') }
+        }
+
+        async function deleteProject(id) {
+            if (!confirm('Delete this project?')) return
+            const res = await api(`/projects/${id}/`, { method: 'DELETE' })
+            if (res && res.ok) { showToast('Project deleted.'); loadMyProjects() }
+        }
+
+        function openApply(projectId) { activeProjectId = projectId; document.getElementById('apply-modal').style.display = 'flex' }
+        function closeApply() { document.getElementById('apply-modal').style.display = 'none' }
+
+        async function submitApplication() {
+            if (!activeProjectId) return
+            const body = { cover_letter: document.getElementById('cover-letter').value, proposed_rate: parseFloat(document.getElementById('proposed-rate').value) }
+            if (!body.proposed_rate) return showToast('Enter your proposed rate.', 'error')
+            const res = await api(`/projects/${activeProjectId}/applications/`, { method: 'POST', body: JSON.stringify(body) })
+            if (res && res.ok) { showToast('Application sent!'); closeApply() }
+            else { const d = await res.json(); showToast(d.detail || 'Failed to apply.', 'error') }
+        }
+
+        if (user?.role === 'company') { document.getElementById('post-panel').style.display = 'block'; document.getElementById('tab-mine-btn').style.display = 'inline-block' }
+        if (user?.role === 'freelancer') { document.getElementById('tab-apps-btn').style.display = 'inline-block' }
+        loadProjects()
+    </script>
+</body>
+</html>

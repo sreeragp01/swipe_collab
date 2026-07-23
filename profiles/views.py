@@ -1,0 +1,204 @@
+from rest_framework import status, generics
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
+
+from .models import Skill, FreelancerProfile, CompanyProfile
+from .serializers import (
+    SkillSerializer,
+    FreelancerProfileSerializer,
+    FreelancerProfileCardSerializer,
+    CompanyProfileSerializer,
+    CompanyProfileCardSerializer,
+)
+
+
+class SkillListView(generics.ListAPIView):
+    queryset = Skill.objects.all()
+    serializer_class = SkillSerializer
+    permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        queryset = Skill.objects.all()
+        category = self.request.query_params.get('category')
+        if category:
+            queryset = queryset.filter(category__icontains=category)
+        return queryset
+
+
+class FreelancerProfileMeView(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+
+    def get(self, request):
+        try:
+            profile = request.user.freelancer_profile
+            serializer = FreelancerProfileSerializer(profile)
+            return Response(serializer.data)
+        except FreelancerProfile.DoesNotExist:
+            return Response({'detail': 'Profile not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+    def post(self, request):
+        if not request.user.is_freelancer:
+            return Response({'detail': 'Only freelancers can create a freelancer profile.'}, status=status.HTTP_403_FORBIDDEN)
+        if FreelancerProfile.objects.filter(user=request.user).exists():
+            return Response({'detail': 'Profile already exists. Use PATCH to update.'}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = FreelancerProfileSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request):
+        try:
+            profile = request.user.freelancer_profile
+        except FreelancerProfile.DoesNotExist:
+            return Response({'detail': 'Profile not found.'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = FreelancerProfileSerializer(profile, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request):
+        try:
+            profile = request.user.freelancer_profile
+            profile.delete()
+            return Response({'message': 'Profile deleted.'}, status=status.HTTP_204_NO_CONTENT)
+        except FreelancerProfile.DoesNotExist:
+            return Response({'detail': 'Profile not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+
+class FreelancerProfileDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        try:
+            profile = FreelancerProfile.objects.get(pk=pk)
+            serializer = FreelancerProfileCardSerializer(profile)
+            return Response(serializer.data)
+        except FreelancerProfile.DoesNotExist:
+            return Response({'detail': 'Profile not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+
+class FreelancerProfileListView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = FreelancerProfileCardSerializer
+
+    def get_queryset(self):
+        queryset = FreelancerProfile.objects.all()
+        skill = self.request.query_params.get('skill')
+        availability = self.request.query_params.get('availability')
+        country = self.request.query_params.get('country')
+        exp_min = self.request.query_params.get('exp_min')
+        exp_max = self.request.query_params.get('exp_max')
+
+        if skill:
+            queryset = queryset.filter(skills__name__icontains=skill)
+        if availability:
+            queryset = queryset.filter(availability=availability)
+        if country:
+            queryset = queryset.filter(country__icontains=country)
+        if exp_min:
+            queryset = queryset.filter(experience_years__gte=exp_min)
+        if exp_max:
+            queryset = queryset.filter(experience_years__lte=exp_max)
+
+        return queryset.distinct()
+
+
+class CompanyProfileMeView(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+
+    def get(self, request):
+        try:
+            profile = request.user.company_profile
+            serializer = CompanyProfileSerializer(profile)
+            return Response(serializer.data)
+        except CompanyProfile.DoesNotExist:
+            return Response({'detail': 'Profile not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+    def post(self, request):
+        if not request.user.is_company:
+            return Response({'detail': 'Only companies can create a company profile.'}, status=status.HTTP_403_FORBIDDEN)
+        if CompanyProfile.objects.filter(user=request.user).exists():
+            return Response({'detail': 'Profile already exists. Use PATCH to update.'}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = CompanyProfileSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request):
+        try:
+            profile = request.user.company_profile
+        except CompanyProfile.DoesNotExist:
+            return Response({'detail': 'Profile not found.'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = CompanyProfileSerializer(profile, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request):
+        try:
+            profile = request.user.company_profile
+            profile.delete()
+            return Response({'message': 'Profile deleted.'}, status=status.HTTP_204_NO_CONTENT)
+        except CompanyProfile.DoesNotExist:
+            return Response({'detail': 'Profile not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+
+class CompanyProfileDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        try:
+            profile = CompanyProfile.objects.get(pk=pk)
+            serializer = CompanyProfileCardSerializer(profile)
+            return Response(serializer.data)
+        except CompanyProfile.DoesNotExist:
+            return Response({'detail': 'Profile not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+
+class CompanyProfileListView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = CompanyProfileCardSerializer
+
+    def get_queryset(self):
+        queryset = CompanyProfile.objects.all()
+        skill = self.request.query_params.get('skill')
+        country = self.request.query_params.get('country')
+
+        if skill:
+            queryset = queryset.filter(skills__name__icontains=skill)
+        if country:
+            queryset = queryset.filter(country__icontains=country)
+
+        return queryset.distinct()
+
+
+class FreelancerProfileByUserView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, uid):
+        try:
+            profile = FreelancerProfile.objects.get(user__id=uid)
+            serializer = FreelancerProfileSerializer(profile)
+            return Response(serializer.data)
+        except FreelancerProfile.DoesNotExist:
+            return Response({'detail': 'Profile not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+
+class CompanyProfileByUserView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, uid):
+        try:
+            profile = CompanyProfile.objects.get(user__id=uid)
+            serializer = CompanyProfileSerializer(profile)
+            return Response(serializer.data)
+        except CompanyProfile.DoesNotExist:
+            return Response({'detail': 'Profile not found.'}, status=status.HTTP_404_NOT_FOUND)

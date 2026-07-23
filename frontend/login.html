@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login — SwipeCollab</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        body { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+        .auth-wrap { width: 100%; max-width: 440px; padding: 1.5rem; }
+        .auth-logo { font-family: var(--font-head); font-size: 1.5rem; font-weight: 700; color: var(--text); margin-bottom: 2rem; text-align: center; }
+        .auth-logo span { color: var(--accent); }
+        .auth-title { font-size: 1.6rem; font-weight: 700; margin-bottom: 0.4rem; }
+        .auth-sub { color: var(--text2); font-size: 0.9rem; margin-bottom: 2rem; }
+        .auth-footer { color: var(--text2); font-size: 0.875rem; margin-top: 1.5rem; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="auth-wrap">
+        <a href="/" class="auth-logo" style="display:block;text-decoration:none;">Swipe<span>Collab</span></a>
+        <div class="card">
+            <h1 class="auth-title">Welcome back</h1>
+            <p class="auth-sub">Log in to continue swiping</p>
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" placeholder="you@example.com" autocomplete="email">
+                <div class="sc-error" id="err-email"></div>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="Your password" autocomplete="current-password">
+                <div class="sc-error" id="err-password"></div>
+            </div>
+            <div class="sc-error" id="err-general"></div>
+            <button class="btn btn-primary btn-full" id="login-btn" onclick="login()">Log in</button>
+        </div>
+        <div class="auth-footer">Don't have an account? <a href="/register/">Sign up free</a></div>
+    </div>
+
+    <script src="/static/js/api.js"></script>
+    <script>
+        if (getToken()) window.location.href = '/dashboard/'
+
+        async function login() {
+            clearErrors()
+            const email = document.getElementById('email').value.trim()
+            const password = document.getElementById('password').value
+            if (!email) return showError('err-email', 'Email is required.')
+            if (!password) return showError('err-password', 'Password is required.')
+
+            const btn = document.getElementById('login-btn')
+            btn.disabled = true
+            btn.textContent = 'Logging in...'
+
+            try {
+                const res = await fetch(`${BASE_URL}/auth/login/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                })
+                const data = await res.json()
+                if (res.ok) {
+                    saveTokens(data.access, data.refresh)
+                    saveUser({ id: data.id, email: data.email, role: data.role, is_paid: data.is_paid, is_trial_active: data.is_trial_active, trial_ends_at: data.trial_ends_at })
+                    if (data.trial_expired) {
+                        showToast('Trial expired. Please pay ₹49 to continue.', 'error')
+                        setTimeout(() => window.location.href = '/payment/', 2000)
+                    } else {
+                        window.location.href = '/dashboard/'
+                    }
+                } else {
+                    showError('err-general', data.detail || 'Invalid email or password.')
+                    btn.disabled = false
+                    btn.textContent = 'Log in'
+                }
+            } catch {
+                showError('err-general', 'Cannot connect to server. Make sure Django is running.')
+                btn.disabled = false
+                btn.textContent = 'Log in'
+            }
+        }
+
+        document.addEventListener('keydown', e => { if (e.key === 'Enter') login() })
+    </script>
+</body>
+</html>

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports & Blocks — SwipeCollab</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .tabs { display: flex; gap: 0.25rem; border-bottom: 1px solid var(--border); margin-bottom: 1.5rem; }
+        .tab { background: none; border: none; border-bottom: 2px solid transparent; color: var(--text2); cursor: pointer; font-family: var(--font-body); font-size: 0.875rem; font-weight: 500; margin-bottom: -1px; padding: 0.6rem 1rem; transition: all var(--transition); }
+        .tab.active { border-bottom-color: var(--accent); color: var(--accent); }
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+        .report-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1rem; }
+        .report-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem; }
+        .report-meta { color: var(--text2); font-size: 0.82rem; }
+        .block-item { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 0.75rem; display: flex; align-items: center; justify-content: space-between; }
+        .block-user { display: flex; align-items: center; gap: 0.75rem; }
+        .block-avatar { width: 40px; height: 40px; font-size: 1rem; flex-shrink: 0; }
+        .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
+        .modal-bg { background: rgba(0,0,0,0.75); display: none; align-items: center; justify-content: center; position: fixed; inset: 0; z-index: 999; }
+        .modal-box { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); max-width: 460px; padding: 1.75rem; width: 90%; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
+        .modal-header h3 { font-size: 1rem; }
+        .close-btn { background: none; border: none; color: var(--text2); cursor: pointer; font-size: 1.25rem; }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="/" class="nav-logo">Swipe<span style="color:var(--accent)">Collab</span></a>
+        <div class="nav-links">
+            <a href="/dashboard/" class="nav-link">Home</a>
+            <a href="/swipe/" class="nav-link">Swipe</a>
+            <a href="/matches/" class="nav-link">Matches</a>
+            <a href="/projects/" class="nav-link">Projects</a>
+            <a href="/profile/" class="nav-link">Profile</a>
+            <button class="btn btn-ghost" style="padding:0.4rem 0.85rem;font-size:0.8rem;" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <div class="page" style="max-width:720px;">
+        <div class="section-header">
+            <h1 style="font-size:1.4rem;">Safety &amp; Moderation</h1>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('reports', this)">My reports</button>
+            <button class="tab" onclick="switchTab('blocks', this)">Blocked users</button>
+        </div>
+
+        <!-- Reports tab -->
+        <div id="tab-reports" class="tab-panel active">
+            <div style="margin-bottom:1.25rem;">
+                <button class="btn btn-primary" onclick="openReportModal()">+ Report a user</button>
+            </div>
+            <div id="reports-list"></div>
+            <div class="empty-state" id="reports-empty" style="display:none;">
+                <div class="empty-state-icon">🛡️</div>
+                <strong>No reports filed</strong>
+                <p>Use the report button to flag any inappropriate users.</p>
+            </div>
+        </div>
+
+        <!-- Blocks tab -->
+        <div id="tab-blocks" class="tab-panel">
+            <div id="blocks-list"></div>
+            <div class="empty-state" id="blocks-empty" style="display:none;">
+                <div class="empty-state-icon">🚫</div>
+                <strong>No blocked users</strong>
+                <p>Users you block won't appear in your swipe feed or be able to message you.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report modal -->
+    <div class="modal-bg" id="report-modal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>Report a user</h3>
+                <button class="close-btn" onclick="closeReportModal()">×</button>
+            </div>
+            <div class="form-group">
+                <label>User email or ID</label>
+                <input type="text" id="report-user-id" placeholder="Enter user email or ID">
+            </div>
+            <div class="form-group">
+                <label>Category</label>
+                <select id="report-category">
+                    <option value="harassment">Harassment</option>
+                    <option value="inappropriate_content">Inappropriate Content</option>
+                    <option value="fake_profile">Fake Profile</option>
+                    <option value="spam">Spam</option>
+                    <option value="hate_speech">Hate Speech</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Reason</label>
+                <textarea id="report-reason" rows="3" placeholder="Describe what happened..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Evidence URL (optional)</label>
+                <input type="url" id="report-evidence" placeholder="https://screenshot.link">
+            </div>
+            <button class="btn btn-danger btn-full" onclick="submitReport()">Submit report</button>
+        </div>
+    </div>
+
+    <script src="/static/js/api.js"></script>
+    <script>
+        requireAuth()
+
+        function switchTab(tab, el) {
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'))
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'))
+            document.getElementById(`tab-${tab}`).classList.add('active')
+            el.classList.add('active')
+            if (tab === 'reports') loadReports()
+            if (tab === 'blocks') loadBlocks()
+        }
+
+        async function loadReports() {
+            try {
+                const res = await api('/moderation/report/')
+                if (res && res.ok) {
+                    const data = await res.json()
+                    const list = document.getElementById('reports-list')
+                    list.innerHTML = ''
+                    if (!data.length) { document.getElementById('reports-empty').style.display = 'flex'; return }
+                    document.getElementById('reports-empty').style.display = 'none'
+                    data.forEach(r => {
+                        const card = document.createElement('div')
+                        card.className = 'report-card'
+                        card.innerHTML = `
+                            <div class="report-card-top">
+                                <div>
+                                    <strong style="font-size:0.9rem;">Reported: ${r.reported_email}</strong>
+                                    <div class="report-meta">Category: ${r.category.replace(/_/g, ' ')}</div>
+                                </div>
+                                <span class="badge ${r.status === 'actioned' ? 'badge-green' : r.status === 'dismissed' ? 'badge-red' : 'badge-yellow'}">${r.status}</span>
+                            </div>
+                            <div style="color:var(--text2);font-size:0.85rem;">${r.reason || 'No reason provided.'}</div>
+                            <div style="color:var(--text3);font-size:0.75rem;margin-top:0.5rem;">${new Date(r.created_at).toLocaleDateString()}</div>`
+                        list.appendChild(card)
+                    })
+                }
+            } catch { showToast('Could not load reports.', 'error') }
+        }
+
+        async function loadBlocks() {
+            try {
+                const res = await api('/moderation/block/')
+                if (res && res.ok) {
+                    const data = await res.json()
+                    const list = document.getElementById('blocks-list')
+                    list.innerHTML = ''
+                    if (!data.length) { document.getElementById('blocks-empty').style.display = 'flex'; return }
+                    document.getElementById('blocks-empty').style.display = 'none'
+                    data.forEach(b => {
+                        const item = document.createElement('div')
+                        item.className = 'block-item'
+                        item.innerHTML = `
+                            <div class="block-user">
+                                <div class="avatar-placeholder block-avatar">${(b.blocked_email || 'U')[0].toUpperCase()}</div>
+                                <div>
+                                    <div style="font-size:0.9rem;font-weight:500;">${b.blocked_email}</div>
+                                    <div style="color:var(--text3);font-size:0.75rem;">Blocked on ${new Date(b.created_at).toLocaleDateString()}</div>
+                                </div>
+                            </div>
+                            <button class="btn btn-ghost" style="font-size:0.8rem;padding:0.35rem 0.75rem;" onclick="unblockUser('${b.blocked}')">Unblock</button>`
+                        list.appendChild(item)
+                    })
+                }
+            } catch { showToast('Could not load blocked users.', 'error') }
+        }
+
+        async function unblockUser(blockedId) {
+            if (!confirm('Unblock this user?')) return
+            const res = await api(`/moderation/block/${blockedId}/`, { method: 'DELETE' })
+            if (res && res.ok) { showToast('User unblocked.'); loadBlocks() }
+            else { showToast('Failed to unblock.', 'error') }
+        }
+
+        function openReportModal() { document.getElementById('report-modal').style.display = 'flex' }
+        function closeReportModal() { document.getElementById('report-modal').style.display = 'none' }
+
+        async function submitReport() {
+            const userId = document.getElementById('report-user-id').value.trim()
+            const category = document.getElementById('report-category').value
+            const reason = document.getElementById('report-reason').value.trim()
+            const evidence = document.getElementById('report-evidence').value.trim()
+
+            if (!userId) return showToast('Please enter the user email or ID.', 'error')
+            if (!reason) return showToast('Please describe the reason.', 'error')
+
+            const res = await api('/moderation/report/', {
+                method: 'POST',
+                body: JSON.stringify({ reported_user: userId, category, reason, evidence_url: evidence })
+            })
+            if (res && res.ok) {
+                showToast('Report submitted. Our team will review it.')
+                closeReportModal()
+                document.getElementById('report-user-id').value = ''
+                document.getElementById('report-reason').value = ''
+                document.getElementById('report-evidence').value = ''
+                loadReports()
+            } else {
+                const d = await res.json()
+                showToast(d.detail || 'Failed to submit report.', 'error')
+            }
+        }
+
+        loadReports()
+    </script>
+</body>
+</html>

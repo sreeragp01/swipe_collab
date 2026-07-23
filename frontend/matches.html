@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matches — SwipeCollab</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.75rem; }
+        .matches-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; }
+
+        .match-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; transition: border-color var(--transition); position: relative; }
+        .match-card:hover { border-color: var(--accent); }
+        .match-card.expired { opacity: 0.6; }
+
+        .expired-badge { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25); border-radius: var(--radius-sm); color: var(--red); font-size: 0.72rem; font-weight: 600; padding: 0.18rem 0.5rem; position: absolute; top: 1rem; right: 1rem; }
+
+        .match-top { display: flex; align-items: center; gap: 0.9rem; margin-bottom: 0.85rem; cursor: pointer; }
+        .match-top:hover .match-name { color: var(--accent); }
+        .match-avatar { width: 52px; height: 52px; font-size: 1.25rem; flex-shrink: 0; border-radius: 50%; }
+        .match-name { font-family: var(--font-head); font-size: 1rem; font-weight: 600; margin-bottom: 0.15rem; transition: color var(--transition); }
+        .match-role { color: var(--text2); font-size: 0.78rem; display: flex; align-items: center; gap: 0.4rem; }
+
+        .match-timer { display: flex; align-items: center; gap: 0.4rem; font-size: 0.78rem; font-weight: 500; margin-bottom: 0.85rem; padding: 0.35rem 0.65rem; border-radius: var(--radius-sm); width: fit-content; }
+        .match-timer.safe   { background: rgba(34,197,94,0.1);  color: var(--green);  }
+        .match-timer.ok     { background: rgba(245,158,11,0.1); color: var(--yellow); }
+        .match-timer.urgent { background: rgba(239,68,68,0.1);  color: var(--red);    }
+
+        .match-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .match-actions .btn { font-size: 0.78rem; padding: 0.4rem 0.8rem; }
+
+        .collab-panel { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius-sm); margin-top: 0.85rem; padding: 0.85rem; display: none; }
+        .collab-panel-title { font-size: 0.78rem; font-weight: 600; color: var(--text2); margin-bottom: 0.6rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        .session-row { display: flex; align-items: center; justify-content: space-between; padding: 0.45rem 0; border-bottom: 1px solid var(--border); font-size: 0.82rem; }
+        .session-row:last-child { border-bottom: none; }
+
+        /* Tabs & Interests */
+        .tab-container { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+        .tab-btn { background: none; border: none; color: var(--text2); font-family: var(--font-head); font-size: 0.925rem; font-weight: 600; padding: 0.5rem 1rem; cursor: pointer; border-radius: var(--radius-sm); transition: all var(--transition); display: flex; align-items: center; gap: 0.5rem; }
+        .tab-btn:hover { color: var(--text); background: var(--bg3); }
+        .tab-btn.active { color: var(--accent); background: rgba(108,99,255,0.12); }
+        .interest-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; transition: border-color var(--transition); position: relative; }
+        .interest-card:hover { border-color: var(--accent); }
+        .interest-badge { background: rgba(108,99,255,0.15); border: 1px solid rgba(108,99,255,0.3); border-radius: var(--radius-sm); color: var(--accent); font-size: 0.72rem; font-weight: 600; padding: 0.18rem 0.5rem; position: absolute; top: 1rem; right: 1rem; }
+        .interest-super-badge { background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.3); color: var(--yellow); }
+
+        /* Modals */
+        .modal-bg { background: rgba(0,0,0,0.75); display: none; align-items: center; justify-content: center; position: fixed; inset: 0; z-index: 999; }
+        .modal-box { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); max-width: 460px; padding: 1.75rem; width: 90%; }
+        .modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
+        .modal-head h3 { font-size: 1rem; font-family: var(--font-head); }
+        .close-btn { background: none; border: none; color: var(--text2); cursor: pointer; font-size: 1.25rem; }
+
+        .debug-box { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 1rem; font-size: 0.78rem; color: var(--text2); margin-bottom: 1rem; display: none; }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="/" class="nav-logo">Swipe<span style="color:var(--accent)">Collab</span></a>
+        <div class="nav-links">
+            <a href="/dashboard/" class="nav-link">Home</a>
+            <a href="/swipe/" class="nav-link">Swipe</a>
+            <a href="/matches/" class="nav-link active">Matches</a>
+            <a href="/projects/" class="nav-link">Projects</a>
+            <a href="/profile/" class="nav-link">Profile</a>
+            <a href="/moderation/" class="nav-link" style="color:var(--red);">🛡️ Safety</a>
+            <button class="btn btn-ghost" style="padding:0.4rem 0.85rem;font-size:0.8rem;" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <div class="page">
+        <div class="section-header">
+            <div>
+                <h1 style="font-size:1.4rem;font-family:var(--font-head);font-weight:700;" id="page-title">Your Matches</h1>
+                <p style="color:var(--text2);font-size:0.875rem;margin-top:0.2rem;" id="page-subtitle">Click on a profile to view details</p>
+            </div>
+            <span class="badge badge-accent" id="match-count">Loading...</span>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tab-container">
+            <button class="tab-btn active" id="tab-matches" onclick="switchTab('matches')">
+                <span>💬 Matches</span>
+                <span class="badge badge-accent" id="tab-matches-count">0</span>
+            </button>
+            <button class="tab-btn" id="tab-interests" onclick="switchTab('interests')">
+                <span>❤️ Interests Received</span>
+                <span class="badge" style="background:var(--accent2);color:#fff;" id="tab-interests-count">0</span>
+            </button>
+        </div>
+
+        <!-- Debug info (remove in production) -->
+        <div class="debug-box" id="debug-box"></div>
+
+        <!-- Matches Tab View -->
+        <div id="matches-tab-content">
+            <div id="matches-grid" class="matches-grid"></div>
+
+            <div class="empty-state" id="empty-state" style="display:none;">
+                <div class="empty-state-icon">💔</div>
+                <strong>No matches yet</strong>
+                <p>Keep swiping or accept incoming interests!</p>
+                <a href="/swipe/" class="btn btn-primary" style="margin-top:0.75rem;">Go swipe →</a>
+            </div>
+        </div>
+
+        <!-- Interests Tab View -->
+        <div id="interests-tab-content" style="display:none;">
+            <div id="interests-grid" class="matches-grid"></div>
+
+            <div class="empty-state" id="empty-interests-state" style="display:none;">
+                <div class="empty-state-icon">✨</div>
+                <strong>No pending interests</strong>
+                <p>When someone swipes right on your profile, they will appear here!</p>
+                <a href="/swipe/" class="btn btn-primary" style="margin-top:0.75rem;">Go swipe →</a>
+            </div>
+        </div>
+
+        <!-- Session modal -->
+        <div class="modal-bg" id="session-modal">
+            <div class="modal-box">
+                <div class="modal-head">
+                    <h3>Schedule collab session</h3>
+                    <button class="close-btn" onclick="closeModal('session-modal')">×</button>
+                </div>
+                <div class="form-group">
+                    <label>Platform</label>
+                    <select id="session-platform">
+                        <option value="google_meet">Google Meet</option>
+                        <option value="zoom">Zoom</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Meeting link</label>
+                    <input type="url" id="session-link" placeholder="https://meet.google.com/xxx">
+                </div>
+                <div class="form-group">
+                    <label>Scheduled at (optional)</label>
+                    <input type="datetime-local" id="session-time">
+                </div>
+                <button class="btn btn-primary btn-full" onclick="createSession()">Create session</button>
+            </div>
+        </div>
+
+        <!-- Rating modal -->
+        <div class="modal-bg" id="rating-modal">
+            <div class="modal-box">
+                <div class="modal-head">
+                    <h3>Rate this collaboration</h3>
+                    <button class="close-btn" onclick="closeModal('rating-modal')">×</button>
+                </div>
+                <div style="display:flex;gap:0.5rem;justify-content:center;margin-bottom:1.25rem;" id="star-picker">
+                    <span onclick="setRating(1)" style="font-size:2rem;cursor:pointer;filter:grayscale(1);">⭐</span>
+                    <span onclick="setRating(2)" style="font-size:2rem;cursor:pointer;filter:grayscale(1);">⭐</span>
+                    <span onclick="setRating(3)" style="font-size:2rem;cursor:pointer;filter:grayscale(1);">⭐</span>
+                    <span onclick="setRating(4)" style="font-size:2rem;cursor:pointer;filter:grayscale(1);">⭐</span>
+                    <span onclick="setRating(5)" style="font-size:2rem;cursor:pointer;filter:grayscale(1);">⭐</span>
+                </div>
+                <div class="form-group">
+                    <label>Review (optional)</label>
+                    <textarea id="review-text" rows="3" placeholder="How was the collaboration?"></textarea>
+                </div>
+                <button class="btn btn-primary btn-full" onclick="submitRating()">Submit rating</button>
+            </div>
+        </div>
+
+        <!-- Report modal -->
+        <div class="modal-bg" id="report-modal">
+            <div class="modal-box">
+                <div class="modal-head">
+                    <h3>Report user</h3>
+                    <button class="close-btn" onclick="closeModal('report-modal')">×</button>
+                </div>
+                <p style="color:var(--text2);font-size:0.85rem;margin-bottom:1rem;" id="report-user-label"></p>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="match-report-category">
+                        <option value="harassment">Harassment</option>
+                        <option value="inappropriate_content">Inappropriate Content</option>
+                        <option value="fake_profile">Fake Profile</option>
+                        <option value="spam">Spam</option>
+                        <option value="hate_speech">Hate Speech</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Reason</label>
+                    <textarea id="match-report-reason" rows="3" placeholder="Describe what happened..."></textarea>
+                </div>
+                <div style="display:flex;gap:0.75rem;">
+                    <button class="btn btn-danger btn-full" onclick="submitMatchReport()">🚩 Report</button>
+                    <button class="btn btn-ghost btn-full" style="color:var(--red);border-color:var(--red);" onclick="submitMatchBlock()">🚫 Block</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/api.js"></script>
+    <script>
+        requireAuth()
+
+        let matches         = []
+        let interests       = []
+        let activeTab       = 'matches'
+        let activeMatchId   = null
+        let activeSessionId = null
+        let activeReportUserId = null
+        let selectedRating  = 0
+
+        // ── Tab Management ─────────────────────────
+        function switchTab(tab) {
+            activeTab = tab
+            document.getElementById('tab-matches').classList.toggle('active', tab === 'matches')
+            document.getElementById('tab-interests').classList.toggle('active', tab === 'interests')
+
+            const matchesContent = document.getElementById('matches-tab-content')
+            const interestsContent = document.getElementById('interests-tab-content')
+
+            if (tab === 'matches') {
+                matchesContent.style.display = 'block'
+                interestsContent.style.display = 'none'
+                document.getElementById('page-title').textContent = 'Your Matches'
+                document.getElementById('page-subtitle').textContent = 'Click on a profile to view details'
+                document.getElementById('match-count').textContent = `${matches.length} match${matches.length !== 1 ? 'es' : ''}`
+            } else {
+                matchesContent.style.display = 'none'
+                interestsContent.style.display = 'block'
+                document.getElementById('page-title').textContent = 'Interests Received'
+                document.getElementById('page-subtitle').textContent = 'People who showed interest in collaborating with you'
+                document.getElementById('match-count').textContent = `${interests.length} interest${interests.length !== 1 ? 's' : ''}`
+            }
+        }
+
+        // ── Helpers ────────────────────────────────
+        function openModal(id)  { document.getElementById(id).style.display = 'flex' }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'  }
+
+        // ── Load matches ───────────────────────────
+        async function loadMatches() {
+            try {
+                const res = await api('/matches/')
+                if (!res) {
+                    showToast('Cannot connect to server.', 'error')
+                    return
+                }
+                if (!res.ok) {
+                    const err = await res.json()
+                    showToast(err.detail || 'Failed to load matches.', 'error')
+                    return
+                }
+
+                const data = await res.json()
+                matches = data.matches || []
+
+                document.getElementById('tab-matches-count').textContent = matches.length
+                if (activeTab === 'matches') {
+                    document.getElementById('match-count').textContent =
+                        `${matches.length} match${matches.length !== 1 ? 'es' : ''}`
+                }
+
+                if (matches.length === 0) {
+                    document.getElementById('empty-state').style.display = 'flex'
+                    return
+                }
+
+                document.getElementById('empty-state').style.display = 'none'
+                renderMatches()
+
+            } catch (e) {
+                console.error('loadMatches error:', e)
+                showToast('Error loading matches.', 'error')
+            }
+        }
+
+        // ── Load interests ─────────────────────────
+        async function loadInterests() {
+            try {
+                const res = await api('/swipe/who-liked-me/')
+                if (!res || !res.ok) return
+                const data = await res.json()
+                interests = data.liked_by || []
+                document.getElementById('tab-interests-count').textContent = interests.length
+                if (activeTab === 'interests') {
+                    document.getElementById('match-count').textContent =
+                        `${interests.length} interest${interests.length !== 1 ? 's' : ''}`
+                }
+                renderInterests()
+            } catch (e) {
+                console.error('loadInterests error:', e)
+            }
+        }
+
+        // ── Render interest cards ──────────────────
+        function renderInterests() {
+            const grid = document.getElementById('interests-grid')
+            grid.innerHTML = ''
+
+            if (interests.length === 0) {
+                document.getElementById('empty-interests-state').style.display = 'flex'
+                return
+            }
+
+            document.getElementById('empty-interests-state').style.display = 'none'
+
+            interests.forEach(item => {
+                const p = item.profile || {}
+                const name = p.name || item.email || 'User'
+                const role = item.role || 'freelancer'
+                const userId = item.user_id
+                const isSuper = item.action === 'super_like'
+                const matchScore = item.skill_match_score || 0
+                const initial = name[0].toUpperCase()
+                const bio = p.bio || 'No bio provided.'
+                const skills = p.skills || []
+
+                const card = document.createElement('div')
+                card.className = 'interest-card'
+                // Store data as DOM attributes to avoid HTML injection bugs
+                card.dataset.userId = userId
+                card.dataset.name   = name
+                card.dataset.role   = role
+
+                let skillHtml = ''
+                if (skills.length > 0) {
+                    skillHtml = `<div style="display:flex;flex-wrap:wrap;gap:0.35rem;margin-bottom:0.85rem;">
+                        ${skills.slice(0, 3).map(s => `<span class="badge" style="font-size:0.68rem;background:var(--bg3);">${s.name}</span>`).join('')}
+                        ${skills.length > 3 ? `<span class="badge" style="font-size:0.68rem;background:var(--bg3);">+${skills.length - 3}</span>` : ''}
+                    </div>`
+                }
+
+                card.innerHTML = `
+                    <div class="interest-badge ${isSuper ? 'interest-super-badge' : ''}">
+                        ${isSuper ? '⚡ Super Liked You' : '❤️ Liked You'}
+                    </div>
+
+                    <div class="match-top js-view-profile" style="cursor:pointer;">
+                        <div class="avatar-placeholder match-avatar" style="width:52px;height:52px;font-size:1.25rem;">
+                            ${initial}
+                        </div>
+                        <div>
+                            <div class="match-name">${name}</div>
+                            <div class="match-role">
+                                <span class="badge ${role === 'company' ? 'badge-accent' : 'badge-green'}" style="font-size:0.7rem;">
+                                    ${role === 'company' ? '🏢 Company' : '🧑‍💻 Freelancer'}
+                                </span>
+                                ${matchScore > 0 ? `<span class="badge badge-accent" style="font-size:0.7rem;">${matchScore}% Skill Match</span>` : ''}
+                            </div>
+                        </div>
+                    </div>
+
+                    <p style="color:var(--text2);font-size:0.82rem;margin-bottom:0.85rem;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
+                        ${bio}
+                    </p>
+
+                    ${skillHtml}
+
+                    <div class="match-actions">
+                        <button class="btn btn-primary js-accept" style="flex:1;">✓ Accept &amp; Match</button>
+                        <button class="btn btn-ghost js-view-profile-btn">👤 Profile</button>
+                        <button class="btn btn-ghost js-decline" style="color:var(--red);border-color:var(--red);">✕ Pass</button>
+                    </div>
+                `
+
+                // Attach events using data attributes — no string injection
+                card.querySelectorAll('.js-view-profile, .js-view-profile-btn').forEach(el => {
+                    el.addEventListener('click', () => goToProfileFromInterest(userId, role))
+                })
+                card.querySelector('.js-accept').addEventListener('click', () => acceptInterest(userId, name))
+                card.querySelector('.js-decline').addEventListener('click', () => declineInterest(userId))
+
+                grid.appendChild(card)
+            })
+        }
+
+        function goToProfileFromInterest(userId, role) {
+            if (!userId) return showToast('Profile info not available.', 'error')
+            window.location.href = `/profile-view/?id=${userId}&role=${role}&from=interests`
+        }
+
+        async function acceptInterest(userId, name) {
+            try {
+                const res = await api('/swipe/action/', {
+                    method: 'POST',
+                    body: JSON.stringify({ target_id: userId, action: 'like' }),
+                })
+                if (!res) return showToast('Connection error.', 'error')
+                if (!res.ok) {
+                    const err = await res.json()
+                    return showToast(err.detail || 'Failed to accept interest.', 'error')
+                }
+
+                showToast(`🎉 You matched with ${name}! You can now start chatting.`)
+                await loadMatches()
+                await loadInterests()
+                switchTab('matches')
+            } catch (e) {
+                console.error('acceptInterest error:', e)
+                showToast('Error accepting interest.', 'error')
+            }
+        }
+
+        async function declineInterest(userId) {
+            try {
+                const res = await api('/swipe/action/', {
+                    method: 'POST',
+                    body: JSON.stringify({ target_id: userId, action: 'pass' }),
+                })
+                if (!res || !res.ok) return showToast('Failed to pass.', 'error')
+                showToast('Interest passed.')
+                await loadInterests()
+            } catch (e) {
+                console.error('declineInterest error:', e)
+            }
+        }
+
+        // ── Render match cards ─────────────────────
+        function renderMatches() {
+            const grid = document.getElementById('matches-grid')
+            grid.innerHTML = ''
+
+            matches.forEach(m => {
+                const other = m.other_user || {}
+
+                const name     = other.full_name || other.email || 'Unknown User'
+                const role     = other.role     || ''
+                const email    = other.email    || ''
+                const userId   = other.id       || ''
+                const hours    = m.hours_remaining ?? 48
+                const expired  = m.is_expired   || false
+                const roomKey  = m.room_key     || ''
+
+                const timerClass = hours <= 6  ? 'urgent' : hours <= 24 ? 'ok' : 'safe'
+                const timerIcon  = hours <= 6  ? '🔴'    : hours <= 24 ? '🟡' : '🟢'
+                const initial    = name[0].toUpperCase()
+
+                const card = document.createElement('div')
+                card.className = `match-card${expired ? ' expired' : ''}`
+
+                card.innerHTML = `
+                    ${expired ? '<div class="expired-badge">Expired</div>' : ''}
+
+                    <div class="match-top" onclick="goToProfile('${userId}', '${role}')">
+                        <div class="avatar-placeholder match-avatar"
+                             style="width:52px;height:52px;font-size:1.25rem;">
+                            ${initial}
+                        </div>
+                        <div>
+                            <div class="match-name">${name} <span style="font-size:0.72rem;color:var(--accent);">👤</span></div>
+                            <div class="match-role">
+                                <span class="badge ${role === 'company' ? 'badge-accent' : 'badge-green'}" style="font-size:0.7rem;">
+                                    ${role === 'company' ? '🏢 Company' : '🧑‍💻 Freelancer'}
+                                </span>
+                                <span style="color:var(--text3);">${email}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    ${!expired ? `
+                    <div class="match-timer ${timerClass}">
+                        ${timerIcon} ${hours}h to send first message
+                    </div>` : ''}
+
+                    <div class="match-actions">
+                        ${roomKey ? `<a href="/chat/?room=${roomKey}" class="btn btn-primary">💬 Chat</a>` : ''}
+                        <button class="btn btn-ghost" onclick="goToProfile('${userId}', '${role}')">👤 Profile</button>
+                        <button class="btn btn-ghost" onclick="openSessionModal(${m.id})">🎥 Session</button>
+                        <button class="btn btn-ghost" style="color:var(--red);border-color:var(--red);padding:0.4rem 0.6rem;"
+                            onclick="openReportModal('${userId}', '${name}')">🚩</button>
+                    </div>
+
+                    <div class="collab-panel" id="sessions-${m.id}"></div>
+                `
+
+                grid.appendChild(card)
+                loadSessions(m.id)
+            })
+        }
+
+        // ── Navigate to profile page ───────────────
+        function goToProfile(userId, role) {
+            if (!userId) return showToast('Profile info not available.', 'error')
+            window.location.href = `/profile-view/?id=${userId}&role=${role}&from=matches`
+        }
+
+        // ── Load collab sessions ───────────────────
+        async function loadSessions(matchId) {
+            try {
+                const res = await api(`/matches/${matchId}/sessions/`)
+                if (!res || !res.ok) return
+                const data = await res.json()
+                const sessions = data.sessions || []
+                if (sessions.length === 0) return
+
+                const panel = document.getElementById(`sessions-${matchId}`)
+                if (!panel) return
+                panel.style.display = 'block'
+                panel.innerHTML = `<div class="collab-panel-title">Collab sessions</div>` +
+                    sessions.map(s => `
+                        <div class="session-row">
+                            <div style="display:flex;align-items:center;gap:0.5rem;">
+                                ${s.platform === 'google_meet' ? '🟢' : '🔵'}
+                                ${s.meeting_link
+                                    ? `<a href="${s.meeting_link}" target="_blank" style="color:var(--accent);">
+                                        ${s.platform === 'google_meet' ? 'Google Meet' : 'Zoom'}
+                                       </a>`
+                                    : `<span>${s.platform === 'google_meet' ? 'Google Meet' : 'Zoom'}</span>`
+                                }
+                            </div>
+                            <div style="display:flex;gap:0.4rem;align-items:center;">
+                                <span class="badge ${s.status === 'completed' ? 'badge-green' : 'badge-yellow'}"
+                                      style="font-size:0.7rem;">${s.status}</span>
+                                ${s.status === 'completed'
+                                    ? `<button class="btn btn-ghost"
+                                               style="padding:0.2rem 0.5rem;font-size:0.72rem;"
+                                               onclick="openRatingModal(${matchId}, ${s.id})">Rate</button>`
+                                    : ''}
+                            </div>
+                        </div>`
+                    ).join('')
+            } catch {}
+        }
+
+        // ── Session modal ──────────────────────────
+        function openSessionModal(matchId) {
+            activeMatchId = matchId
+            openModal('session-modal')
+        }
+
+        async function createSession() {
+            if (!activeMatchId) return
+            const body = {
+                platform:     document.getElementById('session-platform').value,
+                meeting_link: document.getElementById('session-link').value,
+                scheduled_at: document.getElementById('session-time').value || null,
+            }
+            const res = await api(`/matches/${activeMatchId}/sessions/`, {
+                method: 'POST',
+                body:   JSON.stringify(body),
+            })
+            if (res && res.ok) {
+                showToast('Session created!')
+                closeModal('session-modal')
+                loadSessions(activeMatchId)
+            } else {
+                const d = await res.json()
+                showToast(d.detail || 'Failed to create session.', 'error')
+            }
+        }
+
+        // ── Rating modal ───────────────────────────
+        function openRatingModal(matchId, sessionId) {
+            activeMatchId   = matchId
+            activeSessionId = sessionId
+            selectedRating  = 0
+            document.getElementById('star-picker').querySelectorAll('span').forEach(s => {
+                s.style.filter = 'grayscale(1)'
+            })
+            document.getElementById('review-text').value = ''
+            openModal('rating-modal')
+        }
+
+        function setRating(n) {
+            selectedRating = n
+            document.getElementById('star-picker').querySelectorAll('span').forEach((s, i) => {
+                s.style.filter = i < n ? 'none' : 'grayscale(1)'
+            })
+        }
+
+        async function submitRating() {
+            if (!selectedRating) return showToast('Please select a star rating.', 'error')
+            const res = await api(
+                `/matches/${activeMatchId}/sessions/${activeSessionId}/rate/`,
+                {
+                    method: 'POST',
+                    body:   JSON.stringify({
+                        score:  selectedRating,
+                        review: document.getElementById('review-text').value,
+                    }),
+                }
+            )
+            if (res && res.ok) {
+                showToast('Rating submitted!')
+                closeModal('rating-modal')
+            } else {
+                const d = await res.json()
+                showToast(d.detail || 'Failed to submit rating.', 'error')
+            }
+        }
+
+        // ── Report / block modal ───────────────────
+        function openReportModal(userId, name) {
+            activeReportUserId = userId
+            document.getElementById('report-user-label').textContent = `Reporting: ${name}`
+            document.getElementById('match-report-reason').value = ''
+            openModal('report-modal')
+        }
+
+        async function submitMatchReport() {
+            if (!activeReportUserId) return
+            const reason = document.getElementById('match-report-reason').value.trim()
+            if (!reason) return showToast('Please enter a reason.', 'error')
+            const category = document.getElementById('match-report-category').value
+            const res = await api('/moderation/report/', {
+                method: 'POST',
+                body:   JSON.stringify({
+                    reported_user: activeReportUserId,
+                    category,
+                    reason,
+                }),
+            })
+            if (res && res.ok) {
+                showToast('Report submitted. Our team will review it.')
+                closeModal('report-modal')
+            } else {
+                showToast('Failed to submit report.', 'error')
+            }
+        }
+
+        async function submitMatchBlock() {
+            if (!activeReportUserId) return
+            if (!confirm('Block this user? They will be removed from your matches.')) return
+            const res = await api('/moderation/block/', {
+                method: 'POST',
+                body:   JSON.stringify({ blocked: activeReportUserId, reason: 'Blocked from matches' }),
+            })
+            if (res && res.ok) {
+                showToast('User blocked.')
+                closeModal('report-modal')
+                await loadMatches()
+            } else {
+                showToast('Failed to block user.', 'error')
+            }
+        }
+
+        // ── Init ───────────────────────────────────
+        loadMatches()
+        loadInterests()
+    </script>
+</body>
+</html>

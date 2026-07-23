@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile — SwipeCollab</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .pv-hero { background: linear-gradient(135deg, rgba(108,99,255,0.12), rgba(255,101,132,0.08)); border: 1px solid var(--border); border-radius: var(--radius); padding: 2rem; margin-bottom: 1.5rem; display: flex; gap: 1.75rem; align-items: flex-start; flex-wrap: wrap; }
+        .pv-avatar { width: 100px; height: 100px; font-size: 2.5rem; flex-shrink: 0; }
+        .pv-avatar img { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; }
+        .pv-info { flex: 1; min-width: 200px; }
+        .pv-name { font-family: var(--font-head); font-size: 1.6rem; font-weight: 700; margin-bottom: 0.25rem; }
+        .pv-role { color: var(--text2); font-size: 0.875rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+        .pv-bio { color: var(--text2); font-size: 0.925rem; line-height: 1.6; margin-bottom: 1rem; }
+        .pv-meta { display: flex; gap: 1rem; flex-wrap: wrap; }
+        .pv-meta-item { color: var(--text2); font-size: 0.82rem; display: flex; align-items: center; gap: 0.35rem; }
+        .pv-actions { display: flex; gap: 0.75rem; margin-top: 1.25rem; flex-wrap: wrap; }
+        .pv-section { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1rem; }
+        .pv-section-title { font-family: var(--font-head); font-size: 0.9rem; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.85rem; }
+        .pv-skills { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+        .pv-links { display: flex; flex-direction: column; gap: 0.6rem; }
+        .pv-link { display: flex; align-items: center; gap: 0.6rem; color: var(--accent); font-size: 0.875rem; text-decoration: none; }
+        .pv-link:hover { opacity: 0.8; }
+        .match-score-badge { background: rgba(108,99,255,0.15); border: 1px solid rgba(108,99,255,0.3); border-radius: 999px; color: var(--accent); font-size: 0.82rem; font-weight: 700; padding: 0.3rem 0.85rem; }
+        .verified-badge { background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.25); border-radius: 999px; color: var(--green); font-size: 0.78rem; font-weight: 600; padding: 0.2rem 0.65rem; }
+        .back-btn { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--text2); font-size: 0.875rem; margin-bottom: 1.25rem; cursor: pointer; text-decoration: none; }
+        .back-btn:hover { color: var(--text); }
+        .rating-row { display: flex; align-items: center; gap: 0.5rem; }
+        .stars { color: var(--yellow); font-size: 1rem; }
+        .loading-state { display: flex; align-items: center; justify-content: center; min-height: 300px; }
+        .swipe-action-bar { position: sticky; bottom: 1.5rem; display: flex; justify-content: center; gap: 1rem; margin-top: 2rem; }
+        .swipe-btn-lg { align-items: center; border: none; border-radius: 50%; cursor: pointer; display: flex; font-size: 1.5rem; height: 64px; justify-content: center; transition: all var(--transition); width: 64px; box-shadow: var(--shadow); }
+        .swipe-btn-pass  { background: var(--bg2); border: 2px solid var(--red); color: var(--red); }
+        .swipe-btn-super { background: var(--bg2); border: 2px solid var(--accent); color: var(--accent); font-size: 1.2rem; height: 54px; width: 54px; }
+        .swipe-btn-like  { background: var(--bg2); border: 2px solid var(--green); color: var(--green); }
+        .swipe-btn-pass:hover  { background: var(--red); color: #fff; transform: scale(1.05); }
+        .swipe-btn-super:hover { background: var(--accent); color: #fff; transform: scale(1.05); }
+        .swipe-btn-like:hover  { background: var(--green); color: #fff; transform: scale(1.05); }
+        .availability-badge { border-radius: 999px; font-size: 0.78rem; font-weight: 600; padding: 0.2rem 0.65rem; }
+        .avail-full_time     { background: rgba(34,197,94,0.12); color: var(--green); }
+        .avail-part_time     { background: rgba(245,158,11,0.12); color: var(--yellow); }
+        .avail-contract      { background: rgba(108,99,255,0.12); color: var(--accent); }
+        .avail-not_available { background: rgba(239,68,68,0.12); color: var(--red); }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="/" class="nav-logo">Swipe<span style="color:var(--accent)">Collab</span></a>
+        <div class="nav-links">
+            <a href="/dashboard/" class="nav-link">Home</a>
+            <a href="/swipe/" class="nav-link">Swipe</a>
+            <a href="/matches/" class="nav-link">Matches</a>
+            <a href="/projects/" class="nav-link">Projects</a>
+            <a href="/profile/" class="nav-link">Profile</a>
+            <a href="/moderation/" class="nav-link" style="color:var(--red);">🛡️ Safety</a>
+            <button class="btn btn-ghost" style="padding:0.4rem 0.85rem;font-size:0.8rem;" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <div class="page" style="max-width:720px;">
+
+        <!-- Back button -->
+        <a class="back-btn" id="back-btn" href="javascript:history.back()">← Back</a>
+
+        <!-- Loading -->
+        <div class="loading-state" id="loading-state">
+            <div class="spinner"></div>
+        </div>
+
+        <!-- Profile content -->
+        <div id="profile-content" style="display:none;">
+
+            <!-- Hero section -->
+            <div class="pv-hero">
+                <div id="pv-avatar"></div>
+                <div class="pv-info">
+                    <div class="pv-name" id="pv-name"></div>
+                    <div class="pv-role" id="pv-role"></div>
+                    <div class="pv-bio" id="pv-bio"></div>
+                    <div class="pv-meta" id="pv-meta"></div>
+                    <div class="pv-actions" id="pv-actions"></div>
+                </div>
+            </div>
+
+            <!-- Skills -->
+            <div class="pv-section" id="skills-section" style="display:none;">
+                <div class="pv-section-title">Skills</div>
+                <div class="pv-skills" id="pv-skills"></div>
+            </div>
+
+            <!-- Rating -->
+            <div class="pv-section" id="rating-section" style="display:none;">
+                <div class="pv-section-title">Collaboration rating</div>
+                <div class="rating-row">
+                    <div class="stars" id="pv-stars"></div>
+                    <span id="pv-rating-num" style="font-family:var(--font-head);font-weight:700;"></span>
+                    <span id="pv-rating-count" style="color:var(--text2);font-size:0.82rem;"></span>
+                </div>
+            </div>
+
+            <!-- Links (freelancer only) -->
+            <div class="pv-section" id="links-section" style="display:none;">
+                <div class="pv-section-title">Links</div>
+                <div class="pv-links" id="pv-links"></div>
+            </div>
+
+            <!-- Swipe action bar — only show if coming from swipe feed -->
+            <div class="swipe-action-bar" id="swipe-action-bar" style="display:none;">
+                <button class="swipe-btn-lg swipe-btn-pass"  onclick="doSwipeAction('pass')"       title="Pass">✕</button>
+                <button class="swipe-btn-lg swipe-btn-super" onclick="doSwipeAction('super_like')" title="Super Like">⚡</button>
+                <button class="swipe-btn-lg swipe-btn-like"  onclick="doSwipeAction('like')"       title="Like">♥</button>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script src="/static/js/api.js"></script>
+    <script>
+        requireAuth()
+
+        const params        = new URLSearchParams(location.search)
+        const userId        = params.get('id')
+        const role          = params.get('role')       // 'freelancer' or 'company'
+        const profileId     = params.get('profile_id') // profile pk
+        const fromSwipe     = params.get('from') === 'swipe'
+        const fromMatch     = params.get('from') === 'matches'
+        const fromInterests = params.get('from') === 'interests'
+
+        if (!userId && !profileId) {
+            window.location.href = '/swipe/'
+        }
+
+        // ── Set back button destination ────────────
+        const backBtn = document.getElementById('back-btn')
+        if (fromSwipe)           backBtn.href = '/swipe/'
+        else if (fromMatch || fromInterests) backBtn.href = '/matches/'
+
+        if (fromSwipe || fromInterests) {
+            document.getElementById('swipe-action-bar').style.display = 'flex'
+        }
+
+        // ── Load profile ───────────────────────────
+        async function loadProfile() {
+            try {
+                let endpoint = ''
+                if (userId) {
+                    // Use by-user endpoint — most reliable
+                    endpoint = role === 'company'
+                        ? `/profiles/company/by-user/${userId}/`
+                        : `/profiles/freelancer/by-user/${userId}/`
+                } else if (profileId) {
+                    endpoint = role === 'company'
+                        ? `/profiles/company/${profileId}/`
+                        : `/profiles/freelancer/${profileId}/`
+                } else {
+                    document.getElementById('loading-state').style.display = 'none'
+                    return
+                }
+
+                const res = await api(endpoint)
+                if (!res || !res.ok) {
+                    document.getElementById('loading-state').innerHTML =
+                        '<div class="empty-state"><div class="empty-state-icon">😔</div><strong>Profile not found</strong></div>'
+                    return
+                }
+
+                const p = await res.json()
+                renderProfile(p)
+
+                // Record profile view
+                if (userId) {
+                    api(`/analytics/profile-views/${userId}/`, { method: 'POST', body: JSON.stringify({ source: fromSwipe ? 'swipe_feed' : 'matches' }) })
+                }
+
+                // Load ratings
+                if (userId) loadRatings(userId)
+
+            } catch (e) {
+                console.error(e)
+                document.getElementById('loading-state').innerHTML =
+                    '<div class="empty-state"><div class="empty-state-icon">⚠️</div><strong>Error loading profile</strong></div>'
+            }
+        }
+
+        function renderProfile(p) {
+            document.getElementById('loading-state').style.display  = 'none'
+            document.getElementById('profile-content').style.display = 'block'
+
+            const isCompany = role === 'company'
+
+            // Avatar
+            const avatarEl = document.getElementById('pv-avatar')
+            if (p.avatar) {
+                avatarEl.innerHTML = `<img src="${p.avatar}" alt="${p.name}" class="pv-avatar">`
+            } else {
+                const initials = (p.name || 'U')[0].toUpperCase()
+                avatarEl.innerHTML = `
+                    <div class="avatar-placeholder pv-avatar" style="width:100px;height:100px;font-size:2.5rem;">
+                        ${initials}
+                    </div>`
+            }
+
+            // Name
+            document.getElementById('pv-name').textContent = p.name || 'Unknown'
+
+            // Role badges
+            const roleEl = document.getElementById('pv-role')
+            let roleBadges = `<span class="badge ${isCompany ? 'badge-accent' : 'badge-green'}">${isCompany ? '🏢 Company' : '🧑‍💻 Freelancer'}</span>`
+            if (p.email_verified || p.face_verified) {
+                roleBadges += `<span class="verified-badge">✓ Verified</span>`
+            }
+            if (!isCompany && p.availability) {
+                const avail = p.availability.replace('_', ' ')
+                roleBadges += `<span class="availability-badge avail-${p.availability}">${avail}</span>`
+            }
+            roleEl.innerHTML = roleBadges
+
+            // Bio / description
+            const bio = isCompany ? (p.description || '') : (p.bio || '')
+            document.getElementById('pv-bio').textContent = bio || 'No bio added yet.'
+
+            // Meta info
+            const metaEl = document.getElementById('pv-meta')
+            const metaItems = []
+            if (p.city || p.country) {
+                metaItems.push(`<span class="pv-meta-item">📍 ${[p.city, p.country].filter(Boolean).join(', ')}</span>`)
+            }
+            if (!isCompany && p.experience_years !== undefined) {
+                metaItems.push(`<span class="pv-meta-item">💼 ${p.experience_years} years experience</span>`)
+            }
+            if (isCompany && p.website_url) {
+                metaItems.push(`<span class="pv-meta-item"><a href="${p.website_url}" target="_blank" style="color:var(--accent);">🌐 Website</a></span>`)
+            }
+            metaEl.innerHTML = metaItems.join('')
+
+            // Skills
+            const skills = p.skills || []
+            if (skills.length > 0) {
+                const skillsEl = document.getElementById('pv-skills')
+                skillsEl.innerHTML = skills.map(s =>
+                    `<span class="skill-tag">${s.name}</span>`
+                ).join('')
+                document.getElementById('skills-section').style.display = 'block'
+            }
+
+            // Links (freelancer only)
+            if (!isCompany) {
+                const links = []
+                if (p.portfolio_url) links.push(`<a href="${p.portfolio_url}" target="_blank" class="pv-link">🌐 Portfolio</a>`)
+                if (p.github_url)    links.push(`<a href="${p.github_url}"    target="_blank" class="pv-link">🐙 GitHub</a>`)
+                if (p.linkedin_url)  links.push(`<a href="${p.linkedin_url}"  target="_blank" class="pv-link">💼 LinkedIn</a>`)
+                if (links.length > 0) {
+                    document.getElementById('pv-links').innerHTML = links.join('')
+                    document.getElementById('links-section').style.display = 'block'
+                }
+            }
+
+            // Actions
+            renderActions(p)
+
+            // Swipe action bar
+            if (fromSwipe && userId) {
+                document.getElementById('swipe-action-bar').style.display = 'flex'
+            }
+
+            // Page title
+            document.title = `${p.name} — SwipeCollab`
+        }
+
+        function renderActions(p) {
+            const actionsEl = document.getElementById('pv-actions')
+            const currentUser = getUser()
+            const buttons = []
+
+            if (fromSwipe && userId) {
+                buttons.push(`<button class="btn btn-primary" onclick="doSwipeAction('like')">❤️ Like</button>`)
+                buttons.push(`<button class="btn btn-ghost" onclick="doSwipeAction('pass')">✕ Pass</button>`)
+            }
+
+            buttons.push(`
+                <button class="btn btn-ghost" style="color:var(--red);border-color:var(--red);"
+                    onclick="openReportFromProfile('${userId}', '${p.name}')">
+                    🚩 Report
+                </button>`)
+
+            actionsEl.innerHTML = buttons.join('')
+        }
+
+        async function loadRatings(targetUserId) {
+            try {
+                const res = await api(`/matches/my-ratings/?user=${targetUserId}`)
+                if (res && res.ok) {
+                    const d = await res.json()
+                    if (d.total_ratings > 0) {
+                        document.getElementById('pv-stars').textContent =
+                            '★'.repeat(Math.round(d.average_score)) +
+                            '☆'.repeat(5 - Math.round(d.average_score))
+                        document.getElementById('pv-rating-num').textContent = d.average_score
+                        document.getElementById('pv-rating-count').textContent =
+                            `(${d.total_ratings} review${d.total_ratings > 1 ? 's' : ''})`
+                        document.getElementById('rating-section').style.display = 'block'
+                    }
+                }
+            } catch {}
+        }
+
+        // ── Swipe from profile page ────────────────
+        async function doSwipeAction(action) {
+            if (!userId) return
+            try {
+                const res = await api('/swipe/action/', {
+                    method: 'POST',
+                    body: JSON.stringify({ target_id: userId, action })
+                })
+                if (res && res.ok) {
+                    const data = await res.json()
+                    if (data.matched) {
+                        showToast('🎉 It\'s a match! Go to your matches.', 'success')
+                        setTimeout(() => window.location.href = '/matches/', 1500)
+                    } else {
+                        showToast(action === 'like' ? '❤️ Liked!' : action === 'super_like' ? '⚡ Super liked!' : '✕ Passed', 'info')
+                        setTimeout(() => window.location.href = '/swipe/', 800)
+                    }
+                } else if (res && res.status === 400) {
+                    const d = await res.json()
+                    showToast(d.detail || 'Already swiped.', 'error')
+                }
+            } catch { showToast('Error. Try again.', 'error') }
+        }
+
+        // ── Report from profile page ───────────────
+        function openReportFromProfile(targetId, name) {
+            const reason = prompt(`Report ${name}?\n\nDescribe the reason:`)
+            if (!reason) return
+            api('/moderation/report/', {
+                method: 'POST',
+                body: JSON.stringify({
+                    reported_user: targetId,
+                    category: 'other',
+                    reason: reason,
+                })
+            }).then(res => {
+                if (res && res.ok) showToast('Report submitted.')
+                else showToast('Failed to submit report.', 'error')
+            })
+        }
+
+        loadProfile()
+    </script>
+</body>
+</html>

@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard — SwipeCollab</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        /* ── Layout ── */
+        .dash-wrapper { display: grid; grid-template-columns: 240px 1fr; min-height: calc(100vh - 60px); }
+
+        /* ── Sidebar ── */
+        .sidebar { background: var(--bg2); border-right: 1px solid var(--border); padding: 1.5rem 1rem; display: flex; flex-direction: column; gap: 0.25rem; position: sticky; top: 60px; height: calc(100vh - 60px); overflow-y: auto; }
+        .sidebar-logo { font-family: var(--font-head); font-size: 1rem; font-weight: 700; color: var(--text); padding: 0 0.5rem 1.25rem; border-bottom: 1px solid var(--border); margin-bottom: 0.75rem; }
+        .sidebar-logo span { color: var(--accent); }
+        .sidebar-section { color: var(--text3); font-size: 0.68rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.75rem 0.5rem 0.35rem; }
+        .sidebar-link { display: flex; align-items: center; gap: 0.65rem; border-radius: var(--radius-sm); color: var(--text2); font-size: 0.875rem; font-weight: 500; padding: 0.55rem 0.75rem; text-decoration: none; transition: all var(--transition); }
+        .sidebar-link:hover { background: var(--bg3); color: var(--text); }
+        .sidebar-link.active { background: rgba(108,99,255,0.12); color: var(--accent); }
+        .sidebar-link .icon { font-size: 1.05rem; width: 20px; text-align: center; }
+        .sidebar-bottom { margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--border); }
+        .user-chip { display: flex; align-items: center; gap: 0.65rem; padding: 0.55rem 0.75rem; border-radius: var(--radius-sm); }
+        .user-chip-avatar { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; font-family: var(--font-head); font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .user-chip-info { flex: 1; min-width: 0; }
+        .user-chip-name { font-size: 0.8rem; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-chip-role { font-size: 0.7rem; color: var(--text3); }
+
+        /* ── Main content ── */
+        .dash-main { padding: 2rem; overflow-y: auto; }
+
+        /* ── Trial banner ── */
+        .trial-banner { border-radius: var(--radius); padding: 0.85rem 1.25rem; margin-bottom: 1.75rem; display: none; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; font-size: 0.875rem; }
+        .trial-banner.active { background: rgba(108,99,255,0.08); border: 1px solid rgba(108,99,255,0.2); color: var(--accent); display: flex; }
+        .trial-banner.expired { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); color: var(--red); display: flex; }
+
+        /* ── Welcome ── */
+        .welcome-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.75rem; flex-wrap: wrap; gap: 1rem; }
+        .welcome-text h1 { font-size: 1.5rem; font-weight: 700; font-family: var(--font-head); margin-bottom: 0.2rem; }
+        .welcome-text p { color: var(--text2); font-size: 0.875rem; }
+        .welcome-actions { display: flex; gap: 0.5rem; }
+
+        /* ── Stat cards ── */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 1.75rem; }
+        .stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.1rem 1.25rem; position: relative; overflow: hidden; transition: border-color var(--transition); }
+        .stat-card:hover { border-color: var(--accent); }
+        .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; border-radius: var(--radius) var(--radius) 0 0; }
+        .stat-card.purple::before { background: var(--accent); }
+        .stat-card.green::before  { background: var(--green); }
+        .stat-card.coral::before  { background: var(--accent2); }
+        .stat-card.yellow::before { background: var(--yellow); }
+        .stat-icon { font-size: 1.4rem; margin-bottom: 0.6rem; }
+        .stat-label { color: var(--text3); font-size: 0.72rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 0.3rem; }
+        .stat-value { font-family: var(--font-head); font-size: 2rem; font-weight: 700; line-height: 1; }
+        .stat-sub { color: var(--text3); font-size: 0.75rem; margin-top: 0.3rem; }
+
+        /* ── Bottom grid ── */
+        .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+        .section-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; }
+        .section-card-title { font-family: var(--font-head); font-size: 0.875rem; font-weight: 600; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+
+        /* ── Quick actions ── */
+        .quick-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+        .quick-btn { display: flex; align-items: center; gap: 0.65rem; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 0.82rem; font-weight: 500; padding: 0.65rem 0.85rem; text-decoration: none; transition: all var(--transition); }
+        .quick-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(108,99,255,0.06); }
+        .quick-btn-icon { font-size: 1rem; }
+
+        /* ── Rating ── */
+        .rating-big { font-size: 2.5rem; font-family: var(--font-head); font-weight: 700; line-height: 1; margin-bottom: 0.35rem; }
+        .stars-row { color: var(--yellow); font-size: 1.1rem; margin-bottom: 0.35rem; }
+        .rating-sub { color: var(--text2); font-size: 0.8rem; }
+
+        /* ── Activity list ── */
+        .activity-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0; border-bottom: 1px solid var(--border); }
+        .activity-item:last-child { border-bottom: none; }
+        .activity-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+        .activity-dot.match   { background: var(--green); }
+        .activity-dot.swipe   { background: var(--accent); }
+        .activity-dot.message { background: var(--yellow); }
+        .activity-text { font-size: 0.82rem; color: var(--text2); flex: 1; }
+        .activity-text strong { color: var(--text); }
+
+        /* ── Progress bar ── */
+        .progress-wrap { margin-bottom: 0.85rem; }
+        .progress-label { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--text2); margin-bottom: 0.3rem; }
+        .progress-bar { background: var(--bg3); border-radius: 999px; height: 6px; overflow: hidden; }
+        .progress-fill { border-radius: 999px; height: 100%; transition: width 0.6s ease; }
+
+        /* ── Responsive ── */
+        @media (max-width: 900px) {
+            .dash-wrapper { grid-template-columns: 1fr; }
+            .sidebar { display: none; }
+            .bottom-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="/" class="nav-logo">Swipe<span style="color:var(--accent)">Collab</span></a>
+        <div class="nav-links">
+            <a href="/swipe/" class="nav-link">Swipe</a>
+            <a href="/matches/" class="nav-link">Matches</a>
+            <a href="/projects/" class="nav-link">Projects</a>
+            <a href="/chat/" class="nav-link">Chat</a>
+            <button class="btn btn-ghost" style="padding:0.4rem 0.85rem;font-size:0.8rem;" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <div class="dash-wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-logo">Swipe<span>Collab</span></div>
+
+            <div class="sidebar-section">Main</div>
+            <a href="/dashboard/" class="sidebar-link active"><span class="icon">🏠</span> Dashboard</a>
+            <a href="/swipe/" class="sidebar-link"><span class="icon">🃏</span> Swipe feed</a>
+            <a href="/matches/" class="sidebar-link"><span class="icon">🤝</span> Matches & Interests</a>
+            <a href="/chat/" class="sidebar-link"><span class="icon">💬</span> Messages</a>
+
+            <div class="sidebar-section">Work</div>
+            <a href="/projects/" class="sidebar-link"><span class="icon">📋</span> Projects</a>
+
+            <div class="sidebar-section">Account</div>
+            <a href="/profile/" class="sidebar-link"><span class="icon">✏️</span> Edit profile</a>
+            <a href="/moderation/" class="sidebar-link"><span class="icon">🛡️</span> Safety</a>
+            <a href="/payment/" class="sidebar-link" id="upgrade-link" style="display:none"><span class="icon">💳</span> Upgrade — ₹49</a>
+
+            <div class="sidebar-bottom">
+                <div class="user-chip">
+                    <div class="user-chip-avatar" id="sidebar-avatar">?</div>
+                    <div class="user-chip-info">
+                        <div class="user-chip-name" id="sidebar-name">Loading...</div>
+                        <div class="user-chip-role" id="sidebar-role"></div>
+                    </div>
+                </div>
+                <a class="sidebar-link" onclick="logout()" style="cursor:pointer;margin-top:0.25rem;color:var(--red);">
+                    <span class="icon">🚪</span> Logout
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main -->
+        <main class="dash-main">
+
+            <!-- Trial banner -->
+            <div class="trial-banner" id="trial-banner"></div>
+
+            <!-- Welcome -->
+            <div class="welcome-row">
+                <div class="welcome-text">
+                    <h1 id="welcome-name">Welcome back 👋</h1>
+                    <p id="welcome-sub">Here's your activity at a glance.</p>
+                </div>
+                <div class="welcome-actions">
+                    <a href="/swipe/" class="btn btn-primary" style="font-size:0.875rem;padding:0.55rem 1.1rem;">Start swiping →</a>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card purple">
+                    <div class="stat-icon">👁️</div>
+                    <div class="stat-label">Profile views</div>
+                    <div class="stat-value" id="stat-views">—</div>
+                    <div class="stat-sub">people saw your card</div>
+                </div>
+                <div class="stat-card green">
+                    <div class="stat-icon">❤️</div>
+                    <div class="stat-label">Likes received</div>
+                    <div class="stat-value" id="stat-likes">—</div>
+                    <div class="stat-sub">people liked you</div>
+                </div>
+                <div class="stat-card coral">
+                    <div class="stat-icon">🤝</div>
+                    <div class="stat-label">Matches</div>
+                    <div class="stat-value" id="stat-matches">—</div>
+                    <div class="stat-sub">mutual connections</div>
+                </div>
+                <div class="stat-card yellow">
+                    <div class="stat-icon">💬</div>
+                    <div class="stat-label">Messages</div>
+                    <div class="stat-value" id="stat-messages">—</div>
+                    <div class="stat-sub">sent in chats</div>
+                </div>
+            </div>
+
+            <!-- Bottom grid -->
+            <div class="bottom-grid">
+
+                <!-- Quick actions -->
+                <div class="section-card">
+                    <div class="section-card-title">🚀 Quick actions</div>
+                    <div class="quick-grid">
+                        <a href="/swipe/" class="quick-btn"><span class="quick-btn-icon">🃏</span> Swipe feed</a>
+                        <a href="/matches/" class="quick-btn"><span class="quick-btn-icon">🤝</span> My matches</a>
+                        <a href="/chat/" class="quick-btn"><span class="quick-btn-icon">💬</span> Open chat</a>
+                        <a href="/projects/" class="quick-btn"><span class="quick-btn-icon">📋</span> Projects</a>
+                        <a href="/profile/" class="quick-btn"><span class="quick-btn-icon">✏️</span> Edit profile</a>
+                        <a href="/moderation/" class="quick-btn"><span class="quick-btn-icon">🛡️</span> Safety</a>
+                    </div>
+                </div>
+
+                <!-- Rating + activity -->
+                <div class="section-card">
+                    <div id="rating-block" style="display:none;margin-bottom:1.25rem;padding-bottom:1.25rem;border-bottom:1px solid var(--border);">
+                        <div class="section-card-title">⭐ Your rating</div>
+                        <div class="rating-big" id="rating-num">—</div>
+                        <div class="stars-row" id="stars-row"></div>
+                        <div class="rating-sub" id="rating-count"></div>
+                    </div>
+
+                    <div class="section-card-title">📊 Swipe activity</div>
+                    <div class="progress-wrap">
+                        <div class="progress-label"><span>Swipes made</span><span id="prog-swipes">0</span></div>
+                        <div class="progress-bar"><div class="progress-fill" id="fill-swipes" style="background:var(--accent);width:0%"></div></div>
+                    </div>
+                    <div class="progress-wrap">
+                        <div class="progress-label"><span>Match rate</span><span id="prog-matchrate">0%</span></div>
+                        <div class="progress-bar"><div class="progress-fill" id="fill-matchrate" style="background:var(--green);width:0%"></div></div>
+                    </div>
+                    <div class="progress-wrap">
+                        <div class="progress-label"><span>Likes received</span><span id="prog-likes">0</span></div>
+                        <div class="progress-bar"><div class="progress-fill" id="fill-likes" style="background:var(--accent2);width:0%"></div></div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/js/api.js"></script>
+    <script>
+        requireAuth()
+
+        async function loadDashboard() {
+            const user = getUser()
+            if (user) {
+                const name = user.email.split('@')[0]
+                document.getElementById('welcome-name').textContent = `Welcome back, ${name} 👋`
+                document.getElementById('welcome-sub').textContent = user.role === 'freelancer' ? 'Freelancer account' : 'Company account'
+                document.getElementById('sidebar-avatar').textContent = name[0].toUpperCase()
+                document.getElementById('sidebar-name').textContent = user.email
+                document.getElementById('sidebar-role').textContent = user.role === 'freelancer' ? 'Freelancer' : 'Company'
+
+                const banner = document.getElementById('trial-banner')
+                if (user.is_freelancer && user.is_trial_active && !user.is_paid) {
+                    const days = Math.max(Math.ceil((new Date(user.trial_ends_at) - Date.now()) / 86400000), 0)
+                    banner.className = 'trial-banner active'
+                    banner.innerHTML = `🎉 Free trial active — <strong>${days} days remaining</strong> <a href="/payment/" style="color:inherit;font-weight:600;margin-left:auto;">Upgrade for ₹49 →</a>`
+                } else if (!user.is_paid && !user.is_trial_active) {
+                    banner.className = 'trial-banner expired'
+                    banner.innerHTML = `⚠️ Your trial has expired. <a href="/payment/" style="color:inherit;font-weight:600;margin-left:auto;">Pay ₹49 to continue →</a>`
+                    document.getElementById('upgrade-link').style.display = 'flex'
+                }
+            }
+
+            try {
+                await api('/analytics/sync/')
+                const res = await api('/analytics/me/')
+                if (res && res.ok) {
+                    const d = await res.json()
+                    const views    = d.profile_view_count    ?? 0
+                    const likes    = d.total_likes_received  ?? 0
+                    const matches  = d.match_count           ?? 0
+                    const messages = d.message_count         ?? 0
+                    const swipes   = d.total_swipes_made     ?? 0
+
+                    document.getElementById('stat-views').textContent    = views
+                    document.getElementById('stat-likes').textContent    = likes
+                    document.getElementById('stat-matches').textContent  = matches
+                    document.getElementById('stat-messages').textContent = messages
+
+                    document.getElementById('prog-swipes').textContent = swipes
+                    document.getElementById('fill-swipes').style.width = Math.min(swipes * 5, 100) + '%'
+
+                    const matchRate = swipes > 0 ? Math.round((matches / swipes) * 100) : 0
+                    document.getElementById('prog-matchrate').textContent = matchRate + '%'
+                    document.getElementById('fill-matchrate').style.width = matchRate + '%'
+
+                    document.getElementById('prog-likes').textContent = likes
+                    document.getElementById('fill-likes').style.width = Math.min(likes * 10, 100) + '%'
+                }
+            } catch (e) { console.error(e) }
+
+            try {
+                const res = await api('/matches/my-ratings/')
+                if (res && res.ok) {
+                    const d = await res.json()
+                    if (d.total_ratings > 0) {
+                        document.getElementById('rating-block').style.display = 'block'
+                        document.getElementById('rating-num').textContent = d.average_score
+                        const full  = Math.round(d.average_score)
+                        const empty = 5 - full
+                        document.getElementById('stars-row').textContent = '★'.repeat(full) + '☆'.repeat(empty)
+                        document.getElementById('rating-count').textContent = `${d.total_ratings} review${d.total_ratings > 1 ? 's' : ''}`
+                    }
+                }
+            } catch {}
+        }
+
+        loadDashboard()
+    </script>
+</body>
+</html>

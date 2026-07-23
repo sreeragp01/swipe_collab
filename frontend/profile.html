@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile — SwipeCollab</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .profile-header { display: flex; align-items: center; gap: 1.5rem; margin-bottom: 2rem; flex-wrap: wrap; }
+        .avatar-wrap { position: relative; cursor: pointer; }
+        .avatar-img { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; display: none; }
+        .avatar-placeholder-box { width: 90px; height: 90px; font-size: 2rem; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; display: flex; align-items: center; justify-content: center; font-family: var(--font-head); font-weight: 700; }
+        .avatar-overlay { position: absolute; inset: 0; border-radius: 50%; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s; color: #fff; font-size: 0.75rem; font-weight: 600; }
+        .avatar-wrap:hover .avatar-overlay { opacity: 1; }
+        .avatar-upload-progress { font-size: 0.78rem; color: var(--accent); margin-top: 0.35rem; text-align: center; display: none; }
+        .profile-meta h2 { font-size: 1.4rem; margin-bottom: 0.25rem; }
+        .profile-meta p { color: var(--text2); font-size: 0.875rem; }
+        .tabs { display: flex; gap: 0.25rem; border-bottom: 1px solid var(--border); margin-bottom: 2rem; overflow-x: auto; }
+        .tab { background: none; border: none; border-bottom: 2px solid transparent; color: var(--text2); cursor: pointer; font-family: var(--font-body); font-size: 0.9rem; font-weight: 500; margin-bottom: -1px; padding: 0.65rem 1rem; transition: all var(--transition); white-space: nowrap; }
+        .tab.active { border-bottom-color: var(--accent); color: var(--accent); }
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+        .skills-wrap { display: flex; flex-wrap: wrap; gap: 0.5rem; min-height: 2rem; }
+        .skill-tag-rm { background: var(--bg3); border: 1px solid var(--border); border-radius: 999px; color: var(--text2); cursor: default; display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.78rem; padding: 0.25rem 0.7rem; }
+        .skill-tag-rm .rm-x { cursor: pointer; font-size: 0.85rem; color: var(--text3); line-height: 1; }
+        .skill-tag-rm .rm-x:hover { color: var(--red); }
+        .skill-add-row { display: flex; gap: 0.5rem; margin-top: 0.75rem; }
+        .skill-add-row select { flex: 1; }
+        .completion-bar-wrap { margin-top: 0.6rem; }
+        .completion-label { color: var(--text2); font-size: 0.8rem; display: flex; justify-content: space-between; margin-bottom: 0.3rem; }
+        .completion-bar { background: var(--bg3); border-radius: 999px; height: 7px; overflow: hidden; }
+        .completion-fill { background: linear-gradient(90deg, var(--accent), #a78bfa); border-radius: 999px; height: 100%; transition: width 0.5s ease; }
+        .no-skills-msg { color: var(--text3); font-size: 0.85rem; font-style: italic; }
+        .skills-section-label { font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem; color: var(--text2); }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="/" class="nav-logo">Swipe<span style="color:var(--accent)">Collab</span></a>
+        <div class="nav-links">
+            <a href="/dashboard/" class="nav-link">Home</a>
+            <a href="/swipe/" class="nav-link">Swipe</a>
+            <a href="/matches/" class="nav-link">Matches</a>
+            <a href="/projects/" class="nav-link">Projects</a>
+            <a href="/profile/" class="nav-link active">Profile</a>
+            <a href="/moderation/" class="nav-link" style="color:var(--red);">🛡️ Safety</a>
+            <button class="btn btn-ghost" style="padding:0.4rem 0.85rem;font-size:0.8rem;" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <div class="page" style="max-width:720px;">
+
+        <!-- Profile header -->
+        <div class="profile-header">
+            <div class="avatar-wrap" onclick="document.getElementById('avatar-input').click()" title="Click to change photo">
+                <img id="avatar-img" class="avatar-img" alt="Profile photo">
+                <div class="avatar-placeholder-box" id="avatar-initials">?</div>
+                <div class="avatar-overlay">📷 Change</div>
+                <input type="file" id="avatar-input" accept="image/*" style="display:none" onchange="uploadAvatar(this)">
+            </div>
+            <div class="profile-meta" style="flex:1;">
+                <h2 id="profile-name-display">Your profile</h2>
+                <p id="profile-role-display" style="margin-bottom:0.5rem;"></p>
+                <div class="completion-bar-wrap">
+                    <div class="completion-label">
+                        <span>Profile completion</span>
+                        <span id="completion-pct" style="color:var(--accent);font-weight:600;">0%</span>
+                    </div>
+                    <div class="completion-bar">
+                        <div class="completion-fill" id="completion-fill" style="width:0%"></div>
+                    </div>
+                </div>
+                <div id="avatar-upload-progress" class="avatar-upload-progress">Uploading photo...</div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('basic', this)">Basic info</button>
+            <button class="tab" onclick="switchTab('skills', this)">Skills</button>
+            <button class="tab" onclick="switchTab('links', this)">Links</button>
+            <button class="tab" onclick="switchTab('verify', this)">Verification</button>
+        </div>
+
+        <!-- Basic info tab -->
+        <div id="tab-basic" class="tab-panel active">
+            <div class="form-group">
+                <label>Display name</label>
+                <input type="text" id="name" placeholder="Your full name">
+            </div>
+            <div class="form-group">
+                <label>Bio</label>
+                <textarea id="bio" rows="3" placeholder="Short professional bio shown on your swipe card"></textarea>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+                <div class="form-group"><label>City</label><input type="text" id="city" placeholder="Kochi"></div>
+                <div class="form-group"><label>Country</label><input type="text" id="country" placeholder="India"></div>
+            </div>
+
+            <!-- Freelancer only fields -->
+            <div id="freelancer-fields">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+                    <div class="form-group">
+                        <label>Experience (years)</label>
+                        <input type="number" id="experience_years" min="0" max="50" placeholder="3">
+                    </div>
+                    <div class="form-group">
+                        <label>Availability</label>
+                        <select id="availability">
+                            <option value="full_time">Full Time</option>
+                            <option value="part_time">Part Time</option>
+                            <option value="contract">Contract</option>
+                            <option value="not_available">Not Available</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Company only fields -->
+            <div id="company-fields" style="display:none">
+                <div class="form-group">
+                    <label>Company description</label>
+                    <textarea id="description" rows="3" placeholder="What does your company do?"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Website</label>
+                    <input type="url" id="website_url" placeholder="https://yourcompany.com">
+                </div>
+            </div>
+
+            <button class="btn btn-primary" id="save-basic-btn" onclick="saveBasic()">Save changes</button>
+        </div>
+
+        <!-- Skills tab -->
+        <div id="tab-skills" class="tab-panel">
+            <p style="color:var(--text2);font-size:0.875rem;margin-bottom:1.25rem;">
+                Add skills that match your expertise. More skills = better match score with other users.
+            </p>
+
+            <div class="skills-section-label">Your skills</div>
+            <div class="skills-wrap" id="skills-display">
+                <span class="no-skills-msg">No skills added yet.</span>
+            </div>
+
+            <div class="skill-add-row">
+                <select id="skill-select">
+                    <option value="">— Select a skill to add —</option>
+                </select>
+                <button class="btn btn-primary" id="add-skill-btn" onclick="addSkill()">Add</button>
+            </div>
+
+            <div id="skill-feedback" style="margin-top:0.75rem;font-size:0.82rem;color:var(--green);display:none;"></div>
+        </div>
+
+        <!-- Links tab -->
+        <div id="tab-links" class="tab-panel">
+            <div class="form-group">
+                <label>Portfolio URL</label>
+                <input type="url" id="portfolio_url" placeholder="https://yourportfolio.com">
+            </div>
+            <div class="form-group">
+                <label>GitHub</label>
+                <input type="url" id="github_url" placeholder="https://github.com/username">
+            </div>
+            <div class="form-group">
+                <label>LinkedIn</label>
+                <input type="url" id="linkedin_url" placeholder="https://linkedin.com/in/username">
+            </div>
+            <button class="btn btn-primary" onclick="saveLinks()">Save links</button>
+        </div>
+
+        <!-- Verification tab -->
+        <div id="tab-verify" class="tab-panel">
+            <div class="card" style="margin-bottom:1rem;">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+                    <div>
+                        <strong>Email verification</strong>
+                        <p style="color:var(--text2);font-size:0.85rem;margin-top:0.25rem;">Verify your email address to start swiping</p>
+                    </div>
+                    <div id="email-badge"></div>
+                </div>
+            </div>
+            <div class="card">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+                    <div>
+                        <strong>Face verification</strong>
+                        <p style="color:var(--text2);font-size:0.85rem;margin-top:0.25rem;">Upload a clear selfie for identity verification</p>
+                    </div>
+                    <div id="face-badge"></div>
+                </div>
+                <div id="face-upload-section" style="margin-top:1.25rem;display:none;">
+                    <div class="form-group">
+                        <label>Upload selfie</label>
+                        <input type="file" id="face-input" accept="image/*">
+                    </div>
+                    <button class="btn btn-primary" onclick="submitFaceVerify()">Submit for verification</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="/static/js/api.js"></script>
+    <script>
+        requireAuth()
+        const user = getUser()
+        let profileData = null
+        let allSkills = []
+        let profileSkillIds = []
+
+        // ── Tab switching ──────────────────────────
+        function switchTab(tab, el) {
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'))
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'))
+            document.getElementById('tab-' + tab).classList.add('active')
+            el.classList.add('active')
+        }
+
+        // ── Profile completion calculator ──────────
+        function calcCompletion(p) {
+            if (!p) return 0
+            let score = 0
+            if (p.name)    score += 20
+            if (p.bio)     score += 20
+            if (p.city || p.country) score += 15
+            if (p.skills && p.skills.length > 0) score += 20
+            if (p.avatar)  score += 10
+            if (p.portfolio_url || p.github_url || p.linkedin_url) score += 15
+            return Math.min(score, 100)
+        }
+
+        function updateCompletionBar(p) {
+            const pct = calcCompletion(p)
+            document.getElementById('completion-pct').textContent = pct + '%'
+            document.getElementById('completion-fill').style.width = pct + '%'
+        }
+
+        // ── Avatar display ─────────────────────────
+        function setAvatar(url, name) {
+            const img = document.getElementById('avatar-img')
+            const initials = document.getElementById('avatar-initials')
+            if (url) {
+                img.src = url
+                img.style.display = 'block'
+                initials.style.display = 'none'
+            } else {
+                img.style.display = 'none'
+                initials.style.display = 'flex'
+                initials.textContent = (name || user?.email || 'U')[0].toUpperCase()
+            }
+        }
+
+        // ── Upload avatar ──────────────────────────
+        async function uploadAvatar(input) {
+            const file = input.files[0]
+            if (!file) return
+
+            const progress = document.getElementById('avatar-upload-progress')
+            progress.style.display = 'block'
+            progress.textContent = 'Uploading photo...'
+
+            // Show preview immediately
+            const reader = new FileReader()
+            reader.onload = e => setAvatar(e.target.result, profileData?.name)
+            reader.readAsDataURL(file)
+
+            const form = new FormData()
+            form.append('avatar', file)
+
+            try {
+                const endpoint = user?.role === 'company' ? '/profiles/company/me/' : '/profiles/freelancer/me/'
+                const res = await apiForm(endpoint, form, 'PATCH')
+                if (res && res.ok) {
+                    profileData = await res.json()
+                    progress.textContent = '✓ Photo updated!'
+                    progress.style.color = 'var(--green)'
+                    updateCompletionBar(profileData)
+                    setTimeout(() => { progress.style.display = 'none'; progress.style.color = 'var(--accent)' }, 2000)
+                    showToast('Profile photo updated.')
+                } else {
+                    progress.textContent = 'Upload failed. Try again.'
+                    progress.style.color = 'var(--red)'
+                    setTimeout(() => { progress.style.display = 'none'; progress.style.color = 'var(--accent)' }, 2500)
+                }
+            } catch {
+                progress.textContent = 'Upload error.'
+                progress.style.color = 'var(--red)'
+                setTimeout(() => { progress.style.display = 'none'; progress.style.color = 'var(--accent)' }, 2500)
+            }
+        }
+
+        // ── Load profile ───────────────────────────
+        async function loadProfile() {
+            const isCompany = user?.role === 'company'
+            const endpoint = isCompany ? '/profiles/company/me/' : '/profiles/freelancer/me/'
+
+            document.getElementById('profile-role-display').textContent = isCompany ? 'Company account' : 'Freelancer account'
+
+            if (isCompany) {
+                document.getElementById('freelancer-fields').style.display = 'none'
+                document.getElementById('company-fields').style.display = 'block'
+            }
+
+            try {
+                const res = await api(endpoint)
+                if (res && res.ok) {
+                    profileData = await res.json()
+                    populateForm(profileData)
+                } else if (res && res.status === 404) {
+                    // Profile not created yet — that's fine, show empty form
+                    updateCompletionBar(null)
+                }
+            } catch (e) {
+                console.error('loadProfile error:', e)
+            }
+
+            // Load verification status
+            document.getElementById('email-badge').innerHTML = user?.is_verified
+                ? '<span class="badge badge-green">✓ Verified</span>'
+                : '<span class="badge badge-yellow">Pending</span>'
+            document.getElementById('face-badge').innerHTML = user?.face_verified
+                ? '<span class="badge badge-green">✓ Verified</span>'
+                : '<span class="badge badge-yellow">Not verified</span>'
+            if (!user?.face_verified) {
+                document.getElementById('face-upload-section').style.display = 'block'
+            }
+
+            // Load skills dropdown
+            await loadSkillsDropdown()
+        }
+
+        function populateForm(p) {
+            document.getElementById('name').value = p.name || ''
+            document.getElementById('bio').value = p.bio || ''
+            document.getElementById('city').value = p.city || ''
+            document.getElementById('country').value = p.country || ''
+            document.getElementById('profile-name-display').textContent = p.name || 'Your profile'
+
+            if (user?.role === 'freelancer') {
+                document.getElementById('experience_years').value = p.experience_years || 0
+                document.getElementById('availability').value = p.availability || 'full_time'
+                document.getElementById('portfolio_url').value = p.portfolio_url || ''
+                document.getElementById('github_url').value = p.github_url || ''
+                document.getElementById('linkedin_url').value = p.linkedin_url || ''
+            } else {
+                document.getElementById('description').value = p.description || ''
+                document.getElementById('website_url').value = p.website_url || ''
+            }
+
+            // Avatar
+            setAvatar(p.avatar || null, p.name)
+
+            // Skills
+            profileSkillIds = (p.skills || []).map(s => s.id)
+            renderSkills(p.skills || [])
+
+            // Completion bar
+            updateCompletionBar(p)
+        }
+
+        // ── Skills dropdown ────────────────────────
+        async function loadSkillsDropdown() {
+            try {
+                const res = await api('/profiles/skills/')
+                if (res && res.ok) {
+                    allSkills = await res.json()
+                    const sel = document.getElementById('skill-select')
+                    sel.innerHTML = '<option value="">— Select a skill to add —</option>'
+                    allSkills.forEach(s => {
+                        const opt = document.createElement('option')
+                        opt.value = s.id
+                        opt.textContent = s.name + (s.category ? ' (' + s.category + ')' : '')
+                        sel.appendChild(opt)
+                    })
+                }
+            } catch (e) {
+                console.error('loadSkillsDropdown error:', e)
+            }
+        }
+
+        // ── Render skill tags ──────────────────────
+        function renderSkills(skills) {
+            const wrap = document.getElementById('skills-display')
+            wrap.innerHTML = ''
+            if (!skills || skills.length === 0) {
+                wrap.innerHTML = '<span class="no-skills-msg">No skills added yet.</span>'
+                return
+            }
+            skills.forEach(s => {
+                const tag = document.createElement('span')
+                tag.className = 'skill-tag-rm'
+                tag.innerHTML = s.name + ' <span class="rm-x" onclick="removeSkill(' + s.id + ')">×</span>'
+                wrap.appendChild(tag)
+            })
+        }
+
+        // ── Add skill ──────────────────────────────
+        async function addSkill() {
+            const sel = document.getElementById('skill-select')
+            const id = parseInt(sel.value)
+            if (!id) return showToast('Please select a skill first.', 'error')
+            if (profileSkillIds.includes(id)) return showToast('Skill already added.', 'error')
+
+            const btn = document.getElementById('add-skill-btn')
+            btn.disabled = true
+            btn.textContent = 'Adding...'
+
+            profileSkillIds.push(id)
+            const ok = await saveSkillsToServer()
+
+            if (!ok) profileSkillIds = profileSkillIds.filter(x => x !== id)
+            btn.disabled = false
+            btn.textContent = 'Add'
+
+            // Reset dropdown
+            sel.value = ''
+        }
+
+        // ── Remove skill ───────────────────────────
+        async function removeSkill(id) {
+            profileSkillIds = profileSkillIds.filter(x => x !== id)
+            await saveSkillsToServer()
+        }
+
+        // ── Save skills to API ─────────────────────
+        async function saveSkillsToServer() {
+            const isCompany = user?.role === 'company'
+            const endpoint = isCompany ? '/profiles/company/me/' : '/profiles/freelancer/me/'
+
+            // If no profile yet, we need to POST with a name
+            const method = profileData ? 'PATCH' : 'POST'
+            const body = { skill_ids: profileSkillIds }
+
+            // POST requires name at minimum
+            if (!profileData) {
+                const nameVal = document.getElementById('name').value.trim()
+                if (!nameVal) {
+                    showToast('Please save your basic info (name) first before adding skills.', 'error')
+                    return false
+                }
+                body.name = nameVal
+            }
+
+            try {
+                const res = await api(endpoint, { method, body: JSON.stringify(body) })
+                if (res && res.ok) {
+                    profileData = await res.json()
+                    renderSkills(profileData.skills || [])
+                    updateCompletionBar(profileData)
+                    showSkillFeedback('✓ Skills saved!')
+                    return true
+                } else {
+                    const d = await res.json()
+                    showToast(d.detail || 'Failed to save skills.', 'error')
+                    return false
+                }
+            } catch (e) {
+                showToast('Error saving skills.', 'error')
+                return false
+            }
+        }
+
+        function showSkillFeedback(msg) {
+            const el = document.getElementById('skill-feedback')
+            el.textContent = msg
+            el.style.display = 'block'
+            setTimeout(() => el.style.display = 'none', 2500)
+        }
+
+        // ── Save basic info ────────────────────────
+        async function saveBasic() {
+            const isCompany = user?.role === 'company'
+            const endpoint = isCompany ? '/profiles/company/me/' : '/profiles/freelancer/me/'
+            const method = profileData ? 'PATCH' : 'POST'
+
+            const nameVal = document.getElementById('name').value.trim()
+            if (!nameVal) return showToast('Name is required.', 'error')
+
+            const body = {
+                name: nameVal,
+                bio: document.getElementById('bio').value.trim(),
+                city: document.getElementById('city').value.trim(),
+                country: document.getElementById('country').value.trim(),
+            }
+
+            if (!isCompany) {
+                body.experience_years = parseInt(document.getElementById('experience_years').value) || 0
+                body.availability = document.getElementById('availability').value
+            } else {
+                body.description = document.getElementById('description').value.trim()
+                body.website_url = document.getElementById('website_url').value.trim() || null
+            }
+
+            const btn = document.getElementById('save-basic-btn')
+            btn.disabled = true
+            btn.textContent = 'Saving...'
+
+            try {
+                const res = await api(endpoint, { method, body: JSON.stringify(body) })
+                if (res && res.ok) {
+                    profileData = await res.json()
+                    document.getElementById('profile-name-display').textContent = profileData.name || 'Your profile'
+                    updateCompletionBar(profileData)
+                    showToast('Profile saved successfully!')
+                } else {
+                    const d = await res.json()
+                    const msg = d.name?.[0] || d.detail || JSON.stringify(d)
+                    showToast(msg, 'error')
+                }
+            } catch (e) {
+                showToast('Error saving profile.', 'error')
+            }
+
+            btn.disabled = false
+            btn.textContent = 'Save changes'
+        }
+
+        // ── Save links ─────────────────────────────
+        async function saveLinks() {
+            if (!profileData) return showToast('Save your basic info first.', 'error')
+            const body = {
+                portfolio_url: document.getElementById('portfolio_url').value.trim() || null,
+                github_url: document.getElementById('github_url').value.trim() || null,
+                linkedin_url: document.getElementById('linkedin_url').value.trim() || null,
+            }
+            try {
+                const res = await api('/profiles/freelancer/me/', { method: 'PATCH', body: JSON.stringify(body) })
+                if (res && res.ok) {
+                    profileData = await res.json()
+                    updateCompletionBar(profileData)
+                    showToast('Links saved!')
+                } else {
+                    showToast('Failed to save links.', 'error')
+                }
+            } catch { showToast('Error saving links.', 'error') }
+        }
+
+        // ── Face verify ────────────────────────────
+        async function submitFaceVerify() {
+            const file = document.getElementById('face-input').files[0]
+            if (!file) return showToast('Please select a selfie photo.', 'error')
+
+            const form = new FormData()
+            form.append('face_image', file)
+
+            try {
+                const res = await apiForm('/auth/face-verify/', form)
+                if (res && res.ok) {
+                    showToast('Face verified successfully!')
+                    document.getElementById('face-badge').innerHTML = '<span class="badge badge-green">✓ Verified</span>'
+                    document.getElementById('face-upload-section').style.display = 'none'
+                    const u = getUser()
+                    if (u) { u.face_verified = true; saveUser(u) }
+                } else {
+                    showToast('Verification failed. Please try again.', 'error')
+                }
+            } catch { showToast('Error during verification.', 'error') }
+        }
+
+        // ── Init ───────────────────────────────────
+        loadProfile()
+    </script>
+</body>
+</html>

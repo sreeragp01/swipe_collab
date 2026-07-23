@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SwipeCollab — Swipe to Collaborate</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .hero { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 2rem; background: radial-gradient(ellipse at 50% 0%, rgba(108,99,255,0.15) 0%, transparent 70%); }
+        .hero h1 { font-size: clamp(2.5rem, 6vw, 4.5rem); font-weight: 700; line-height: 1.1; max-width: 800px; margin-bottom: 1.25rem; }
+        .hero h1 span { color: var(--accent); }
+        .hero p { color: var(--text2); font-size: 1.15rem; max-width: 520px; margin-bottom: 2.5rem; }
+        .hero-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+        .hero-btns .btn { padding: 0.9rem 2rem; font-size: 1rem; }
+        .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.25rem; max-width: 1000px; margin: 4rem auto; padding: 0 1.5rem; }
+        .feature-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; }
+        .feature-icon { font-size: 2rem; margin-bottom: 0.75rem; }
+        .feature-card h3 { font-size: 1rem; margin-bottom: 0.4rem; }
+        .feature-card p { color: var(--text2); font-size: 0.875rem; }
+        .how-section { max-width: 700px; margin: 0 auto 5rem; padding: 0 1.5rem; text-align: center; }
+        .how-section h2 { font-size: 1.75rem; margin-bottom: 2rem; }
+        .steps { display: flex; flex-direction: column; gap: 1rem; text-align: left; }
+        .step { display: flex; gap: 1rem; align-items: flex-start; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; }
+        .step-num { background: var(--accent); border-radius: 50%; color: #fff; font-family: var(--font-head); font-size: 0.85rem; font-weight: 700; min-width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; }
+        .step-text h4 { font-size: 0.95rem; margin-bottom: 0.2rem; }
+        .step-text p { color: var(--text2); font-size: 0.85rem; }
+        .trial-banner-hero { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); border-radius: var(--radius); color: var(--green); font-size: 0.9rem; font-weight: 500; padding: 0.75rem 1.5rem; margin-bottom: 2rem; display: inline-block; }
+        footer { border-top: 1px solid var(--border); color: var(--text3); font-size: 0.85rem; padding: 2rem; text-align: center; }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="/" class="nav-logo">Swipe<span style="color:var(--accent)">Collab</span></a>
+        <div class="nav-links">
+            <a href="/login/" class="nav-link">Log in</a>
+            <a href="/register/" class="btn btn-primary" style="padding:0.5rem 1rem;font-size:0.875rem;">Sign up free</a>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="trial-banner-hero">🎉 Freelancers get 1 month free trial — no card needed</div>
+        <h1>Swipe right to <span>collaborate</span></h1>
+        <p>The smartest way for freelancers and companies to find each other. Swipe, match, chat, and collaborate — all in one place.</p>
+        <div class="hero-btns">
+            <a href="/register/" class="btn btn-primary">Get started free</a>
+            <a href="/login/" class="btn btn-ghost">Log in</a>
+        </div>
+    </section>
+
+    <section class="features">
+        <div class="feature-card"><div class="feature-icon">🃏</div><h3>Swipe to discover</h3><p>Browse freelancers and companies on cards. Like, pass, or super-like based on skill match score.</p></div>
+        <div class="feature-card"><div class="feature-icon">🤝</div><h3>Mutual match</h3><p>When both sides like each other, it's a match. A private chat room opens instantly.</p></div>
+        <div class="feature-card"><div class="feature-icon">💬</div><h3>Real-time chat</h3><p>Message your matches with read receipts, typing indicators, and emoji reactions.</p></div>
+        <div class="feature-card"><div class="feature-icon">🎥</div><h3>Collab sessions</h3><p>Schedule a Google Meet or Zoom directly from your match. Rate your collaborator after.</p></div>
+        <div class="feature-card"><div class="feature-icon">📋</div><h3>Post projects</h3><p>Companies post projects, freelancers apply. Hiring made simple alongside the swipe flow.</p></div>
+        <div class="feature-card"><div class="feature-icon">🔒</div><h3>Verified profiles</h3><p>Email + face verification before anyone can swipe. Safe and trustworthy community.</p></div>
+    </section>
+
+    <section class="how-section">
+        <h2>How it works</h2>
+        <div class="steps">
+            <div class="step"><div class="step-num">1</div><div class="step-text"><h4>Sign up and verify</h4><p>Register as a freelancer or company. Verify your email and face before swiping.</p></div></div>
+            <div class="step"><div class="step-num">2</div><div class="step-text"><h4>Build your profile</h4><p>Add your skills, bio, portfolio, and availability. Better profile = better matches.</p></div></div>
+            <div class="step"><div class="step-num">3</div><div class="step-text"><h4>Start swiping</h4><p>See skill-matched cards. Like, pass, or super-like. 48 hours to message after a match.</p></div></div>
+            <div class="step"><div class="step-num">4</div><div class="step-text"><h4>Chat and collaborate</h4><p>Message your match, book a collab session, and rate each other after.</p></div></div>
+        </div>
+    </section>
+
+    <footer>© 2025 SwipeCollab. All rights reserved.</footer>
+
+    <script src="/static/js/api.js"></script>
+    <script>if (getToken()) window.location.href = '/dashboard/'</script>
+</body>
+</html>
