@@ -6,23 +6,48 @@
     <title>Reports & Blocks — SwipeCollab</title>
     <link rel="stylesheet" href="/static/css/style.css">
     <style>
-        .tabs { display: flex; gap: 0.25rem; border-bottom: 1px solid var(--border); margin-bottom: 1.5rem; }
-        .tab { background: none; border: none; border-bottom: 2px solid transparent; color: var(--text2); cursor: pointer; font-family: var(--font-body); font-size: 0.875rem; font-weight: 500; margin-bottom: -1px; padding: 0.6rem 1rem; transition: all var(--transition); }
-        .tab.active { border-bottom-color: var(--accent); color: var(--accent); }
+        .tabs { display: flex; gap: 0.6rem; border-bottom: 1px solid var(--border); margin-bottom: 1.8rem; padding-bottom: 0.5rem; }
+        .tab { background: none; border: none; border-bottom: 2px solid transparent; color: var(--text2); cursor: pointer; font-family: var(--font-head); font-size: 0.95rem; font-weight: 700; margin-bottom: -1px; padding: 0.65rem 1.1rem; transition: var(--transition); border-radius: var(--radius-sm); }
+        .tab:hover { color: #fff; background: rgba(255, 255, 255, 0.05); }
+        .tab.active { border-bottom-color: var(--accent); color: #a78bfa; background: rgba(139, 92, 246, 0.15); }
         .tab-panel { display: none; }
         .tab-panel.active { display: block; }
-        .report-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1rem; }
-        .report-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem; }
-        .report-meta { color: var(--text2); font-size: 0.82rem; }
-        .block-item { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 0.75rem; display: flex; align-items: center; justify-content: space-between; }
-        .block-user { display: flex; align-items: center; gap: 0.75rem; }
-        .block-avatar { width: 40px; height: 40px; font-size: 1rem; flex-shrink: 0; }
-        .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
-        .modal-bg { background: rgba(0,0,0,0.75); display: none; align-items: center; justify-content: center; position: fixed; inset: 0; z-index: 999; }
-        .modal-box { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); max-width: 460px; padding: 1.75rem; width: 90%; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
-        .modal-header h3 { font-size: 1rem; }
-        .close-btn { background: none; border: none; color: var(--text2); cursor: pointer; font-size: 1.25rem; }
+        .report-card {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            margin-bottom: 1.25rem;
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+        .report-card:hover { border-color: var(--border-hover); transform: translateY(-2px); }
+        .report-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.85rem; flex-wrap: wrap; gap: 0.6rem; }
+        .report-meta { color: var(--text2); font-size: 0.85rem; font-weight: 500; }
+        .block-item {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.2rem 1.5rem;
+            margin-bottom: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            backdrop-filter: var(--glass-blur);
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+        .block-item:hover { border-color: var(--border-hover); }
+        .block-user { display: flex; align-items: center; gap: 0.85rem; }
+        .block-avatar { width: 44px; height: 44px; font-size: 1.1rem; flex-shrink: 0; }
+        .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
+        .modal-bg { background: rgba(9, 10, 15, 0.88); backdrop-filter: blur(12px); display: none; align-items: center; justify-content: center; position: fixed; inset: 0; z-index: 999; }
+        .modal-box { background: var(--bg-solid); border: 1px solid var(--border); border-radius: var(--radius-lg); max-width: 480px; padding: 2rem; width: 90%; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.35rem; }
+        .modal-header h3 { font-size: 1.15rem; font-family: var(--font-head); color: #fff; }
+        .close-btn { background: none; border: none; color: var(--text2); cursor: pointer; font-size: 1.4rem; }
     </style>
 </head>
 <body>

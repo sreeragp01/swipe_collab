@@ -1,13 +1,21 @@
+import os
 from pathlib import Path
 from datetime import timedelta
+import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-change-this-in-production'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-change-this-in-production')
 
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True').lower() in ('true', '1', 'yes')
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
+
+CSRF_TRUSTED_ORIGINS = [
+    host if host.startswith('http') else f"https://{host.strip()}"
+    for host in os.environ.get('CSRF_TRUSTED_ORIGINS', 'http://127.0.0.1,http://localhost').split(',')
+    if host.strip()
+]
 
 INSTALLED_APPS = [
     'daphne',
@@ -36,6 +44,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -50,7 +59,6 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        # ✅ Tells Django to look for HTML files in the frontend/ folder
         'DIRS': [
             BASE_DIR / 'templates',
             BASE_DIR / 'frontend',
@@ -70,19 +78,30 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 ASGI_APPLICATION = 'config.asgi.application'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'swipecollab',
-        'USER': 'root',
-        'PASSWORD': 'asustufgaming',
-        'HOST': '127.0.0.1',
-        'PORT': '3306',
-        'OPTIONS': {
-            'charset': 'utf8mb4',
-        },
+# Database configuration: Uses DATABASE_URL if present (Render/Railway), otherwise falls back to local MySQL
+DATABASE_URL = os.environ.get('DATABASE_URL')
+if DATABASE_URL:
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': os.environ.get('DB_NAME', 'swipecollab'),
+            'USER': os.environ.get('DB_USER', 'root'),
+            'PASSWORD': os.environ.get('DB_PASSWORD', 'asustufgaming'),
+            'HOST': os.environ.get('DB_HOST', '127.0.0.1'),
+            'PORT': os.environ.get('DB_PORT', '3306'),
+            'OPTIONS': {
+                'charset': 'utf8mb4',
+            },
+        }
+    }
 
 AUTH_USER_MODEL = 'users.User'
 
@@ -98,20 +117,21 @@ TIME_ZONE = 'Asia/Kolkata'
 USE_I18N = True
 USE_TZ = True
 
-# ✅ Static files — serves css/ js/ from frontend/
+# Static files — WhiteNoise setup
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     BASE_DIR / 'frontend',
 ]
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# ✅ Media files — user uploads (avatars, chat files)
+# Media files — User uploads
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# ✅ CORS — allows your HTML files to call the API
+# CORS
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = [
@@ -124,7 +144,7 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
 ]
 
-# ✅ Django REST Framework
+# Django REST Framework
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -134,7 +154,7 @@ REST_FRAMEWORK = {
     ),
 }
 
-# ✅ JWT settings
+# JWT settings
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
@@ -143,31 +163,29 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
-# ✅ Django Channels — WebSocket for chat
+# Django Channels
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels.layers.InMemoryChannelLayer',
     }
 }
 
-# ✅ Razorpay — replace with your actual keys
-RAZORPAY_KEY_ID = 'your_key_id'
-RAZORPAY_KEY_SECRET = 'your_key_secret'
-RAZORPAY_WEBHOOK_SECRET = 'your_webhook_secret'
+# Razorpay
+RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID', 'your_key_id')
+RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET', 'your_key_secret')
+RAZORPAY_WEBHOOK_SECRET = os.environ.get('RAZORPAY_WEBHOOK_SECRET', 'your_webhook_secret')
 
-# settings.py — add this one line
-TESTING_MODE = True   # ← Set False when going live
+# Testing Mode Flag
+TESTING_MODE = os.environ.get('TESTING_MODE', 'True').lower() in ('true', '1', 'yes')
 
-# ── Add these to the bottom of your settings.py ──────────────
+# SMTP Email
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True').lower() in ('true', '1')
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'yourgmail@gmail.com')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', 'xxxx xxxx xxxx xxxx')
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'SwipeCollab <yourgmail@gmail.com>')
 
-# SMTP Email — Gmail
-EMAIL_BACKEND      = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST         = 'smtp.gmail.com'
-EMAIL_PORT         = 587
-EMAIL_USE_TLS      = True
-EMAIL_HOST_USER    = 'yourgmail@gmail.com'       # ← your Gmail
-EMAIL_HOST_PASSWORD = 'xxxx xxxx xxxx xxxx'      # ← 16-char App Password
-DEFAULT_FROM_EMAIL = 'SwipeCollab <yourgmail@gmail.com>'
-
-# Site URL — used to build the verification link
-SITE_URL = 'http://127.0.0.1:8000'   # change to your domain in production
+# Site URL — domain URL in production
+SITE_URL = os.environ.get('SITE_URL', 'http://127.0.0.1:8000')

@@ -56,7 +56,7 @@ class SwipeFeedView(APIView):
         super_likes_left = 3 - SwipeAction.super_likes_used_today(user)
 
         if user.is_freelancer:
-            queryset = CompanyProfile.objects.exclude(user_id__in=exclude_ids)
+            queryset = CompanyProfile.objects.exclude(user_id__in=exclude_ids).prefetch_related('projects', 'projects__skills', 'skills')
             if swipe_filter:
                 if swipe_filter.country:
                     queryset = queryset.filter(country__icontains=swipe_filter.country)
@@ -233,18 +233,44 @@ class WhoLikedMeView(APIView):
             score = SkillMatchScore.calculate(user, swiper)
             profile_data = None
             role = 'freelancer' if swiper.is_freelancer else 'company'
+            exact_name = None
+            profile_id = None
+            avatar_url = None
+            bio = None
+
             try:
                 if swiper.is_freelancer and hasattr(swiper, 'freelancer_profile'):
-                    profile_data = FreelancerProfileCardSerializer(swiper.freelancer_profile).data
+                    prof = swiper.freelancer_profile
+                    profile_data = FreelancerProfileCardSerializer(prof).data
+                    exact_name = prof.full_name
+                    profile_id = str(prof.id)
+                    bio = prof.bio
+                    if prof.avatar:
+                        avatar_url = prof.avatar.url
                 elif hasattr(swiper, 'company_profile'):
-                    profile_data = CompanyProfileCardSerializer(swiper.company_profile).data
+                    prof = swiper.company_profile
+                    profile_data = CompanyProfileCardSerializer(prof).data
+                    exact_name = prof.company_name
+                    profile_id = str(prof.id)
+                    bio = prof.description
+                    if prof.logo:
+                        avatar_url = prof.logo.url
             except Exception:
                 profile_data = None
 
+            if not exact_name or not exact_name.strip():
+                exact_name = swiper.get_full_name() or swiper.email.split('@')[0].capitalize()
+
             data.append({
                 'user_id': str(swiper.id),
+                'id': str(swiper.id),
+                'profile_id': profile_id,
                 'email': swiper.email,
                 'role': role,
+                'name': exact_name,
+                'full_name': exact_name,
+                'avatar_url': avatar_url,
+                'bio': bio,
                 'action': s.action,
                 'liked_at': s.created_at,
                 'skill_match_score': score,
@@ -283,3 +309,11 @@ class SwipeFilterView(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ResetSwipesView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        count, _ = SwipeAction.objects.filter(swiper=request.user).delete()
+        return Response({'message': f'Swipes reset successfully. Cleared {count} swipes.'})

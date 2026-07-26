@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings — SwipeCollab</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .dash-wrapper { display: grid; grid-template-columns: 260px 1fr; min-height: calc(100vh - 75px); }
+        .sidebar {
+            background: rgba(18, 20, 32, 0.85);
+            border-right: 1px solid var(--border);
+            padding: 1.8rem 1.2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            position: sticky;
+            top: 75px;
+            height: calc(100vh - 75px);
+            overflow-y: auto;
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+        }
+        .sidebar-logo { font-family: var(--font-head); font-size: 1.15rem; font-weight: 800; color: #fff; padding: 0 0.5rem 1.35rem; border-bottom: 1px solid var(--border); margin-bottom: 1rem; letter-spacing: -0.02em; }
+        .sidebar-logo span { background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .sidebar-section { color: var(--text3); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.85rem 0.6rem 0.4rem; }
+        .sidebar-link { display: flex; align-items: center; gap: 0.75rem; border-radius: var(--radius-sm); color: var(--text2); font-size: 0.9rem; font-weight: 600; padding: 0.65rem 0.85rem; text-decoration: none; transition: var(--transition); }
+        .sidebar-link:hover { background: rgba(255, 255, 255, 0.06); color: #fff; border: 1px solid rgba(255, 255, 255, 0.08); }
+        .sidebar-link.active { background: rgba(139, 92, 246, 0.18); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.3); }
+        .sidebar-link .icon { font-size: 1.1rem; width: 22px; text-align: center; }
+
+        .settings-container { max-width: 880px; margin: 0 auto; padding: 2.5rem 1.5rem; }
+        .settings-header { margin-bottom: 2.2rem; }
+        .settings-title { font-size: 1.85rem; font-weight: 800; font-family: var(--font-head); color: #fff; letter-spacing: -0.02em; }
+        .settings-sub { color: var(--text2); font-size: 0.95rem; margin-top: 0.3rem; }
+        
+        .settings-grid { display: flex; flex-direction: column; gap: 1.8rem; }
+        .settings-card {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.8rem;
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+        .settings-card:hover { border-color: var(--border-hover); }
+        .settings-card-title { font-size: 1.15rem; font-weight: 800; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.6rem; color: #fff; }
+        .settings-card-desc { font-size: 0.88rem; color: var(--text2); margin-bottom: 1.35rem; }
+        
+        .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; border-bottom: 1px solid var(--border); gap: 1rem; flex-wrap: wrap; }
+        .setting-row:last-child { border-bottom: none; }
+        .setting-info { flex: 1; }
+        .setting-label { font-size: 0.92rem; font-weight: 700; color: #fff; }
+        .setting-sub { font-size: 0.82rem; color: var(--text2); margin-top: 0.2rem; }
+
+        /* Toggle Switch */
+        .toggle-switch { position: relative; width: 48px; height: 26px; display: inline-block; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; inset: 0; background-color: var(--bg3); transition: .3s; border-radius: 999px; border: 1px solid var(--border); }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: var(--text2); transition: .3s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--accent); border-color: var(--accent); box-shadow: 0 0 12px rgba(139, 92, 246, 0.4); }
+        input:checked + .slider:before { transform: translateX(22px); background-color: #fff; }
+
+        /* Theme Cards */
+        .theme-picker { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-top: 0.85rem; }
+        .theme-card { border: 2px solid var(--border); border-radius: var(--radius-sm); padding: 1rem; cursor: pointer; transition: var(--transition); background: var(--bg3); }
+        .theme-card:hover { border-color: var(--accent); }
+        .theme-card.active { border-color: var(--accent); background: rgba(139, 92, 246, 0.15); box-shadow: 0 0 20px rgba(139, 92, 246, 0.25); }
+        .theme-swatch { height: 36px; border-radius: 8px; margin-bottom: 0.6rem; display: flex; gap: 4px; padding: 4px; border: 1px solid var(--border); }
+        .swatch-bg { flex: 2; border-radius: 4px; }
+        .swatch-accent { flex: 1; border-radius: 4px; }
+
+        /* PixelForge Branding Box */
+        .pixelforge-box {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(15, 23, 42, 0.8));
+            border: 1px solid rgba(139, 92, 246, 0.4);
+            border-radius: var(--radius-lg);
+            padding: 1.8rem;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: var(--glass-blur);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), var(--shadow-glow);
+        }
+        .pixelforge-logo { font-size: 1.5rem; font-weight: 800; font-family: var(--font-head); letter-spacing: -0.02em; color: #fff; margin-bottom: 0.35rem; }
+        .pixelforge-logo span { background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    </style>
+</head>
+<body>
+    <div class="dash-wrapper">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <a href="/dashboard/" class="sidebar-logo" style="text-decoration:none;">Swipe<span>Collab</span></a>
+            
+            <div class="sidebar-section">Main Menu</div>
+            <a href="/dashboard/" class="sidebar-link"><span class="icon">📊</span> Dashboard</a>
+            <a href="/swipe/" class="sidebar-link"><span class="icon">⚡</span> Swipe Feed</a>
+            <a href="/matches/" class="sidebar-link"><span class="icon">♥</span> Matches</a>
+            <a href="/chat/" class="sidebar-link"><span class="icon">💬</span> Messages</a>
+            <a href="/projects/" class="sidebar-link"><span class="icon">💼</span> Projects</a>
+            <a href="/profile/" class="sidebar-link"><span class="icon">🧑‍💻</span> Profile</a>
+
+            <div class="sidebar-section">System</div>
+            <a href="/settings/" class="sidebar-link active"><span class="icon">⚙️</span> Settings</a>
+            <a href="/verify-email/" class="sidebar-link"><span class="icon">🛡️</span> Email Verification</a>
+
+            <div class="sidebar-bottom">
+                <div class="user-chip">
+                    <div class="user-chip-avatar" id="nav-avatar">U</div>
+                    <div class="user-chip-info">
+                        <div class="user-chip-name" id="nav-user-name">Loading...</div>
+                        <div class="user-chip-role" id="nav-user-role">Member</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Settings Area -->
+        <main class="dash-main">
+            <div class="settings-container">
+                <div class="settings-header">
+                    <h1 class="settings-title">⚙️ App Settings & Preferences</h1>
+                    <p class="settings-sub">Manage your security, swipe preferences, visual themes, and app options.</p>
+                </div>
+
+                <div class="settings-grid">
+
+                    <!-- Section 1: Security & Password -->
+                    <div class="settings-card">
+                        <div class="settings-card-title">🔐 Account & Security Settings</div>
+                        <div class="settings-card-desc">Update your login credentials and check verification badges.</div>
+
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-label">Email Verification Status</div>
+                                <div class="setting-sub" id="email-status-sub">Checking status...</div>
+                            </div>
+                            <a href="/verify-email/" class="btn btn-ghost" style="font-size:0.8rem;padding:0.35rem 0.75rem;">Manage Email</a>
+                        </div>
+
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-label">Identity Face Verification (OpenCV)</div>
+                                <div class="setting-sub" id="face-status-sub">Checking status...</div>
+                            </div>
+                            <a href="/profile/" class="btn btn-ghost" style="font-size:0.8rem;padding:0.35rem 0.75rem;">Manage Face Scan</a>
+                        </div>
+
+                        <div style="margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid var(--border);">
+                            <h4 style="font-size:0.92rem;font-weight:700;margin-bottom:0.75rem;">Change Password</h4>
+                            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:0.75rem;margin-bottom:0.75rem;">
+                                <input type="password" id="old-pass" placeholder="Current password" style="padding:0.5rem 0.75rem;font-size:0.85rem;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text);">
+                                <input type="password" id="new-pass" placeholder="New password" style="padding:0.5rem 0.75rem;font-size:0.85rem;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text);">
+                            </div>
+                            <button class="btn btn-primary" style="font-size:0.82rem;padding:0.4rem 0.85rem;" onclick="changePassword()">Update Password</button>
+                        </div>
+                    </div>
+
+                    <!-- Section 2: Privacy & Swipe Preferences -->
+                    <div class="settings-card">
+                        <div class="settings-card-title">👁️ Privacy & Swipe Discovery</div>
+                        <div class="settings-card-desc">Control how your profile appears in the swipe feed and discovery search.</div>
+
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-label">Show Profile in Swipe Feed</div>
+                                <div class="setting-sub">Allow other freelancers & companies to discover your profile.</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="toggle-visible" checked onchange="savePreference('show_visible', this.checked)">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-label">Show Online / Active Badge</div>
+                                <div class="setting-sub">Display a green online indicator when you are active on the app.</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="toggle-online" checked onchange="savePreference('show_online', this.checked)">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Section 3: App Themes & Sound FX -->
+                    <div class="settings-card">
+                        <div class="settings-card-title">🎨 Custom App Themes & Sound FX</div>
+                        <div class="settings-card-desc">Personalize your visual experience and toggle audio haptics.</div>
+
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-label">Swipe Audio & Sound Effects</div>
+                                <div class="setting-sub">Play subtle audio feedback when Swiping Like or Match request.</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="toggle-sound" checked onchange="savePreference('swipe_sound', this.checked)">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div style="margin-top:1.25rem;">
+                            <label class="setting-label" style="display:block;margin-bottom:0.4rem;">Select Visual Theme</label>
+                            <div class="theme-picker">
+                                <div class="theme-card active" id="theme-default" onclick="setAppTheme('default')">
+                                    <div class="theme-swatch">
+                                        <div class="swatch-bg" style="background:#0f0f13;"></div>
+                                        <div class="swatch-accent" style="background:#7c3aed;"></div>
+                                    </div>
+                                    <strong style="font-size:0.83rem;">🌌 Dark Violet</strong>
+                                </div>
+                                <div class="theme-card" id="theme-oled" onclick="setAppTheme('oled')">
+                                    <div class="theme-swatch">
+                                        <div class="swatch-bg" style="background:#000000;"></div>
+                                        <div class="swatch-accent" style="background:#3b82f6;"></div>
+                                    </div>
+                                    <strong style="font-size:0.83rem;">🖤 OLED Pitch Black</strong>
+                                </div>
+                                <div class="theme-card" id="theme-cyber" onclick="setAppTheme('cyber')">
+                                    <div class="theme-swatch">
+                                        <div class="swatch-bg" style="background:#09090e;"></div>
+                                        <div class="swatch-accent" style="background:#f43f5e;"></div>
+                                    </div>
+                                    <strong style="font-size:0.83rem;">⚡ Neon Cyberpunk</strong>
+                                </div>
+                                <div class="theme-card" id="theme-emerald" onclick="setAppTheme('emerald')">
+                                    <div class="theme-swatch">
+                                        <div class="swatch-bg" style="background:#061712;"></div>
+                                        <div class="swatch-accent" style="background:#10b981;"></div>
+                                    </div>
+                                    <strong style="font-size:0.83rem;">🌿 Emerald Eco</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 4: Developer Copyright & Credits (PixelForge) -->
+                    <div class="pixelforge-box">
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem;">
+                            <div>
+                                <div class="pixelforge-logo">Pixel<span>Forge</span></div>
+                                <div style="font-size:0.95rem;font-weight:700;color:var(--text);margin-bottom:0.25rem;">
+                                    SwipeCollab Enterprise Platform
+                                </div>
+                                <p style="font-size:0.83rem;color:var(--text2);line-height:1.5;max-width:520px;margin-bottom:1rem;">
+                                    SwipeCollab is designed, engineered, copyrighted, and maintained by <strong>PixelForge Software Development Company</strong>. Building state-of-the-art collaborative ecosystems for modern tech talent.
+                                </p>
+                            </div>
+                            <span class="badge badge-accent" style="font-size:0.75rem;padding:0.3rem 0.75rem;">v2.4.0 Pro Edition</span>
+                        </div>
+
+                        <div style="display:flex;gap:1.5rem;flex-wrap:wrap;font-size:0.82rem;color:var(--text2);border-top:1px solid var(--border);padding-top:1rem;align-items:center;">
+                            <div><strong>Developed by:</strong> PixelForge Dev Team</div>
+                            <div><strong>Website:</strong> <a href="https://pixelforge.com" target="_blank" style="color:var(--accent);">pixelforge.com ↗</a></div>
+                            <div><strong>Support:</strong> support@pixelforge.com</div>
+                            <button class="btn btn-ghost" style="margin-left:auto;font-size:0.78rem;padding:0.3rem 0.65rem;" onclick="openTermsModal()">📜 View License & Terms</button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Terms Modal -->
+    <div style="position:fixed;inset:0;background:rgba(0,0,0,0.75);display:none;align-items:center;justify-content:center;z-index:9999;padding:1rem;backdrop-filter:blur(4px);" id="terms-modal">
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);max-width:540px;width:100%;max-height:85vh;overflow-y:auto;padding:1.5rem;box-shadow:0 20px 40px rgba(0,0,0,0.5);">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;border-bottom:1px solid var(--border);padding-bottom:0.75rem;">
+                <h3 style="font-size:1.1rem;font-weight:700;">Terms of Service & Copyright License</h3>
+                <button style="background:none;border:none;color:var(--text2);font-size:1.2rem;cursor:pointer;" onclick="closeTermsModal()">×</button>
+            </div>
+            
+            <div style="font-size:0.85rem;color:var(--text2);line-height:1.6;display:flex;flex-direction:column;gap:0.85rem;">
+                <p><strong>1. Ownership & Copyright</strong><br>
+                SwipeCollab software platform and all intellectual property rights are designed, developed, copyrighted, and maintained by <strong>PixelForge Software Development Company</strong>.</p>
+                <p><strong>2. Rights Reserved</strong><br>
+                All rights reserved © 2026 PixelForge. Unauthorized reproduction, modification, or distribution is strictly prohibited.</p>
+            </div>
+
+            <div style="margin-top:1.5rem;text-align:right;">
+                <button class="btn btn-primary" onclick="closeTermsModal()">Close Window</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/api.js"></script>
+    <script>
+        requireAuth()
+        const user = getUser()
+
+        if (user) {
+            document.getElementById('nav-user-name').textContent = user.username || user.email
+            document.getElementById('nav-user-role').textContent = user.role === 'company' ? '🏢 Company' : '🧑‍💻 Freelancer'
+            document.getElementById('nav-avatar').textContent = (user.username || user.email || 'U')[0].toUpperCase()
+
+            document.getElementById('email-status-sub').textContent = user.is_verified ? '✓ Email Verified' : '⚠️ Pending Verification'
+            document.getElementById('face-status-sub').textContent = user.face_verified ? '✓ Identity Verified (OpenCV)' : '⚠️ Face Verification Pending'
+        }
+
+        async function changePassword() {
+            const oldPass = document.getElementById('old-pass').value
+            const newPass = document.getElementById('new-pass').value
+
+            if (!oldPass || !newPass) return showToast('Please enter both current and new passwords.', 'error')
+
+            try {
+                const res = await api('/auth/change-password/', {
+                    method: 'POST',
+                    body: JSON.stringify({ old_password: oldPass, new_password: newPass })
+                })
+                const data = await res.json()
+                if (res.ok) {
+                    showToast('✓ Password updated successfully!', 'success')
+                    document.getElementById('old-pass').value = ''
+                    document.getElementById('new-pass').value = ''
+                } else {
+                    showToast(data.detail || 'Failed to update password.', 'error')
+                }
+            } catch { showToast('Error updating password.', 'error') }
+        }
+
+        function savePreference(key, val) {
+            localStorage.setItem(`pref_${key}`, val)
+            showToast('✓ Setting saved!')
+        }
+
+        function setAppTheme(theme) {
+            document.querySelectorAll('.theme-card').forEach(c => c.classList.remove('active'))
+            document.getElementById(`theme-${theme}`)?.classList.add('active')
+            localStorage.setItem('swipe_theme', theme)
+            showToast(`🎨 Applied ${theme.toUpperCase()} visual theme!`)
+        }
+
+        function openTermsModal() { document.getElementById('terms-modal').style.display = 'flex' }
+        function closeTermsModal() { document.getElementById('terms-modal').style.display = 'none' }
+    </script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: swipecollab
+    env: python
+    buildCommand: ./build.sh
+    startCommand: daphne -b 0.0.0.0 -p $PORT config.asgi:application
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: DEBUG
+        value: "False"
+      - key: TESTING_MODE
+        value: "False"

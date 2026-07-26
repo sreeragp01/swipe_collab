@@ -4,13 +4,15 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 
-from .models import Skill, FreelancerProfile, CompanyProfile
+from .models import Skill, FreelancerProfile, CompanyProfile, PortfolioItem, PortfolioItemLike, PortfolioItemComment
 from .serializers import (
     SkillSerializer,
     FreelancerProfileSerializer,
     FreelancerProfileCardSerializer,
     CompanyProfileSerializer,
     CompanyProfileCardSerializer,
+    PortfolioItemSerializer,
+    PortfolioItemCommentSerializer,
 )
 
 
@@ -202,3 +204,91 @@ class CompanyProfileByUserView(APIView):
             return Response(serializer.data)
         except CompanyProfile.DoesNotExist:
             return Response({'detail': 'Profile not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+
+class PortfolioItemView(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+
+    def get(self, request):
+        if not request.user.is_freelancer:
+            return Response([])
+        try:
+            profile = request.user.freelancer_profile
+            items = profile.portfolio_items.all()
+            return Response(PortfolioItemSerializer(items, many=True).data)
+        except FreelancerProfile.DoesNotExist:
+            return Response([])
+
+    def post(self, request):
+        if not request.user.is_freelancer:
+            return Response({'detail': 'Only freelancers can add portfolio items.'}, status=status.HTTP_403_FORBIDDEN)
+        try:
+            profile = request.user.freelancer_profile
+        except FreelancerProfile.DoesNotExist:
+            return Response({'detail': 'Create a freelancer profile first.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = PortfolioItemSerializer(data=request.data)
+        if serializer.is_valid():
+            item = serializer.save(freelancer=profile)
+            return Response(PortfolioItemSerializer(item).data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class PortfolioItemDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, pk):
+        if not request.user.is_freelancer:
+            return Response({'detail': 'Forbidden.'}, status=status.HTTP_403_FORBIDDEN)
+        try:
+            item = PortfolioItem.objects.get(pk=pk, freelancer__user=request.user)
+            item.delete()
+            return Response({'message': 'Portfolio item deleted.'}, status=status.HTTP_204_NO_CONTENT)
+        except PortfolioItem.DoesNotExist:
+            return Response({'detail': 'Not found or not yours.'}, status=status.HTTP_404_NOT_FOUND)
+
+
+class PortfolioItemLikeToggleView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        try:
+            item = PortfolioItem.objects.get(pk=pk)
+        except PortfolioItem.DoesNotExist:
+            return Response({'detail': 'Portfolio item not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        like_qs = PortfolioItemLike.objects.filter(item=item, user=request.user)
+        if like_qs.exists():
+            like_qs.delete()
+            liked = False
+        else:
+            PortfolioItemLike.objects.create(item=item, user=request.user)
+            liked = True
+
+        return Response({
+            'liked': liked,
+            'like_count': item.likes.count(),
+        })
+
+
+class PortfolioItemCommentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        try:
+            item = PortfolioItem.objects.get(pk=pk)
+        except PortfolioItem.DoesNotExist:
+            return Response({'detail': 'Portfolio item not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        text = request.data.get('text', '').strip()
+        if not text:
+            return Response({'detail': 'Comment text is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        comment = PortfolioItemComment.objects.create(
+            item=item,
+            user=request.user,
+            text=text,
+        )
+        serializer = PortfolioItemCommentSerializer(comment)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)

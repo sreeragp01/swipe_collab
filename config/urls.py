@@ -31,5 +31,7 @@ urlpatterns = [
     path('projects/',     TemplateView.as_view(template_name='projects.html'),     name='projects'),
     path('payment/',      TemplateView.as_view(template_name='payment.html'),      name='payment'),
     path('moderation/',   TemplateView.as_view(template_name='moderation.html'),   name='moderation'),
+    path('verify-email/', TemplateView.as_view(template_name='verify_email.html'), name='verify-email'),
+    path('settings/',     TemplateView.as_view(template_name='settings.html'),     name='settings'),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

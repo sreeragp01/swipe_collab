@@ -6,32 +6,78 @@
     <title>Profile — SwipeCollab</title>
     <link rel="stylesheet" href="/static/css/style.css">
     <style>
-        .profile-header { display: flex; align-items: center; gap: 1.5rem; margin-bottom: 2rem; flex-wrap: wrap; }
-        .avatar-wrap { position: relative; cursor: pointer; }
-        .avatar-img { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; display: none; }
-        .avatar-placeholder-box { width: 90px; height: 90px; font-size: 2rem; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; display: flex; align-items: center; justify-content: center; font-family: var(--font-head); font-weight: 700; }
-        .avatar-overlay { position: absolute; inset: 0; border-radius: 50%; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s; color: #fff; font-size: 0.75rem; font-weight: 600; }
+        .profile-header-card {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            margin-bottom: 1.8rem;
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), var(--shadow-glow);
+        }
+        .avatar-wrap { position: relative; cursor: pointer; display: inline-block; }
+        .avatar-img { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; display: none; border: 2px solid var(--accent); }
+        .avatar-placeholder-box { width: 96px; height: 96px; font-size: 2.2rem; border-radius: 50%; background: var(--gradient-primary); color: #fff; display: flex; align-items: center; justify-content: center; font-family: var(--font-head); font-weight: 800; box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4); }
+        .avatar-overlay { position: absolute; inset: 0; border-radius: 50%; background: rgba(9, 10, 15, 0.7); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s; color: #fff; font-size: 0.8rem; font-weight: 700; text-align: center; backdrop-filter: blur(4px); }
         .avatar-wrap:hover .avatar-overlay { opacity: 1; }
-        .avatar-upload-progress { font-size: 0.78rem; color: var(--accent); margin-top: 0.35rem; text-align: center; display: none; }
-        .profile-meta h2 { font-size: 1.4rem; margin-bottom: 0.25rem; }
-        .profile-meta p { color: var(--text2); font-size: 0.875rem; }
-        .tabs { display: flex; gap: 0.25rem; border-bottom: 1px solid var(--border); margin-bottom: 2rem; overflow-x: auto; }
-        .tab { background: none; border: none; border-bottom: 2px solid transparent; color: var(--text2); cursor: pointer; font-family: var(--font-body); font-size: 0.9rem; font-weight: 500; margin-bottom: -1px; padding: 0.65rem 1rem; transition: all var(--transition); white-space: nowrap; }
-        .tab.active { border-bottom-color: var(--accent); color: var(--accent); }
+        .avatar-upload-progress { font-size: 0.82rem; color: #a78bfa; margin-top: 0.4rem; display: none; font-weight: 600; }
+        
+        .tabs { display: flex; gap: 0.5rem; border-bottom: 1px solid var(--border); margin-bottom: 1.8rem; overflow-x: auto; padding-bottom: 0.5rem; }
+        .tab { background: none; border: none; border-bottom: 2px solid transparent; color: var(--text2); cursor: pointer; font-family: var(--font-head); font-size: 0.95rem; font-weight: 700; margin-bottom: -1px; padding: 0.7rem 1.1rem; transition: var(--transition); white-space: nowrap; border-radius: var(--radius-sm); }
+        .tab:hover { color: #fff; background: rgba(255, 255, 255, 0.05); }
+        .tab.active { border-bottom-color: var(--accent); color: #a78bfa; background: rgba(139, 92, 246, 0.15); }
         .tab-panel { display: none; }
         .tab-panel.active { display: block; }
-        .skills-wrap { display: flex; flex-wrap: wrap; gap: 0.5rem; min-height: 2rem; }
-        .skill-tag-rm { background: var(--bg3); border: 1px solid var(--border); border-radius: 999px; color: var(--text2); cursor: default; display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.78rem; padding: 0.25rem 0.7rem; }
-        .skill-tag-rm .rm-x { cursor: pointer; font-size: 0.85rem; color: var(--text3); line-height: 1; }
-        .skill-tag-rm .rm-x:hover { color: var(--red); }
-        .skill-add-row { display: flex; gap: 0.5rem; margin-top: 0.75rem; }
+        
+        .skills-wrap { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+        .skill-tag-rm { background: rgba(139, 92, 246, 0.15); border: 1px solid rgba(139, 92, 246, 0.35); border-radius: 999px; color: #a78bfa; cursor: default; display: inline-flex; align-items: center; gap: 0.45rem; font-size: 0.82rem; font-weight: 600; padding: 0.3rem 0.8rem; }
+        .skill-tag-rm .rm-x { cursor: pointer; font-size: 0.95rem; color: var(--text2); line-height: 1; transition: color 0.15s; }
+        .skill-tag-rm .rm-x:hover { color: #f87171; }
+        .skill-add-row { display: flex; gap: 0.75rem; margin-top: 1rem; }
         .skill-add-row select { flex: 1; }
-        .completion-bar-wrap { margin-top: 0.6rem; }
-        .completion-label { color: var(--text2); font-size: 0.8rem; display: flex; justify-content: space-between; margin-bottom: 0.3rem; }
-        .completion-bar { background: var(--bg3); border-radius: 999px; height: 7px; overflow: hidden; }
-        .completion-fill { background: linear-gradient(90deg, var(--accent), #a78bfa); border-radius: 999px; height: 100%; transition: width 0.5s ease; }
-        .no-skills-msg { color: var(--text3); font-size: 0.85rem; font-style: italic; }
-        .skills-section-label { font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem; color: var(--text2); }
+        
+        .completion-bar-wrap { margin-top: 0.75rem; }
+        .completion-label { color: var(--text2); font-size: 0.85rem; font-weight: 600; display: flex; justify-content: space-between; margin-bottom: 0.4rem; }
+        .completion-bar { background: var(--bg3); border-radius: 999px; height: 8px; overflow: hidden; border: 1px solid var(--border); }
+        .completion-fill { background: var(--gradient-primary); border-radius: 999px; height: 100%; transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+        .no-skills-msg { color: var(--text3); font-size: 0.88rem; font-style: italic; }
+        .skills-section-label { font-size: 0.9rem; font-weight: 700; margin-bottom: 0.6rem; color: var(--text2); }
+        .role-badge { display: inline-block; padding: 0.3rem 0.8rem; border-radius: 999px; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.6rem; letter-spacing: 0.02em; }
+
+        /* Professional View Mode Styles */
+        .profile-view-header { display: flex; align-items: flex-start; gap: 1.8rem; flex-wrap: wrap; margin-bottom: 1.8rem; }
+        .profile-view-name { font-size: 1.8rem; font-weight: 800; color: #fff; margin-bottom: 0.25rem; letter-spacing: -0.02em; }
+        .profile-view-bio { font-size: 0.98rem; line-height: 1.65; color: var(--text2); margin-top: 0.85rem; white-space: pre-line; }
+        .info-pill-grid { display: flex; flex-wrap: wrap; gap: 0.65rem; margin-top: 1.2rem; }
+        .info-pill { background: var(--bg3); border: 1px solid var(--border); border-radius: 999px; padding: 0.4rem 0.95rem; font-size: 0.85rem; font-weight: 600; color: #fff; display: inline-flex; align-items: center; gap: 0.4rem; }
+        
+        /* Showcase Media Cards */
+        .showcase-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; margin-top: 1.2rem; }
+        .showcase-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; transition: var(--transition); backdrop-filter: var(--glass-blur); box-shadow: var(--shadow); }
+        .showcase-card:hover { border-color: var(--border-hover); transform: translateY(-4px); box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), var(--shadow-glow); }
+        .showcase-media-container { width: 100%; height: 200px; background: #000; overflow: hidden; position: relative; }
+        .showcase-media { width: 100%; height: 100%; object-fit: cover; }
+        .showcase-body { padding: 1.25rem; flex: 1; display: flex; flex-direction: column; }
+        .showcase-title { font-size: 1.05rem; font-weight: 800; margin-bottom: 0.4rem; color: #fff; }
+        .showcase-desc { font-size: 0.88rem; color: var(--text2); line-height: 1.5; margin-bottom: 0.75rem; }
+        .showcase-exp { background: rgba(139, 92, 246, 0.15); border: 1px solid rgba(139, 92, 246, 0.35); border-radius: var(--radius-sm); padding: 0.6rem 0.85rem; font-size: 0.82rem; color: #a78bfa; margin-top: auto; margin-bottom: 0.6rem; font-weight: 600; }
+        .showcase-exp strong { display: block; font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text3); margin-bottom: 0.2rem; }
+        
+        .showcase-social-bar { display: flex; justify-content: space-around; align-items: center; border-top: 1px solid var(--border); padding-top: 0.6rem; margin-top: 0.85rem; }
+        .social-action-btn { background: none; border: none; color: var(--text2); cursor: pointer; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.75rem; border-radius: var(--radius-sm); transition: var(--transition); }
+        .social-action-btn:hover { background: rgba(255, 255, 255, 0.06); color: #fff; }
+        .social-action-btn.liked { color: #a78bfa; }
+        .comments-drawer { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.85rem; margin-top: 0.75rem; }
+        .comments-list { max-height: 170px; overflow-y: auto; margin-bottom: 0.75rem; }
+        .comment-item { font-size: 0.82rem; padding: 0.4rem 0.75rem; background: var(--bg2); border-radius: 8px; margin-bottom: 0.4rem; border: 1px solid var(--border); }
+        .comment-item strong { color: #fff; font-weight: 700; }
+        .comment-input-row { display: flex; gap: 0.5rem; }
+        .comment-input-row input { flex: 1; font-size: 0.82rem; padding: 0.45rem 0.75rem; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text); }
+
+        /* Modal */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(9, 10, 15, 0.88); backdrop-filter: blur(12px); display: none; align-items: center; justify-content: center; z-index: 9999; padding: 1.5rem; }
+        .modal-content { background: var(--bg-solid); border: 1px solid var(--border); border-radius: var(--radius-lg); width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; padding: 2rem; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), var(--shadow-glow); }
     </style>
 </head>
 <body>
@@ -48,156 +94,443 @@
         </div>
     </nav>
 
-    <div class="page" style="max-width:720px;">
+    <div class="page" style="max-width:800px;">
 
-        <!-- Profile header -->
-        <div class="profile-header">
-            <div class="avatar-wrap" onclick="document.getElementById('avatar-input').click()" title="Click to change photo">
-                <img id="avatar-img" class="avatar-img" alt="Profile photo">
-                <div class="avatar-placeholder-box" id="avatar-initials">?</div>
-                <div class="avatar-overlay">📷 Change</div>
-                <input type="file" id="avatar-input" accept="image/*" style="display:none" onchange="uploadAvatar(this)">
-            </div>
-            <div class="profile-meta" style="flex:1;">
-                <h2 id="profile-name-display">Your profile</h2>
-                <p id="profile-role-display" style="margin-bottom:0.5rem;"></p>
-                <div class="completion-bar-wrap">
-                    <div class="completion-label">
-                        <span>Profile completion</span>
-                        <span id="completion-pct" style="color:var(--accent);font-weight:600;">0%</span>
-                    </div>
-                    <div class="completion-bar">
-                        <div class="completion-fill" id="completion-fill" style="width:0%"></div>
-                    </div>
-                </div>
-                <div id="avatar-upload-progress" class="avatar-upload-progress">Uploading photo...</div>
+        <!-- Action Bar: Toggle View / Edit -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">
+            <h1 style="font-size:1.4rem;font-weight:700;" id="page-heading">Your Professional Profile</h1>
+            <div>
+                <button class="btn btn-ghost" id="edit-mode-btn" style="border:1px solid var(--border);" onclick="toggleMode('edit')">✏️ Edit Profile</button>
+                <button class="btn btn-primary" id="view-mode-btn" style="display:none;" onclick="toggleMode('view')">👁️ View Professional Profile</button>
             </div>
         </div>
 
-        <!-- Tabs -->
-        <div class="tabs">
-            <button class="tab active" onclick="switchTab('basic', this)">Basic info</button>
-            <button class="tab" onclick="switchTab('skills', this)">Skills</button>
-            <button class="tab" onclick="switchTab('links', this)">Links</button>
-            <button class="tab" onclick="switchTab('verify', this)">Verification</button>
-        </div>
-
-        <!-- Basic info tab -->
-        <div id="tab-basic" class="tab-panel active">
-            <div class="form-group">
-                <label>Display name</label>
-                <input type="text" id="name" placeholder="Your full name">
-            </div>
-            <div class="form-group">
-                <label>Bio</label>
-                <textarea id="bio" rows="3" placeholder="Short professional bio shown on your swipe card"></textarea>
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
-                <div class="form-group"><label>City</label><input type="text" id="city" placeholder="Kochi"></div>
-                <div class="form-group"><label>Country</label><input type="text" id="country" placeholder="India"></div>
-            </div>
-
-            <!-- Freelancer only fields -->
-            <div id="freelancer-fields">
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
-                    <div class="form-group">
-                        <label>Experience (years)</label>
-                        <input type="number" id="experience_years" min="0" max="50" placeholder="3">
+        <!-- ════════════════ PROFESSIONAL VIEW MODE (NO INPUT BOXES) ════════════════ -->
+        <div id="profile-view-section">
+            <!-- Header Card -->
+            <div class="profile-header-card">
+                <div class="profile-view-header">
+                    <div class="avatar-wrap" onclick="if(currentMode==='edit') document.getElementById('avatar-input').click()">
+                        <img id="v-avatar-img" class="avatar-img" alt="Avatar">
+                        <div class="avatar-placeholder-box" id="v-avatar-initials">?</div>
                     </div>
-                    <div class="form-group">
-                        <label>Availability</label>
-                        <select id="availability">
-                            <option value="full_time">Full Time</option>
-                            <option value="part_time">Part Time</option>
-                            <option value="contract">Contract</option>
-                            <option value="not_available">Not Available</option>
-                        </select>
+                    <div style="flex:1;">
+                        <div id="v-role-badge"></div>
+                        <h2 class="profile-view-name" id="v-name">Loading...</h2>
+                        <div style="color:var(--text2);font-size:0.88rem;" id="v-location">📍 Location not set</div>
+                        
+                        <!-- Info Pills -->
+                        <div class="info-pill-grid" id="v-info-pills"></div>
                     </div>
                 </div>
+
+                <!-- Bio / Overview -->
+                <div style="border-top:1px solid var(--border);padding-top:1rem;margin-top:1rem;">
+                    <strong style="font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text3);" id="v-bio-label">About</strong>
+                    <div class="profile-view-bio" id="v-bio">No bio added yet. Click "Edit Profile" to add details.</div>
+                </div>
+
+                <!-- Skills & Tech Stack -->
+                <div style="border-top:1px solid var(--border);padding-top:1rem;margin-top:1.25rem;">
+                    <strong style="font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text3);display:block;margin-bottom:0.6rem;" id="v-skills-label">Skills & Expertise</strong>
+                    <div class="skills-wrap" id="v-skills-display">
+                        <span style="color:var(--text3);font-size:0.85rem;font-style:italic;">No skills added yet.</span>
+                    </div>
+                </div>
+
+                <!-- Verification Badges -->
+                <div style="border-top:1px solid var(--border);padding-top:1rem;margin-top:1.25rem;display:flex;gap:1.5rem;flex-wrap:wrap;align-items:center;">
+                    <div>
+                        <span style="color:var(--text2);font-size:0.82rem;margin-right:0.4rem;">Email Verification:</span>
+                        <span id="v-email-badge"></span>
+                    </div>
+                    <div>
+                        <span style="color:var(--text2);font-size:0.82rem;margin-right:0.4rem;">Identity Verification:</span>
+                        <span id="v-face-badge"></span>
+                    </div>
+                </div>
             </div>
 
-            <!-- Company only fields -->
-            <div id="company-fields" style="display:none">
-                <div class="form-group">
-                    <label>Company description</label>
-                    <textarea id="description" rows="3" placeholder="What does your company do?"></textarea>
+            <!-- Minimal External Live Portfolio Card (if portfolio_url is provided) -->
+            <div id="v-external-portfolio-card" style="display:none;margin-top:1.5rem;" class="profile-header-card">
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.75rem;">
+                    <div style="display:flex;align-items:center;gap:0.75rem;">
+                        <div style="width:42px;height:42px;border-radius:10px;background:rgba(124,58,237,0.15);border:1px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:1.25rem;">
+                            🌐
+                        </div>
+                        <div>
+                            <div style="display:flex;align-items:center;gap:0.4rem;">
+                                <strong style="font-size:0.95rem;color:var(--text);" id="v-portfolio-domain-name">Portfolio Website</strong>
+                                <span class="badge badge-accent" style="font-size:0.68rem;padding:0.12rem 0.45rem;">Verified Site</span>
+                            </div>
+                            <span style="font-size:0.8rem;color:var(--text2);" id="v-portfolio-url-display"></span>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:0.5rem;align-items:center;">
+                        <button type="button" class="btn btn-ghost" style="font-size:0.8rem;padding:0.35rem 0.75rem;border:1px solid var(--border);" onclick="togglePortfolioPreviewIframe('v-portfolio-iframe-wrap')">
+                            🔍 Live Preview
+                        </button>
+                        <a id="v-portfolio-url-btn" href="#" target="_blank" class="btn btn-primary" style="font-size:0.8rem;padding:0.35rem 0.85rem;">
+                            🔗 Visit Site ↗
+                        </a>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>Website</label>
-                    <input type="url" id="website_url" placeholder="https://yourcompany.com">
+                
+                <!-- Expandable Live Preview Frame -->
+                <div id="v-portfolio-iframe-wrap" style="display:none;width:100%;height:320px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;margin-top:1rem;position:relative;">
+                    <iframe id="v-portfolio-iframe" src="" style="width:100%;height:100%;border:none;" loading="lazy"></iframe>
                 </div>
             </div>
 
-            <button class="btn btn-primary" id="save-basic-btn" onclick="saveBasic()">Save changes</button>
+            <!-- Freelancer Work & Portfolio Showcase Gallery -->
+            <div id="v-freelancer-showcase-section" style="display:none;margin-top:2rem;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:0.5rem;">
+                    <div>
+                        <h3 style="font-size:1.15rem;font-weight:700;">🎨 Work Experience & Portfolio Showcase</h3>
+                        <p style="color:var(--text2);font-size:0.85rem;margin-top:0.15rem;">Showcase photos & videos of previous projects and key experience gained!</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="openShowcaseModal()">+ Add Work Showcase</button>
+                </div>
+
+                <div class="showcase-grid" id="showcase-gallery">
+                    <div style="grid-column:1/-1;text-align:center;padding:2rem;background:var(--bg2);border:1px dashed var(--border);border-radius:var(--radius);">
+                        <div style="font-size:2rem;margin-bottom:0.5rem;">📁</div>
+                        <strong>No portfolio showcase items added yet</strong>
+                        <p style="color:var(--text2);font-size:0.85rem;margin-top:0.25rem;">Upload photos or videos of work you built to impress companies!</p>
+                        <button class="btn btn-primary" style="margin-top:0.75rem;" onclick="openShowcaseModal()">+ Add Your First Project Showcase</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Company Open Projects Section -->
+            <div id="v-company-projects-section" style="display:none;margin-top:2rem;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:0.5rem;">
+                    <h3 style="font-size:1.15rem;font-weight:700;">💼 Active Company Projects</h3>
+                    <a href="/projects/" class="btn btn-primary" style="font-size:0.82rem;padding:0.4rem 0.85rem;">+ Post New Project</a>
+                </div>
+                <div id="v-company-projects-list">
+                    <div style="color:var(--text2);font-size:0.88rem;">Loading company projects...</div>
+                </div>
+            </div>
         </div>
 
-        <!-- Skills tab -->
-        <div id="tab-skills" class="tab-panel">
-            <p style="color:var(--text2);font-size:0.875rem;margin-bottom:1.25rem;">
-                Add skills that match your expertise. More skills = better match score with other users.
+        <!-- ════════════════ EDIT FORM MODE (TEXT INPUTS) ════════════════ -->
+        <div id="profile-edit-section" style="display:none;">
+            <!-- Profile completion & Avatar card -->
+            <div class="profile-header-card" style="display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap;">
+                <div class="avatar-wrap" onclick="document.getElementById('avatar-input').click()" title="Click to upload photo">
+                    <img id="avatar-img" class="avatar-img" alt="Avatar">
+                    <div class="avatar-placeholder-box" id="avatar-initials">?</div>
+                    <div class="avatar-overlay" id="avatar-overlay-text">📷 Upload</div>
+                    <input type="file" id="avatar-input" accept="image/*" style="display:none" onchange="uploadAvatar(this)">
+                </div>
+                <div style="flex:1;">
+                    <div id="role-badge-wrap"></div>
+                    <h2 id="profile-name-display" style="font-size:1.3rem;margin-bottom:0.25rem;">Loading...</h2>
+                    <div class="completion-bar-wrap">
+                        <div class="completion-label">
+                            <span>Profile completion</span>
+                            <span id="completion-pct" style="color:var(--accent);font-weight:600;">0%</span>
+                        </div>
+                        <div class="completion-bar">
+                            <div class="completion-fill" id="completion-fill" style="width:0%"></div>
+                        </div>
+                    </div>
+                    <div id="avatar-upload-progress" class="avatar-upload-progress">Uploading image...</div>
+                </div>
+            </div>
+
+            <!-- Freelancer Form -->
+            <div id="freelancer-form-section" style="display:none;">
+                <div class="tabs">
+                    <button class="tab active" onclick="switchTab('f-basic', this)">🧑‍💻 Personal Info</button>
+                    <button class="tab" onclick="switchTab('f-skills', this)">🛠️ Skills & Expertise</button>
+                    <button class="tab" onclick="switchTab('f-links', this)">🌐 Portfolio & Socials</button>
+                    <button class="tab" onclick="switchTab('f-verify', this)">🛡️ Verification</button>
+                </div>
+
+                <div id="tab-f-basic" class="tab-panel active">
+                    <div class="card">
+                        <div class="form-group">
+                            <label>Full Name *</label>
+                            <input type="text" id="f-name" placeholder="e.g. Alex Johnson">
+                        </div>
+                        <div class="form-group">
+                            <label>Professional Bio / Summary</label>
+                            <textarea id="f-bio" rows="3" placeholder="Brief intro about yourself shown on your freelancer card..."></textarea>
+                        </div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+                            <div class="form-group">
+                                <label>Years of Experience</label>
+                                <input type="number" id="f-experience" min="0" max="50" placeholder="e.g. 4">
+                            </div>
+                            <div class="form-group">
+                                <label>Availability Status</label>
+                                <select id="f-availability">
+                                    <option value="full_time">Full Time</option>
+                                    <option value="part_time">Part Time</option>
+                                    <option value="contract">Contract / Freelance</option>
+                                    <option value="not_available">Not Available</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+                            <div class="form-group"><label>City</label><input type="text" id="f-city" placeholder="Bangalore"></div>
+                            <div class="form-group"><label>Country</label><input type="text" id="f-country" placeholder="India"></div>
+                        </div>
+                        <button class="btn btn-primary" id="f-save-btn" onclick="saveFreelancerBasic()">Save & View Profile</button>
+                    </div>
+                </div>
+
+                <div id="tab-f-skills" class="tab-panel">
+                    <div class="card">
+                        <h3 style="font-size:1rem;margin-bottom:0.5rem;">Manage Freelancer Skills</h3>
+                        <p style="color:var(--text2);font-size:0.875rem;margin-bottom:1.25rem;">
+                            Add skills that reflect your expertise. Higher skill matches boost recommendations!
+                        </p>
+                        <div class="skills-section-label">Your Active Skills</div>
+                        <div class="skills-wrap" id="f-skills-display">
+                            <span class="no-skills-msg">No skills added yet.</span>
+                        </div>
+                        <div class="skill-add-row">
+                            <select id="f-skill-select">
+                                <option value="">— Select a skill to add —</option>
+                            </select>
+                            <button class="btn btn-primary" id="f-add-skill-btn" onclick="addSkill('freelancer')">Add Skill</button>
+                        </div>
+                        <div id="f-skill-feedback" style="margin-top:0.75rem;font-size:0.82rem;color:var(--green);display:none;"></div>
+                    </div>
+                </div>
+
+                <div id="tab-f-links" class="tab-panel">
+                    <div class="card">
+                        <h3 style="font-size:1rem;margin-bottom:1rem;">Portfolio & Social Links</h3>
+                        <div class="form-group">
+                            <label>Portfolio URL</label>
+                            <input type="url" id="f-portfolio" placeholder="https://yourportfolio.com">
+                        </div>
+                        <div class="form-group">
+                            <label>GitHub Profile</label>
+                            <input type="url" id="f-github" placeholder="https://github.com/username">
+                        </div>
+                        <div class="form-group">
+                            <label>LinkedIn Profile</label>
+                            <input type="url" id="f-linkedin" placeholder="https://linkedin.com/in/username">
+                        </div>
+                        <button class="btn btn-primary" onclick="saveFreelancerLinks()">Save & View Profile</button>
+                    </div>
+                </div>
+
+                <div id="tab-f-verify" class="tab-panel">
+                    <div class="card" style="margin-bottom:1rem;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+                            <div>
+                                <strong>Email Verification</strong>
+                                <p style="color:var(--text2);font-size:0.85rem;margin-top:0.25rem;">Verify your email address for account security</p>
+                            </div>
+                            <div id="f-email-badge"></div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+                            <div>
+                                <strong>Identity Face Verification</strong>
+                                <p style="color:var(--text2);font-size:0.85rem;margin-top:0.25rem;">Scan your face with live camera or upload a selfie for OpenCV verification</p>
+                            </div>
+                            <div id="f-face-badge"></div>
+                        </div>
+                        <div id="f-face-upload-section" style="margin-top:1.25rem;display:none;">
+                            <div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:1rem;">
+                                <button class="btn btn-primary" onclick="openFaceVerifyModal()">📷 Open Live Webcam Scanner</button>
+                                <button class="btn btn-ghost" onclick="toggleFallbackUpload('f-fallback-wrap')">📁 Upload Photo Selfie</button>
+                            </div>
+                            <div id="f-fallback-wrap" style="display:none;" class="form-group">
+                                <label>Upload Selfie Photo File</label>
+                                <input type="file" id="f-face-input" accept="image/*" style="margin-bottom:0.75rem;">
+                                <button class="btn btn-primary" onclick="submitFaceVerify('f-face-input')">Submit Selfie Photo</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Company Form -->
+            <div id="company-form-section" style="display:none;">
+                <div class="tabs">
+                    <button class="tab active" onclick="switchTab('c-basic', this)">🏢 Company Profile</button>
+                    <button class="tab" onclick="switchTab('c-skills', this)">💻 Tech Stack & Required Skills</button>
+                    <button class="tab" onclick="switchTab('c-projects', this)">💼 Active Projects</button>
+                    <button class="tab" onclick="switchTab('c-verify', this)">🛡️ Verification</button>
+                </div>
+
+                <div id="tab-c-basic" class="tab-panel active">
+                    <div class="card">
+                        <div class="form-group">
+                            <label>Company Name *</label>
+                            <input type="text" id="c-name" placeholder="e.g. TechCorp Solutions">
+                        </div>
+                        <div class="form-group">
+                            <label>About Company / Overview *</label>
+                            <textarea id="c-description" rows="3" placeholder="Describe your company, products, and what kind of talent you hire..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Company Website URL</label>
+                            <input type="url" id="c-website" placeholder="https://yourcompany.com">
+                        </div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+                            <div class="form-group"><label>Headquarters City</label><input type="text" id="c-city" placeholder="Bangalore"></div>
+                            <div class="form-group"><label>Headquarters Country</label><input type="text" id="c-country" placeholder="India"></div>
+                        </div>
+                        <button class="btn btn-primary" id="c-save-btn" onclick="saveCompanyBasic()">Save & View Profile</button>
+                    </div>
+                </div>
+
+                <div id="tab-c-skills" class="tab-panel">
+                    <div class="card">
+                        <h3 style="font-size:1rem;margin-bottom:0.5rem;">Company Tech Stack & Required Skills</h3>
+                        <p style="color:var(--text2);font-size:0.875rem;margin-bottom:1.25rem;">
+                            Select the skills and tech stack your company uses or requires for projects.
+                        </p>
+                        <div class="skills-section-label">Company Technologies</div>
+                        <div class="skills-wrap" id="c-skills-display">
+                            <span class="no-skills-msg">No skills added yet.</span>
+                        </div>
+                        <div class="skill-add-row">
+                            <select id="c-skill-select">
+                                <option value="">— Select a skill to add —</option>
+                            </select>
+                            <button class="btn btn-primary" id="c-add-skill-btn" onclick="addSkill('company')">Add Skill</button>
+                        </div>
+                        <div id="c-skill-feedback" style="margin-top:0.75rem;font-size:0.82rem;color:var(--green);display:none;"></div>
+                    </div>
+                </div>
+
+                <div id="tab-c-projects" class="tab-panel">
+                    <div class="card">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:0.5rem;">
+                            <h3 style="font-size:1rem;">Your Posted Projects</h3>
+                            <a href="/projects/" class="btn btn-primary" style="font-size:0.82rem;padding:0.4rem 0.85rem;">+ Post / Manage Projects</a>
+                        </div>
+                        <div id="company-projects-list">
+                            <div style="color:var(--text2);font-size:0.875rem;">Loading your projects...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tab-c-verify" class="tab-panel">
+                    <div class="card" style="margin-bottom:1rem;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+                            <div>
+                                <strong>Business Email Verification</strong>
+                                <p style="color:var(--text2);font-size:0.85rem;margin-top:0.25rem;">Verify your official business email address</p>
+                            </div>
+                            <div id="c-email-badge"></div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+                            <div>
+                                <strong>Company Representative Verification</strong>
+                                <p style="color:var(--text2);font-size:0.85rem;margin-top:0.25rem;">Scan representative face with webcam or upload selfie</p>
+                            </div>
+                            <div id="c-face-badge"></div>
+                        </div>
+                        <div id="c-face-upload-section" style="margin-top:1.25rem;display:none;">
+                            <div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:1rem;">
+                                <button class="btn btn-primary" onclick="openFaceVerifyModal()">📷 Open Live Webcam Scanner</button>
+                                <button class="btn btn-ghost" onclick="toggleFallbackUpload('c-fallback-wrap')">📁 Upload Photo Selfie</button>
+                            </div>
+                            <div id="c-fallback-wrap" style="display:none;" class="form-group">
+                                <label>Upload Representative Selfie Photo</label>
+                                <input type="file" id="c-face-input" accept="image/*" style="margin-bottom:0.75rem;">
+                                <button class="btn btn-primary" onclick="submitFaceVerify('c-face-input')">Submit Verification</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ════════════════ LIVE WEBCAM FACE VERIFY MODAL ════════════════ -->
+    <div class="modal-overlay" id="face-verify-modal">
+        <div class="modal-content" style="max-width:480px;text-align:center;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
+                <h3 style="font-size:1.1rem;font-weight:700;display:flex;align-items:center;gap:0.4rem;">📸 Live Face Verification (OpenCV)</h3>
+                <button style="background:none;border:none;color:var(--text2);font-size:1.2rem;cursor:pointer;" onclick="closeFaceVerifyModal()">×</button>
+            </div>
+
+            <p style="font-size:0.85rem;color:var(--text2);margin-bottom:1rem;">
+                Center your face inside the oval target overlay with good lighting and click <strong>Capture & Verify</strong>.
             </p>
 
-            <div class="skills-section-label">Your skills</div>
-            <div class="skills-wrap" id="skills-display">
-                <span class="no-skills-msg">No skills added yet.</span>
+            <div style="position:relative;width:100%;height:280px;background:#000;border-radius:12px;overflow:hidden;margin-bottom:1rem;">
+                <video id="webcam-feed" autoplay playsinline style="width:100%;height:100%;object-fit:cover;"></video>
+                <div style="position:absolute;inset:20px;border:3px dashed #7c3aed;border-radius:50%;pointer-events:none;box-shadow:0 0 0 9999px rgba(0,0,0,0.5);"></div>
             </div>
 
-            <div class="skill-add-row">
-                <select id="skill-select">
-                    <option value="">— Select a skill to add —</option>
-                </select>
-                <button class="btn btn-primary" id="add-skill-btn" onclick="addSkill()">Add</button>
+            <div id="webcam-status" style="font-size:0.85rem;margin-bottom:1rem;color:var(--accent);font-weight:500;">
+                Initializing webcam stream...
             </div>
 
-            <div id="skill-feedback" style="margin-top:0.75rem;font-size:0.82rem;color:var(--green);display:none;"></div>
-        </div>
-
-        <!-- Links tab -->
-        <div id="tab-links" class="tab-panel">
-            <div class="form-group">
-                <label>Portfolio URL</label>
-                <input type="url" id="portfolio_url" placeholder="https://yourportfolio.com">
-            </div>
-            <div class="form-group">
-                <label>GitHub</label>
-                <input type="url" id="github_url" placeholder="https://github.com/username">
-            </div>
-            <div class="form-group">
-                <label>LinkedIn</label>
-                <input type="url" id="linkedin_url" placeholder="https://linkedin.com/in/username">
-            </div>
-            <button class="btn btn-primary" onclick="saveLinks()">Save links</button>
-        </div>
-
-        <!-- Verification tab -->
-        <div id="tab-verify" class="tab-panel">
-            <div class="card" style="margin-bottom:1rem;">
-                <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
-                    <div>
-                        <strong>Email verification</strong>
-                        <p style="color:var(--text2);font-size:0.85rem;margin-top:0.25rem;">Verify your email address to start swiping</p>
-                    </div>
-                    <div id="email-badge"></div>
-                </div>
-            </div>
-            <div class="card">
-                <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
-                    <div>
-                        <strong>Face verification</strong>
-                        <p style="color:var(--text2);font-size:0.85rem;margin-top:0.25rem;">Upload a clear selfie for identity verification</p>
-                    </div>
-                    <div id="face-badge"></div>
-                </div>
-                <div id="face-upload-section" style="margin-top:1.25rem;display:none;">
-                    <div class="form-group">
-                        <label>Upload selfie</label>
-                        <input type="file" id="face-input" accept="image/*">
-                    </div>
-                    <button class="btn btn-primary" onclick="submitFaceVerify()">Submit for verification</button>
-                </div>
+            <div style="display:flex;gap:0.5rem;justify-content:center;">
+                <button class="btn btn-ghost" onclick="closeFaceVerifyModal()">Cancel</button>
+                <button class="btn btn-primary" id="capture-face-btn" onclick="captureAndVerifyFace()">📸 Capture & Verify</button>
             </div>
         </div>
+    </div>
 
+    <!-- ════════════════ ADD WORK SHOWCASE MODAL ════════════════ -->
+    <div class="modal-overlay" id="showcase-modal">
+        <div class="modal-content">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                <h3 style="font-size:1.1rem;font-weight:700;">+ Add Work Experience & Showcase</h3>
+                <button style="background:none;border:none;color:var(--text2);font-size:1.2rem;cursor:pointer;" onclick="closeShowcaseModal()">×</button>
+            </div>
+            
+            <!-- Quick Fill Preset Design Templates -->
+            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.75rem 0.85rem;margin-bottom:1rem;">
+                <strong style="font-size:0.78rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--accent);display:block;margin-bottom:0.4rem;">⚡ Quick Fill Preset Portfolio Designs:</strong>
+                <div style="display:flex;flex-wrap:wrap;gap:0.35rem;">
+                    <button type="button" class="btn btn-ghost" style="font-size:0.78rem;padding:0.25rem 0.6rem;border:1px solid var(--border);background:var(--bg2);" onclick="applyPresetTemplate('web')">💻 Full Stack Web</button>
+                    <button type="button" class="btn btn-ghost" style="font-size:0.78rem;padding:0.25rem 0.6rem;border:1px solid var(--border);background:var(--bg2);" onclick="applyPresetTemplate('mobile')">📱 Mobile & UI Design</button>
+                    <button type="button" class="btn btn-ghost" style="font-size:0.78rem;padding:0.25rem 0.6rem;border:1px solid var(--border);background:var(--bg2);" onclick="applyPresetTemplate('ai')">🤖 AI & Machine Learning</button>
+                    <button type="button" class="btn btn-ghost" style="font-size:0.78rem;padding:0.25rem 0.6rem;border:1px solid var(--border);background:var(--bg2);" onclick="applyPresetTemplate('devops')">☁️ Cloud & DevOps</button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Project / Work Title *</label>
+                <input type="text" id="sc-title" placeholder="e.g. E-Commerce Platform & Mobile App">
+            </div>
+
+            <div class="form-group">
+                <label>Project Description *</label>
+                <textarea id="sc-description" rows="3" placeholder="Describe what you built, your role, and technical challenges solved..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Experience & Learnings Gained</label>
+                <textarea id="sc-experience" rows="2" placeholder="e.g. Mastered Flutter, Payments integration, and WebSockets real-time sync"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Project Demo Link (Optional)</label>
+                <input type="url" id="sc-url" placeholder="https://github.com/yourproject or live site">
+            </div>
+
+            <div class="form-group">
+                <label>Upload Media File (Photo or Video Preview) *</label>
+                <input type="file" id="sc-media-input" accept="image/*,video/*">
+                <p style="font-size:0.75rem;color:var(--text3);margin-top:0.25rem;">Supports JPG, PNG, MP4, WEBM formats to showcase your work visual!</p>
+            </div>
+
+            <div style="display:flex;justify-content:flex-end;gap:0.5rem;margin-top:1.25rem;">
+                <button class="btn btn-ghost" onclick="closeShowcaseModal()">Cancel</button>
+                <button class="btn btn-primary" id="sc-submit-btn" onclick="submitShowcaseItem()">Submit Showcase Item</button>
+            </div>
+        </div>
     </div>
 
     <script src="/static/js/api.js"></script>
@@ -207,11 +540,38 @@
         let profileData = null
         let allSkills = []
         let profileSkillIds = []
+        let currentMode = 'view' // 'view' or 'edit'
 
-        // ── Tab switching ──────────────────────────
+        // ── Toggle View vs Edit Mode ───────────────
+        function toggleMode(mode) {
+            currentMode = mode
+            const viewSec = document.getElementById('profile-view-section')
+            const editSec = document.getElementById('profile-edit-section')
+            const editBtn = document.getElementById('edit-mode-btn')
+            const viewBtn = document.getElementById('view-mode-btn')
+            const pageHeading = document.getElementById('page-heading')
+
+            if (mode === 'edit') {
+                viewSec.style.display = 'none'
+                editSec.style.display = 'block'
+                editBtn.style.display = 'none'
+                viewBtn.style.display = 'inline-block'
+                pageHeading.textContent = 'Edit Profile Details'
+            } else {
+                viewSec.style.display = 'block'
+                editSec.style.display = 'none'
+                editBtn.style.display = 'inline-block'
+                viewBtn.style.display = 'none'
+                pageHeading.textContent = 'Your Professional Profile'
+                renderViewMode()
+            }
+        }
+
+        // ── Tab switching for Edit Mode ─────────────
         function switchTab(tab, el) {
-            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'))
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'))
+            const container = user?.role === 'company' ? document.getElementById('company-form-section') : document.getElementById('freelancer-form-section')
+            container.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'))
+            container.querySelectorAll('.tab').forEach(t => t.classList.remove('active'))
             document.getElementById('tab-' + tab).classList.add('active')
             el.classList.add('active')
         }
@@ -220,12 +580,11 @@
         function calcCompletion(p) {
             if (!p) return 0
             let score = 0
-            if (p.name)    score += 20
-            if (p.bio)     score += 20
+            if (p.name) score += 25
+            if (p.bio || p.description) score += 25
             if (p.city || p.country) score += 15
             if (p.skills && p.skills.length > 0) score += 20
-            if (p.avatar)  score += 10
-            if (p.portfolio_url || p.github_url || p.linkedin_url) score += 15
+            if (p.avatar || p.logo || p.portfolio_url || p.website_url) score += 15
             return Math.min(score, 100)
         }
 
@@ -237,48 +596,57 @@
 
         // ── Avatar display ─────────────────────────
         function setAvatar(url, name) {
+            const isCompany = user?.role === 'company'
+            // View Mode Avatar
+            const vImg = document.getElementById('v-avatar-img')
+            const vInitials = document.getElementById('v-avatar-initials')
+            if (url) {
+                vImg.src = url; vImg.style.display = 'block'; vInitials.style.display = 'none'
+            } else {
+                vImg.style.display = 'none'; vInitials.style.display = 'flex'
+                vInitials.textContent = (name || user?.email || 'U')[0].toUpperCase()
+            }
+
+            // Edit Mode Avatar
             const img = document.getElementById('avatar-img')
             const initials = document.getElementById('avatar-initials')
             if (url) {
-                img.src = url
-                img.style.display = 'block'
-                initials.style.display = 'none'
+                img.src = url; img.style.display = 'block'; initials.style.display = 'none'
             } else {
-                img.style.display = 'none'
-                initials.style.display = 'flex'
+                img.style.display = 'none'; initials.style.display = 'flex'
                 initials.textContent = (name || user?.email || 'U')[0].toUpperCase()
             }
         }
 
-        // ── Upload avatar ──────────────────────────
+        // ── Upload Avatar / Logo ────────────────────
         async function uploadAvatar(input) {
             const file = input.files[0]
             if (!file) return
 
             const progress = document.getElementById('avatar-upload-progress')
-            progress.style.display = 'block'
-            progress.textContent = 'Uploading photo...'
+            progress.style.display = 'block'; progress.textContent = 'Uploading...'
 
-            // Show preview immediately
             const reader = new FileReader()
             reader.onload = e => setAvatar(e.target.result, profileData?.name)
             reader.readAsDataURL(file)
 
             const form = new FormData()
-            form.append('avatar', file)
+            const isCompany = user?.role === 'company'
+            form.append(isCompany ? 'logo' : 'avatar', file)
 
             try {
-                const endpoint = user?.role === 'company' ? '/profiles/company/me/' : '/profiles/freelancer/me/'
+                const endpoint = isCompany ? '/profiles/company/me/' : '/profiles/freelancer/me/'
                 const res = await apiForm(endpoint, form, 'PATCH')
                 if (res && res.ok) {
                     profileData = await res.json()
-                    progress.textContent = '✓ Photo updated!'
+                    progress.textContent = '✓ Image updated!'
                     progress.style.color = 'var(--green)'
                     updateCompletionBar(profileData)
+                    renderViewMode()
                     setTimeout(() => { progress.style.display = 'none'; progress.style.color = 'var(--accent)' }, 2000)
-                    showToast('Profile photo updated.')
+                    showToast('Photo updated successfully.')
                 } else {
-                    progress.textContent = 'Upload failed. Try again.'
+                    progress.textContent = 'Upload failed.'
                     progress.style.color = 'var(--red)'
                     setTimeout(() => { progress.style.display = 'none'; progress.style.color = 'var(--accent)' }, 2500)
                 }
@@ -289,98 +657,389 @@
             }
         }
 
-        // ── Load profile ───────────────────────────
+        // ── Render View Mode (Clean Professional Profile) ───
+        function renderViewMode() {
+            if (!profileData) return
+            const isCompany = user?.role === 'company'
+            
+            // Name & Role
+            document.getElementById('v-name').textContent = profileData.name || (isCompany ? 'Company Name Not Set' : 'Name Not Set')
+            document.getElementById('v-role-badge').innerHTML = isCompany 
+                ? '<span class="role-badge badge-accent">🏢 Company</span>' 
+                : '<span class="role-badge badge-green">🧑‍💻 Freelancer</span>'
+
+            // Location
+            const loc = [profileData.city, profileData.country].filter(Boolean).join(', ')
+            document.getElementById('v-location').textContent = loc ? `📍 ${loc}` : '📍 Location not set'
+
+            // Bio / Description
+            document.getElementById('v-bio-label').textContent = isCompany ? 'About Company' : 'About Freelancer'
+            document.getElementById('v-bio').textContent = (isCompany ? profileData.description : profileData.bio) || 'No overview provided.'
+
+            // Info Pills
+            const pillsContainer = document.getElementById('v-info-pills')
+            pillsContainer.innerHTML = ''
+
+            if (!isCompany) {
+                // Experience
+                pillsContainer.innerHTML += `<div class="info-pill">⏱️ ${profileData.experience_years || 0} Years Experience</div>`
+                // Availability
+                const availMap = { full_time: '🟢 Full Time', part_time: '🟡 Part Time', contract: '🔵 Contract', not_available: '🔴 Not Available' }
+                pillsContainer.innerHTML += `<div class="info-pill">${availMap[profileData.availability] || 'Full Time'}</div>`
+                // Links
+                if (profileData.portfolio_url) pillsContainer.innerHTML += `<a href="${profileData.portfolio_url}" target="_blank" class="info-pill" style="color:var(--accent);">🌐 Portfolio</a>`
+                if (profileData.github_url) pillsContainer.innerHTML += `<a href="${profileData.github_url}" target="_blank" class="info-pill" style="color:var(--text);">💻 GitHub</a>`
+                if (profileData.linkedin_url) pillsContainer.innerHTML += `<a href="${profileData.linkedin_url}" target="_blank" class="info-pill" style="color:#0a66c2;">💼 LinkedIn</a>`
+            } else {
+                if (profileData.website_url) pillsContainer.innerHTML += `<a href="${profileData.website_url}" target="_blank" class="info-pill" style="color:var(--accent);">🌐 ${profileData.website_url.replace(/^https?:\/\//,'')}</a>`
+            }
+
+            // Skills Display in View Mode
+            const skillsContainer = document.getElementById('v-skills-display')
+            skillsContainer.innerHTML = ''
+            if (profileData.skills && profileData.skills.length > 0) {
+                profileData.skills.forEach(s => {
+                    skillsContainer.innerHTML += `<span class="badge badge-accent" style="font-size:0.8rem;padding:0.3rem 0.75rem;">${s.name}</span>`
+                })
+            } else {
+                skillsContainer.innerHTML = '<span style="color:var(--text3);font-size:0.85rem;font-style:italic;">No skills listed.</span>'
+            }
+
+            // Verification Badges
+            document.getElementById('v-email-badge').innerHTML = user?.is_verified 
+                ? '<span class="badge badge-green">✓ Email Verified</span>' 
+                : '<a href="/verify-email/" class="btn btn-ghost" style="font-size:0.75rem;padding:0.25rem 0.6rem;color:var(--yellow);border:1px solid var(--yellow);">📩 Verify Email Now</a>'
+            
+            document.getElementById('v-face-badge').innerHTML = user?.face_verified 
+                ? '<span class="badge badge-green">✓ Face Verified</span>' 
+                : '<button onclick="openFaceVerifyModal()" class="btn btn-ghost" style="font-size:0.75rem;padding:0.25rem 0.6rem;color:var(--accent);border:1px solid var(--accent);">📷 Verify Face Now</button>'
+
+            // Live External Portfolio Website Display
+            const extUrl = profileData.portfolio_url || profileData.website_url
+            const extCard = document.getElementById('v-external-portfolio-card')
+            if (extUrl) {
+                extCard.style.display = 'block'
+                try {
+                    const domain = new URL(extUrl).hostname.replace('www.','')
+                    document.getElementById('v-portfolio-domain-name').textContent = domain
+                } catch {
+                    document.getElementById('v-portfolio-domain-name').textContent = 'Portfolio Website'
+                }
+                document.getElementById('v-portfolio-url-display').textContent = extUrl
+                document.getElementById('v-portfolio-url-btn').href = extUrl
+                document.getElementById('v-portfolio-iframe').src = extUrl
+            } else {
+                extCard.style.display = 'none'
+            }
+
+            // Role specific showcase sections
+            if (isCompany) {
+                document.getElementById('v-company-projects-section').style.display = 'block'
+                document.getElementById('v-freelancer-showcase-section').style.display = 'none'
+                loadCompanyProjects()
+            } else {
+                document.getElementById('v-freelancer-showcase-section').style.display = 'block'
+                document.getElementById('v-company-projects-section').style.display = 'none'
+                renderShowcaseGallery(profileData.portfolio_items || [])
+            }
+        }
+
+        // ── Quick Fill Preset Templates JS ─────────
+        const PRESET_TEMPLATES = {
+            web: {
+                title: 'Modern Full-Stack Web Platform',
+                description: 'Designed and built a scalable multi-tenant SaaS application with responsive UI, secure JWT authentication, and automated REST endpoints.',
+                experience: 'Mastered React, Django REST framework, PostgreSQL queries, and responsive CSS flexbox/grid architecture.',
+                url: 'https://github.com/example/fullstack-app',
+            },
+            mobile: {
+                title: 'Cross-Platform Mobile App & UI Design',
+                description: 'Created a sleek mobile application with intuitive navigation, dark-mode design system, and real-time push notifications.',
+                experience: 'Hands-on experience with Flutter, Figma design components, state management, and mobile UI/UX principles.',
+                url: 'https://github.com/example/mobile-app-design',
+            },
+            ai: {
+                title: 'AI Automated Data & NLP Pipeline',
+                description: 'Engineered an intelligent machine learning pipeline that analyzes text data, extracts insights, and outputs automated reports.',
+                experience: 'Deep expertise in Python, PyTorch, HuggingFace transformers, prompt engineering, and API integration.',
+                url: 'https://github.com/example/ai-nlp-pipeline',
+            },
+            devops: {
+                title: 'Cloud Infrastructure & Automated CI/CD',
+                description: 'Automated containerized microservices deployment with zero-downtime CI/CD pipelines and Kubernetes cluster monitoring.',
+                experience: 'Mastered Docker, Kubernetes, GitHub Actions, AWS cloud services, and Infrastructure as Code.',
+                url: 'https://github.com/example/devops-cicd-setup',
+            }
+        }
+
+        function applyPresetTemplate(type) {
+            const t = PRESET_TEMPLATES[type]
+            if (!t) return
+            document.getElementById('sc-title').value = t.title
+            document.getElementById('sc-description').value = t.description
+            document.getElementById('sc-experience').value = t.experience
+            document.getElementById('sc-url').value = t.url
+            showToast(`⚡ Populated "${t.title}" preset template!`)
+        }
+
+        function togglePortfolioPreviewIframe(wrapId) {
+            const wrap = document.getElementById(wrapId)
+            if (wrap) {
+                wrap.style.display = wrap.style.display === 'none' ? 'block' : 'none'
+            }
+        }
+
+        // ── Render Work Showcase Gallery ───────────
+        function renderShowcaseGallery(items) {
+            const gallery = document.getElementById('showcase-gallery')
+            if (!items || items.length === 0) {
+                gallery.innerHTML = `
+                    <div style="grid-column:1/-1;text-align:center;padding:2rem;background:var(--bg2);border:1px dashed var(--border);border-radius:var(--radius);">
+                        <div style="font-size:2rem;margin-bottom:0.5rem;">📁</div>
+                        <strong>No portfolio showcase items added yet</strong>
+                        <p style="color:var(--text2);font-size:0.85rem;margin-top:0.25rem;">Upload photos or videos of work you built to impress companies!</p>
+                        <button class="btn btn-primary" style="margin-top:0.75rem;" onclick="openShowcaseModal()">+ Add Your First Project Showcase</button>
+                    </div>`
+                return
+            }
+
+            gallery.innerHTML = items.map(item => {
+                const mediaUrl = item.media_file
+                const isVideo = mediaUrl && (mediaUrl.endsWith('.mp4') || mediaUrl.endsWith('.webm') || mediaUrl.endsWith('.mov'))
+                
+                let mediaHtml = `<div class="showcase-media-container" style="display:flex;align-items:center;justify-content:center;background:var(--bg3);color:var(--text3);font-size:2rem;">📁</div>`
+                if (mediaUrl) {
+                    if (isVideo) {
+                        mediaHtml = `<div class="showcase-media-container"><video src="${mediaUrl}" controls class="showcase-media"></video></div>`
+                    } else {
+                        mediaHtml = `<div class="showcase-media-container"><img src="${mediaUrl}" alt="${item.title}" class="showcase-media"></div>`
+                    }
+                }
+
+                const comments = item.comments || []
+                const commentsListHtml = comments.length > 0
+                    ? comments.map(c => `<div class="comment-item"><strong>${c.user_name || 'User'}</strong>: ${c.text}</div>`).join('')
+                    : '<div style="color:var(--text3);font-size:0.78rem;font-style:italic;">No comments yet. Be the first!</div>'
+
+                return `
+                    <div class="showcase-card">
+                        ${mediaHtml}
+                        <div class="showcase-body">
+                            <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                                <h4 class="showcase-title">${item.title}</h4>
+                                <button onclick="deleteShowcaseItem(${item.id})" title="Delete item" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:0.9rem;">🗑️</button>
+                            </div>
+                            <p class="showcase-desc">${item.description}</p>
+                            ${item.experience_gained ? `
+                                <div class="showcase-exp">
+                                    <strong>💡 Experience Gained</strong>
+                                    ${item.experience_gained}
+                                </div>
+                            ` : ''}
+                            ${item.project_url ? `
+                                <a href="${item.project_url}" target="_blank" class="btn btn-ghost" style="font-size:0.78rem;padding:0.3rem;margin-top:0.6rem;text-align:center;">🔗 Live Demo / Link</a>
+                            ` : ''}
+
+                            <!-- LinkedIn Social Gesture Bar -->
+                            <div class="showcase-social-bar">
+                                <button class="social-action-btn ${item.is_liked_by_me ? 'liked' : ''}" onclick="toggleLikeShowcase(${item.id}, this)">
+                                    <span>👍</span> <span>Like</span> <span id="like-count-${item.id}">(${item.like_count || 0})</span>
+                                </button>
+                                <button class="social-action-btn" onclick="toggleCommentsDrawer(${item.id})">
+                                    <span>💬</span> <span>Comment</span> <span id="comment-count-${item.id}">(${item.comment_count || 0})</span>
+                                </button>
+                                <button class="social-action-btn" onclick="shareShowcase('${item.title.replace(/'/g, "\\'")}', ${item.id})">
+                                    <span>↪️</span> <span>Share</span>
+                                </button>
+                            </div>
+
+                            <!-- Comments Drawer -->
+                            <div class="comments-drawer" id="comments-drawer-${item.id}" style="display:none;">
+                                <div class="comments-list" id="comments-list-${item.id}">
+                                    ${commentsListHtml}
+                                </div>
+                                <div class="comment-input-row">
+                                    <input type="text" id="comment-input-${item.id}" placeholder="Write a comment..." onkeypress="if(event.key==='Enter') postCommentShowcase(${item.id})">
+                                    <button class="btn btn-primary" style="padding:0.35rem 0.65rem;font-size:0.78rem;" onclick="postCommentShowcase(${item.id})">Post</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`
+            }).join('')
+        }
+
+        // ── LinkedIn Social Gestures JS Handlers ───
+        async function toggleLikeShowcase(id, btn) {
+            try {
+                const res = await api(`/profiles/portfolio/${id}/like/`, { method: 'POST' })
+                if (res && res.ok) {
+                    const data = await res.json()
+                    const countEl = document.getElementById(`like-count-${id}`)
+                    if (countEl) countEl.textContent = `(${data.like_count})`
+                    if (data.liked) {
+                        btn.classList.add('liked')
+                        showToast('👍 Liked showcase item!')
+                    } else {
+                        btn.classList.remove('liked')
+                    }
+                }
+            } catch { showToast('Error liking item.', 'error') }
+        }
+
+        function toggleCommentsDrawer(id) {
+            const drawer = document.getElementById(`comments-drawer-${id}`)
+            if (drawer) {
+                drawer.style.display = drawer.style.display === 'none' ? 'block' : 'none'
+            }
+        }
+
+        async function postCommentShowcase(id) {
+            const input = document.getElementById(`comment-input-${id}`)
+            const text = input.value.trim()
+            if (!text) return showToast('Please type a comment.', 'error')
+
+            try {
+                const res = await api(`/profiles/portfolio/${id}/comment/`, {
+                    method: 'POST',
+                    body: JSON.stringify({ text })
+                })
+                if (res && res.ok) {
+                    const comment = await res.json()
+                    input.value = ''
+                    const listEl = document.getElementById(`comments-list-${id}`)
+                    if (listEl) {
+                        if (listEl.innerHTML.includes('No comments yet')) listEl.innerHTML = ''
+                        listEl.innerHTML += `<div class="comment-item"><strong>${comment.user_name || 'You'}</strong>: ${comment.text}</div>`
+                    }
+                    const countEl = document.getElementById(`comment-count-${id}`)
+                    if (countEl) {
+                        const curr = parseInt(countEl.textContent.replace(/\D/g,'')) || 0
+                        countEl.textContent = `(${curr + 1})`
+                    }
+                    showToast('💬 Comment posted!')
+                } else { showToast('Failed to post comment.', 'error') }
+            } catch { showToast('Error posting comment.', 'error') }
+        }
+
+        function shareShowcase(title, id) {
+            const shareUrl = window.location.href
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(shareUrl)
+                showToast(`🔗 Link to "${title}" copied to clipboard!`)
+            } else {
+                showToast(`🔗 Shared: ${title}`)
+            }
+        }
+
+        // ── Load Profile Data ──────────────────────
         async function loadProfile() {
             const isCompany = user?.role === 'company'
-            const endpoint = isCompany ? '/profiles/company/me/' : '/profiles/freelancer/me/'
-
-            document.getElementById('profile-role-display').textContent = isCompany ? 'Company account' : 'Freelancer account'
+            const badgeWrap = document.getElementById('role-badge-wrap')
+            const overlayText = document.getElementById('avatar-overlay-text')
 
             if (isCompany) {
-                document.getElementById('freelancer-fields').style.display = 'none'
-                document.getElementById('company-fields').style.display = 'block'
+                document.getElementById('company-form-section').style.display = 'block'
+                document.getElementById('freelancer-form-section').style.display = 'none'
+                badgeWrap.innerHTML = '<span class="role-badge badge-accent">🏢 Company</span>'
+                overlayText.textContent = '📷 Upload Logo'
+            } else {
+                document.getElementById('freelancer-form-section').style.display = 'block'
+                document.getElementById('company-form-section').style.display = 'none'
+                badgeWrap.innerHTML = '<span class="role-badge badge-green">🧑‍💻 Freelancer</span>'
+                overlayText.textContent = '📷 Upload Photo'
             }
+
+            const endpoint = isCompany ? '/profiles/company/me/' : '/profiles/freelancer/me/'
 
             try {
                 const res = await api(endpoint)
                 if (res && res.ok) {
                     profileData = await res.json()
-                    populateForm(profileData)
+                    populateEditForm(profileData)
+                    toggleMode('view') // Show Professional Profile view first!
                 } else if (res && res.status === 404) {
-                    // Profile not created yet — that's fine, show empty form
-                    updateCompletionBar(null)
+                    toggleMode('edit') // If no profile, show Edit form
                 }
             } catch (e) {
                 console.error('loadProfile error:', e)
             }
 
-            // Load verification status
-            document.getElementById('email-badge').innerHTML = user?.is_verified
-                ? '<span class="badge badge-green">✓ Verified</span>'
-                : '<span class="badge badge-yellow">Pending</span>'
-            document.getElementById('face-badge').innerHTML = user?.face_verified
-                ? '<span class="badge badge-green">✓ Verified</span>'
-                : '<span class="badge badge-yellow">Not verified</span>'
-            if (!user?.face_verified) {
-                document.getElementById('face-upload-section').style.display = 'block'
+            // Load verification badges
+            const isVerified = user?.is_verified
+            const faceVerified = user?.face_verified
+            const emailBadge = isVerified ? '<span class="badge badge-green">✓ Verified</span>' : '<span class="badge badge-yellow">Pending</span>'
+            const faceBadge = faceVerified ? '<span class="badge badge-green">✓ Verified</span>' : '<span class="badge badge-yellow">Not verified</span>'
+
+            if (isCompany) {
+                document.getElementById('c-email-badge').innerHTML = emailBadge
+                document.getElementById('c-face-badge').innerHTML = faceBadge
+                if (!faceVerified) document.getElementById('c-face-upload-section').style.display = 'block'
+            } else {
+                document.getElementById('f-email-badge').innerHTML = emailBadge
+                document.getElementById('f-face-badge').innerHTML = faceBadge
+                if (!faceVerified) document.getElementById('f-face-upload-section').style.display = 'block'
             }
 
-            // Load skills dropdown
             await loadSkillsDropdown()
         }
 
-        function populateForm(p) {
-            document.getElementById('name').value = p.name || ''
-            document.getElementById('bio').value = p.bio || ''
-            document.getElementById('city').value = p.city || ''
-            document.getElementById('country').value = p.country || ''
-            document.getElementById('profile-name-display').textContent = p.name || 'Your profile'
+        function populateEditForm(p) {
+            const isCompany = user?.role === 'company'
+            document.getElementById('profile-name-display').textContent = p.name || 'Your Profile'
+            setAvatar(p.avatar || p.logo || null, p.name)
 
-            if (user?.role === 'freelancer') {
-                document.getElementById('experience_years').value = p.experience_years || 0
-                document.getElementById('availability').value = p.availability || 'full_time'
-                document.getElementById('portfolio_url').value = p.portfolio_url || ''
-                document.getElementById('github_url').value = p.github_url || ''
-                document.getElementById('linkedin_url').value = p.linkedin_url || ''
+            if (isCompany) {
+                document.getElementById('c-name').value = p.name || ''
+                document.getElementById('c-description').value = p.description || ''
+                document.getElementById('c-website').value = p.website_url || ''
+                document.getElementById('c-city').value = p.city || ''
+                document.getElementById('c-country').value = p.country || ''
             } else {
-                document.getElementById('description').value = p.description || ''
-                document.getElementById('website_url').value = p.website_url || ''
+                document.getElementById('f-name').value = p.name || ''
+                document.getElementById('f-bio').value = p.bio || ''
+                document.getElementById('f-experience').value = p.experience_years || 0
+                document.getElementById('f-availability').value = p.availability || 'full_time'
+                document.getElementById('f-city').value = p.city || ''
+                document.getElementById('f-country').value = p.country || ''
+                document.getElementById('f-portfolio').value = p.portfolio_url || ''
+                document.getElementById('f-github').value = p.github_url || ''
+                document.getElementById('f-linkedin').value = p.linkedin_url || ''
             }
 
-            // Avatar
-            setAvatar(p.avatar || null, p.name)
-
-            // Skills
             profileSkillIds = (p.skills || []).map(s => s.id)
             renderSkills(p.skills || [])
-
-            // Completion bar
             updateCompletionBar(p)
         }
 
-        // ── Skills dropdown ────────────────────────
+        // ── Load Skills Dropdown ───────────────────
         async function loadSkillsDropdown() {
             try {
                 const res = await api('/profiles/skills/')
                 if (res && res.ok) {
                     allSkills = await res.json()
-                    const sel = document.getElementById('skill-select')
-                    sel.innerHTML = '<option value="">— Select a skill to add —</option>'
-                    allSkills.forEach(s => {
-                        const opt = document.createElement('option')
-                        opt.value = s.id
-                        opt.textContent = s.name + (s.category ? ' (' + s.category + ')' : '')
-                        sel.appendChild(opt)
-                    })
+                    const selId = user?.role === 'company' ? 'c-skill-select' : 'f-skill-select'
+                    const sel = document.getElementById(selId)
+                    if (sel) {
+                        sel.innerHTML = '<option value="">— Select a skill to add —</option>'
+                        allSkills.forEach(s => {
+                            const opt = document.createElement('option')
+                            opt.value = s.id
+                            opt.textContent = s.name + (s.category ? ' (' + s.category + ')' : '')
+                            sel.appendChild(opt)
+                        })
+                    }
                 }
             } catch (e) {
                 console.error('loadSkillsDropdown error:', e)
             }
         }
 
-        // ── Render skill tags ──────────────────────
+        // ── Render Skill Tags for Edit Mode ────────
         function renderSkills(skills) {
-            const wrap = document.getElementById('skills-display')
+            const isCompany = user?.role === 'company'
+            const wrapId = isCompany ? 'c-skills-display' : 'f-skills-display'
+            const wrap = document.getElementById(wrapId)
+            if (!wrap) return
             wrap.innerHTML = ''
             if (!skills || skills.length === 0) {
                 wrap.innerHTML = '<span class="no-skills-msg">No skills added yet.</span>'
@@ -394,48 +1053,41 @@
             })
         }
 
-        // ── Add skill ──────────────────────────────
-        async function addSkill() {
-            const sel = document.getElementById('skill-select')
+        // ── Add / Remove Skills ─────────────────────
+        async function addSkill(roleType) {
+            const selId = roleType === 'company' ? 'c-skill-select' : 'f-skill-select'
+            const btnId = roleType === 'company' ? 'c-add-skill-btn' : 'f-add-skill-btn'
+            const sel = document.getElementById(selId)
             const id = parseInt(sel.value)
+
             if (!id) return showToast('Please select a skill first.', 'error')
             if (profileSkillIds.includes(id)) return showToast('Skill already added.', 'error')
 
-            const btn = document.getElementById('add-skill-btn')
-            btn.disabled = true
-            btn.textContent = 'Adding...'
+            const btn = document.getElementById(btnId)
+            btn.disabled = true; btn.textContent = 'Adding...'
 
             profileSkillIds.push(id)
             const ok = await saveSkillsToServer()
-
             if (!ok) profileSkillIds = profileSkillIds.filter(x => x !== id)
-            btn.disabled = false
-            btn.textContent = 'Add'
-
-            // Reset dropdown
+            btn.disabled = false; btn.textContent = roleType === 'company' ? 'Add Skill' : 'Add Skill'
             sel.value = ''
         }
 
-        // ── Remove skill ───────────────────────────
         async function removeSkill(id) {
             profileSkillIds = profileSkillIds.filter(x => x !== id)
             await saveSkillsToServer()
         }
 
-        // ── Save skills to API ─────────────────────
         async function saveSkillsToServer() {
             const isCompany = user?.role === 'company'
             const endpoint = isCompany ? '/profiles/company/me/' : '/profiles/freelancer/me/'
-
-            // If no profile yet, we need to POST with a name
             const method = profileData ? 'PATCH' : 'POST'
             const body = { skill_ids: profileSkillIds }
 
-            // POST requires name at minimum
             if (!profileData) {
-                const nameVal = document.getElementById('name').value.trim()
+                const nameVal = isCompany ? document.getElementById('c-name').value.trim() : document.getElementById('f-name').value.trim()
                 if (!nameVal) {
-                    showToast('Please save your basic info (name) first before adding skills.', 'error')
+                    showToast('Please save your basic profile info (name) first.', 'error')
                     return false
                 }
                 body.name = nameVal
@@ -447,114 +1099,322 @@
                     profileData = await res.json()
                     renderSkills(profileData.skills || [])
                     updateCompletionBar(profileData)
-                    showSkillFeedback('✓ Skills saved!')
+                    renderViewMode()
+                    showToast('✓ Skills saved!')
                     return true
-                } else {
-                    const d = await res.json()
-                    showToast(d.detail || 'Failed to save skills.', 'error')
-                    return false
                 }
-            } catch (e) {
-                showToast('Error saving skills.', 'error')
-                return false
-            }
+            } catch { showToast('Error saving skills.', 'error') }
+            return false
         }
 
-        function showSkillFeedback(msg) {
-            const el = document.getElementById('skill-feedback')
-            el.textContent = msg
-            el.style.display = 'block'
-            setTimeout(() => el.style.display = 'none', 2500)
-        }
-
-        // ── Save basic info ────────────────────────
-        async function saveBasic() {
-            const isCompany = user?.role === 'company'
-            const endpoint = isCompany ? '/profiles/company/me/' : '/profiles/freelancer/me/'
-            const method = profileData ? 'PATCH' : 'POST'
-
-            const nameVal = document.getElementById('name').value.trim()
+        // ── Save Freelancer Basic Info ─────────────
+        async function saveFreelancerBasic() {
+            const nameVal = document.getElementById('f-name').value.trim()
             if (!nameVal) return showToast('Name is required.', 'error')
 
             const body = {
                 name: nameVal,
-                bio: document.getElementById('bio').value.trim(),
-                city: document.getElementById('city').value.trim(),
-                country: document.getElementById('country').value.trim(),
+                bio: document.getElementById('f-bio').value.trim(),
+                experience_years: parseInt(document.getElementById('f-experience').value) || 0,
+                availability: document.getElementById('f-availability').value,
+                city: document.getElementById('f-city').value.trim(),
+                country: document.getElementById('f-country').value.trim(),
             }
 
-            if (!isCompany) {
-                body.experience_years = parseInt(document.getElementById('experience_years').value) || 0
-                body.availability = document.getElementById('availability').value
-            } else {
-                body.description = document.getElementById('description').value.trim()
-                body.website_url = document.getElementById('website_url').value.trim() || null
-            }
-
-            const btn = document.getElementById('save-basic-btn')
-            btn.disabled = true
-            btn.textContent = 'Saving...'
+            const method = profileData ? 'PATCH' : 'POST'
+            const btn = document.getElementById('f-save-btn')
+            btn.disabled = true; btn.textContent = 'Saving...'
 
             try {
-                const res = await api(endpoint, { method, body: JSON.stringify(body) })
+                const res = await api('/profiles/freelancer/me/', { method, body: JSON.stringify(body) })
                 if (res && res.ok) {
                     profileData = await res.json()
-                    document.getElementById('profile-name-display').textContent = profileData.name || 'Your profile'
                     updateCompletionBar(profileData)
-                    showToast('Profile saved successfully!')
+                    showToast('Freelancer profile saved successfully!')
+                    toggleMode('view') // Switch to Professional View Mode!
                 } else {
                     const d = await res.json()
-                    const msg = d.name?.[0] || d.detail || JSON.stringify(d)
-                    showToast(msg, 'error')
+                    showToast(d.name?.[0] || d.detail || 'Failed to save freelancer profile.', 'error')
                 }
-            } catch (e) {
-                showToast('Error saving profile.', 'error')
-            }
+            } catch { showToast('Error saving freelancer profile.', 'error') }
 
-            btn.disabled = false
-            btn.textContent = 'Save changes'
+            btn.disabled = false; btn.textContent = 'Save & View Profile'
         }
 
-        // ── Save links ─────────────────────────────
-        async function saveLinks() {
-            if (!profileData) return showToast('Save your basic info first.', 'error')
+        // ── Save Freelancer Links ──────────────────
+        async function saveFreelancerLinks() {
+            if (!profileData) return showToast('Save your basic freelancer info first.', 'error')
             const body = {
-                portfolio_url: document.getElementById('portfolio_url').value.trim() || null,
-                github_url: document.getElementById('github_url').value.trim() || null,
-                linkedin_url: document.getElementById('linkedin_url').value.trim() || null,
+                portfolio_url: document.getElementById('f-portfolio').value.trim() || null,
+                github_url: document.getElementById('f-github').value.trim() || null,
+                linkedin_url: document.getElementById('f-linkedin').value.trim() || null,
             }
             try {
                 const res = await api('/profiles/freelancer/me/', { method: 'PATCH', body: JSON.stringify(body) })
                 if (res && res.ok) {
                     profileData = await res.json()
                     updateCompletionBar(profileData)
-                    showToast('Links saved!')
-                } else {
-                    showToast('Failed to save links.', 'error')
-                }
+                    showToast('Social links saved successfully!')
+                    toggleMode('view')
+                } else { showToast('Failed to save links.', 'error') }
             } catch { showToast('Error saving links.', 'error') }
         }
 
-        // ── Face verify ────────────────────────────
-        async function submitFaceVerify() {
-            const file = document.getElementById('face-input').files[0]
+        // ── Save Company Basic Info ────────────────
+        async function saveCompanyBasic() {
+            const nameVal = document.getElementById('c-name').value.trim()
+            if (!nameVal) return showToast('Company name is required.', 'error')
+
+            const body = {
+                name: nameVal,
+                description: document.getElementById('c-description').value.trim(),
+                website_url: document.getElementById('c-website').value.trim() || null,
+                city: document.getElementById('c-city').value.trim(),
+                country: document.getElementById('c-country').value.trim(),
+            }
+
+            const method = profileData ? 'PATCH' : 'POST'
+            const btn = document.getElementById('c-save-btn')
+            btn.disabled = true; btn.textContent = 'Saving...'
+
+            try {
+                const res = await api('/profiles/company/me/', { method, body: JSON.stringify(body) })
+                if (res && res.ok) {
+                    profileData = await res.json()
+                    updateCompletionBar(profileData)
+                    showToast('Company profile saved successfully!')
+                    toggleMode('view') // Switch to Professional View Mode!
+                } else {
+                    const d = await res.json()
+                    showToast(d.name?.[0] || d.detail || 'Failed to save company profile.', 'error')
+                }
+            } catch { showToast('Error saving company profile.', 'error') }
+
+            btn.disabled = false; btn.textContent = 'Save & View Profile'
+        }
+
+        // ── Work Showcase Modal & Handlers ─────────
+        function openShowcaseModal() {
+            document.getElementById('showcase-modal').style.display = 'flex'
+        }
+        function closeShowcaseModal() {
+            document.getElementById('showcase-modal').style.display = 'none'
+        }
+
+        async function submitShowcaseItem() {
+            const title = document.getElementById('sc-title').value.trim()
+            const desc = document.getElementById('sc-description').value.trim()
+            const exp = document.getElementById('sc-experience').value.trim()
+            const url = document.getElementById('sc-url').value.trim()
+            const file = document.getElementById('sc-media-input').files[0]
+
+            if (!title) return showToast('Project title is required.', 'error')
+            if (!desc) return showToast('Project description is required.', 'error')
+
+            const form = new FormData()
+            form.append('title', title)
+            form.append('description', desc)
+            if (exp) form.append('experience_gained', exp)
+            if (url) form.append('project_url', url)
+            if (file) form.append('media_file', file)
+
+            const btn = document.getElementById('sc-submit-btn')
+            btn.disabled = true; btn.textContent = 'Uploading Showcase...'
+
+            try {
+                const res = await apiForm('/profiles/portfolio/', form, 'POST')
+                if (res && res.ok) {
+                    showToast('Work showcase item added successfully!')
+                    closeShowcaseModal()
+                    // Reset modal form
+                    document.getElementById('sc-title').value = ''
+                    document.getElementById('sc-description').value = ''
+                    document.getElementById('sc-experience').value = ''
+                    document.getElementById('sc-url').value = ''
+                    document.getElementById('sc-media-input').value = ''
+
+                    // Refresh profile
+                    const pRes = await api('/profiles/freelancer/me/')
+                    if (pRes && pRes.ok) {
+                        profileData = await pRes.json()
+                        renderViewMode()
+                    }
+                } else {
+                    const d = await res.json()
+                    showToast(d.detail || 'Failed to submit showcase item.', 'error')
+                }
+            } catch { showToast('Error submitting showcase item.', 'error') }
+
+            btn.disabled = false; btn.textContent = 'Submit Showcase Item'
+        }
+
+        async function deleteShowcaseItem(id) {
+            if (!confirm('Are you sure you want to remove this showcase item?')) return
+            try {
+                const res = await api(`/profiles/portfolio/${id}/`, { method: 'DELETE' })
+                if (res && (res.ok || res.status === 204)) {
+                    showToast('Showcase item removed.')
+                    profileData.portfolio_items = (profileData.portfolio_items || []).filter(i => i.id !== id)
+                    renderShowcaseGallery(profileData.portfolio_items)
+                }
+            } catch { showToast('Error deleting item.', 'error') }
+        }
+
+        // ── Load Company Projects Summary ──────────
+        async function loadCompanyProjects() {
+            try {
+                const res = await api('/projects/mine/')
+                if (res && res.ok) {
+                    const projects = await res.json()
+                    const container = document.getElementById('v-company-projects-list')
+                    if (!projects || projects.length === 0) {
+                        container.innerHTML = `
+                            <div style="text-align:center;padding:2rem;background:var(--bg2);border:1px dashed var(--border);border-radius:var(--radius);">
+                                <div style="font-size:2rem;margin-bottom:0.5rem;">📋</div>
+                                <strong>No active company projects posted</strong>
+                                <p style="font-size:0.85rem;color:var(--text2);margin-top:0.25rem;">Post projects so freelancers can discover and apply for your open roles!</p>
+                                <a href="/projects/" class="btn btn-primary" style="margin-top:0.75rem;">+ Post First Project</a>
+                            </div>`
+                        return
+                    }
+                    container.innerHTML = projects.map(p => `
+                        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.9rem;margin-bottom:0.6rem;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;">
+                                <strong style="font-size:0.95rem;">${p.title}</strong>
+                                <span class="badge badge-green">${p.status}</span>
+                            </div>
+                            <div style="color:var(--green);font-size:0.82rem;font-weight:600;margin-top:0.25rem;">
+                                ₹${Number(p.budget_min).toLocaleString()} – ₹${Number(p.budget_max).toLocaleString()} · ${(p.duration||'').replace(/_/g,' ')}
+                            </div>
+                            <div style="color:var(--text2);font-size:0.82rem;margin-top:0.35rem;">${p.application_count || 0} applications received</div>
+                        </div>
+                    `).join('')
+                }
+            } catch {}
+        }
+
+        // ── Submit Face / Selfie Verify ────────────
+        async function submitFaceVerify(inputId) {
+            const file = document.getElementById(inputId).files[0]
             if (!file) return showToast('Please select a selfie photo.', 'error')
 
             const form = new FormData()
             form.append('face_image', file)
 
             try {
-                const res = await apiForm('/auth/face-verify/', form)
-                if (res && res.ok) {
-                    showToast('Face verified successfully!')
-                    document.getElementById('face-badge').innerHTML = '<span class="badge badge-green">✓ Verified</span>'
-                    document.getElementById('face-upload-section').style.display = 'none'
+                const res = await api('/auth/face-verify/', {
+                    method: 'POST',
+                    body: form,
+                })
+                const data = await res.json()
+                if (res && res.ok && data.face_verified) {
+                    showToast('🎉 Face verified successfully with OpenCV!', 'success')
+                    const isCompany = user?.role === 'company'
+                    const badgeId = isCompany ? 'c-face-badge' : 'f-face-badge'
+                    const secId = isCompany ? 'c-face-upload-section' : 'f-face-upload-section'
+                    document.getElementById(badgeId).innerHTML = '<span class="badge badge-green">✓ Verified</span>'
+                    document.getElementById(secId).style.display = 'none'
                     const u = getUser()
-                    if (u) { u.face_verified = true; saveUser(u) }
+                    if (u) { u.face_verified = true; setUser(u) }
+                    renderViewMode()
                 } else {
-                    showToast('Verification failed. Please try again.', 'error')
+                    showToast(data.detail || 'Verification failed. Try again.', 'error')
                 }
-            } catch { showToast('Error during verification.', 'error') }
+            } catch { showToast('Error submitting verification.', 'error') }
+        }
+
+        // ── Live Webcam Face Verification ──────────
+        let webcamStream = null
+
+        async function openFaceVerifyModal() {
+            const modal = document.getElementById('face-verify-modal')
+            const video = document.getElementById('webcam-feed')
+            const status = document.getElementById('webcam-status')
+            
+            modal.style.display = 'flex'
+            status.textContent = 'Requesting camera access...'
+            status.style.color = 'var(--accent)'
+
+            try {
+                webcamStream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } })
+                video.srcObject = webcamStream
+                status.textContent = 'Camera active. Center your face inside the oval frame.'
+                status.style.color = 'var(--green)'
+            } catch (err) {
+                status.textContent = 'Camera permission denied or camera unavailable. Please use file upload.'
+                status.style.color = 'var(--red)'
+            }
+        }
+
+        function closeFaceVerifyModal() {
+            if (webcamStream) {
+                webcamStream.getTracks().forEach(t => t.stop())
+                webcamStream = null
+            }
+            document.getElementById('face-verify-modal').style.display = 'none'
+        }
+
+        function toggleFallbackUpload(wrapId) {
+            const wrap = document.getElementById(wrapId)
+            if (wrap) {
+                wrap.style.display = wrap.style.display === 'none' ? 'block' : 'none'
+            }
+        }
+
+        async function captureAndVerifyFace() {
+            const video = document.getElementById('webcam-feed')
+            const status = document.getElementById('webcam-status')
+            const captureBtn = document.getElementById('capture-face-btn')
+
+            if (!webcamStream || video.readyState < 2) {
+                status.textContent = 'Webcam not ready yet.'
+                return
+            }
+
+            const canvas = document.createElement('canvas')
+            canvas.width = video.videoWidth || 640
+            canvas.height = video.videoHeight || 480
+            const ctx = canvas.getContext('2d')
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+
+            captureBtn.disabled = true
+            status.textContent = 'Analyzing face scan with OpenCV...'
+            status.style.color = 'var(--accent)'
+
+            canvas.toBlob(async (blob) => {
+                const formData = new FormData()
+                formData.append('face_image', blob, 'webcam_selfie.jpg')
+
+                try {
+                    const res = await api('/auth/face-verify/', {
+                        method: 'POST',
+                        body: formData,
+                    })
+                    const data = await res.json()
+
+                    if (res.ok && data.face_verified) {
+                        status.textContent = `✓ Face Verified! Confidence: ${data.confidence || 90}%`
+                        status.style.color = 'var(--green)'
+                        showToast('🎉 Face verified successfully with OpenCV!', 'success')
+                        
+                        const u = getUser()
+                        if (u) { u.face_verified = true; setUser(u) }
+                        
+                        setTimeout(() => {
+                            closeFaceVerifyModal()
+                            loadProfile()
+                        }, 1400)
+                    } else {
+                        status.textContent = `❌ ${data.detail || 'Verification failed. Position face clearly.'}`
+                        status.style.color = 'var(--red)'
+                        captureBtn.disabled = false
+                    }
+                } catch {
+                    status.textContent = 'Error processing face scan.'
+                    status.style.color = 'var(--red)'
+                    captureBtn.disabled = false
+                }
+            }, 'image/jpeg', 0.92)
         }
 
         // ── Init ───────────────────────────────────

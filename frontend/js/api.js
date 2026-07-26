@@ -96,3 +96,30 @@ function logout() {
     clearTokens()
     window.location.href = '/'
 }
+
+// Apply saved theme automatically on script load
+(function applySavedTheme() {
+    const theme = localStorage.getItem('swipe_theme') || 'default'
+    const root = document.documentElement
+    if (theme === 'oled') {
+        root.style.setProperty('--bg', '#000000')
+        root.style.setProperty('--bg2', '#0a0a0a')
+        root.style.setProperty('--bg3', '#141414')
+        root.style.setProperty('--accent', '#3b82f6')
+    } else if (theme === 'cyber') {
+        root.style.setProperty('--bg', '#09090e')
+        root.style.setProperty('--bg2', '#12111a')
+        root.style.setProperty('--bg3', '#1c1b26')
+        root.style.setProperty('--accent', '#f43f5e')
+    } else if (theme === 'emerald') {
+        root.style.setProperty('--bg', '#061712')
+        root.style.setProperty('--bg2', '#0d2820')
+        root.style.setProperty('--bg3', '#16382e')
+        root.style.setProperty('--accent', '#10b981')
+    } else {
+        root.style.removeProperty('--bg')
+        root.style.removeProperty('--bg2')
+        root.style.removeProperty('--bg3')
+        root.style.removeProperty('--accent')
+    }
+})()

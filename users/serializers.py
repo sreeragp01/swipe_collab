@@ -20,6 +20,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
+        from django.conf import settings
         validated_data.pop('password2')
         user = User.objects.create_user(
             email=validated_data['email'],
@@ -27,6 +28,11 @@ class RegisterSerializer(serializers.ModelSerializer):
             password=validated_data['password'],
             role=validated_data.get('role', User.ROLE_FREELANCER),
         )
+        if getattr(settings, 'DEBUG', False):
+            user.is_verified = True
+            user.face_verified = True
+            user.is_paid = True
+            user.save(update_fields=['is_verified', 'face_verified', 'is_paid'])
         if user.is_freelancer:
             user.start_trial()
         return user

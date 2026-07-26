@@ -3,70 +3,329 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SwipeCollab — Swipe to Collaborate</title>
+    <title>SwipeCollab — Swipe to Collaborate & Connect Freelancers with Companies</title>
+    <meta name="description" content="SwipeCollab is the premier skill-matching platform connecting top freelancers with companies. Swipe, match based on skills, chat live, and build projects seamlessly.">
+    <meta name="keywords" content="freelancer marketplace, developer matching, company hiring, skill match, swipe collaboration, PixelForge">
+    <meta name="robots" content="index, follow">
+    <meta name="theme-color" content="#090a0f">
+    <link rel="canonical" href="https://swipecollab.com/">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://swipecollab.com/">
+    <meta property="og:title" content="SwipeCollab — Swipe to Collaborate & Match Skills">
+    <meta property="og:description" content="Connect freelancers and companies with intelligent skill-based matching. Match, chat, and schedule collaboration video sessions.">
+    <meta property="og:site_name" content="SwipeCollab">
+
+    <!-- Twitter Cards -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="SwipeCollab — Next-Gen Freelance & Company Matching">
+    <meta name="twitter:description" content="Connect freelancers and companies with intelligent skill-based matching.">
+
+    <!-- Structured Data (Schema.org JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "SwipeCollab",
+      "operatingSystem": "Web",
+      "applicationCategory": "BusinessApplication",
+      "description": "SwipeCollab is a platform for freelancers and companies to match, collaborate, and chat.",
+      "creator": {
+        "@type": "Organization",
+        "name": "PixelForge"
+      }
+    }
+    </script>
     <link rel="stylesheet" href="/static/css/style.css">
     <style>
-        .hero { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 2rem; background: radial-gradient(ellipse at 50% 0%, rgba(108,99,255,0.15) 0%, transparent 70%); }
-        .hero h1 { font-size: clamp(2.5rem, 6vw, 4.5rem); font-weight: 700; line-height: 1.1; max-width: 800px; margin-bottom: 1.25rem; }
-        .hero h1 span { color: var(--accent); }
-        .hero p { color: var(--text2); font-size: 1.15rem; max-width: 520px; margin-bottom: 2.5rem; }
-        .hero-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
-        .hero-btns .btn { padding: 0.9rem 2rem; font-size: 1rem; }
-        .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.25rem; max-width: 1000px; margin: 4rem auto; padding: 0 1.5rem; }
-        .feature-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; }
-        .feature-icon { font-size: 2rem; margin-bottom: 0.75rem; }
-        .feature-card h3 { font-size: 1rem; margin-bottom: 0.4rem; }
-        .feature-card p { color: var(--text2); font-size: 0.875rem; }
-        .how-section { max-width: 700px; margin: 0 auto 5rem; padding: 0 1.5rem; text-align: center; }
-        .how-section h2 { font-size: 1.75rem; margin-bottom: 2rem; }
-        .steps { display: flex; flex-direction: column; gap: 1rem; text-align: left; }
-        .step { display: flex; gap: 1rem; align-items: flex-start; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; }
-        .step-num { background: var(--accent); border-radius: 50%; color: #fff; font-family: var(--font-head); font-size: 0.85rem; font-weight: 700; min-width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; }
-        .step-text h4 { font-size: 0.95rem; margin-bottom: 0.2rem; }
-        .step-text p { color: var(--text2); font-size: 0.85rem; }
-        .trial-banner-hero { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); border-radius: var(--radius); color: var(--green); font-size: 0.9rem; font-weight: 500; padding: 0.75rem 1.5rem; margin-bottom: 2rem; display: inline-block; }
-        footer { border-top: 1px solid var(--border); color: var(--text3); font-size: 0.85rem; padding: 2rem; text-align: center; }
+        .hero {
+            min-height: calc(100vh - 80px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 4rem 1.5rem 6rem;
+            position: relative;
+        }
+
+        .trial-badge {
+            background: rgba(16, 185, 129, 0.12);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 999px;
+            color: #34d399;
+            font-size: 0.88rem;
+            font-weight: 700;
+            padding: 0.5rem 1.25rem;
+            margin-bottom: 2rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.15);
+            backdrop-filter: var(--glass-blur);
+        }
+
+        .hero h1 {
+            font-size: clamp(2.8rem, 6.5vw, 5.2rem);
+            font-weight: 800;
+            line-height: 1.1;
+            max-width: 920px;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.03em;
+        }
+
+        .hero h1 span {
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 35px rgba(139, 92, 246, 0.4));
+        }
+
+        .hero p {
+            color: var(--text2);
+            font-size: 1.2rem;
+            max-width: 580px;
+            margin-bottom: 2.8rem;
+            line-height: 1.6;
+        }
+
+        .hero-btns {
+            display: flex;
+            gap: 1.2rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .hero-btns .btn {
+            padding: 1rem 2.2rem;
+            font-size: 1.05rem;
+            border-radius: var(--radius);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            max-width: 1140px;
+            margin: 0 auto 6rem;
+            padding: 0 1.5rem;
+        }
+
+        .feature-card {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 2rem;
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            transition: var(--transition);
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--gradient-primary);
+            opacity: 0;
+            transition: var(--transition);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--border-hover);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), var(--shadow-glow);
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            display: inline-block;
+            filter: drop-shadow(0 0 15px rgba(139, 92, 246, 0.4));
+        }
+
+        .feature-card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 0.6rem;
+            color: #fff;
+        }
+
+        .feature-card p {
+            color: var(--text2);
+            font-size: 0.92rem;
+            line-height: 1.55;
+        }
+
+        .how-section {
+            max-width: 820px;
+            margin: 0 auto 6rem;
+            padding: 0 1.5rem;
+            text-align: center;
+        }
+
+        .how-section h2 {
+            font-size: 2.2rem;
+            margin-bottom: 2.5rem;
+            color: #fff;
+        }
+
+        .steps-container {
+            display: grid;
+            gap: 1.25rem;
+            text-align: left;
+        }
+
+        .step-card {
+            display: flex;
+            gap: 1.25rem;
+            align-items: flex-start;
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            backdrop-filter: var(--glass-blur);
+            transition: var(--transition);
+        }
+
+        .step-card:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateX(4px);
+        }
+
+        .step-num {
+            background: var(--gradient-primary);
+            border-radius: 50%;
+            color: #fff;
+            font-family: var(--font-head);
+            font-size: 0.95rem;
+            font-weight: 800;
+            min-width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 16px rgba(139, 92, 246, 0.4);
+        }
+
+        .step-content h4 {
+            font-size: 1.05rem;
+            margin-bottom: 0.25rem;
+            color: #fff;
+        }
+
+        .step-content p {
+            color: var(--text2);
+            font-size: 0.9rem;
+        }
+
+        footer {
+            border-top: 1px solid var(--border);
+            color: var(--text3);
+            font-size: 0.88rem;
+            padding: 2.5rem 1.5rem;
+            text-align: center;
+            background: rgba(9, 10, 15, 0.9);
+            backdrop-filter: var(--glass-blur);
+        }
     </style>
 </head>
 <body>
     <nav class="nav">
-        <a href="/" class="nav-logo">Swipe<span style="color:var(--accent)">Collab</span></a>
+        <a href="/" class="nav-logo">Swipe<span>Collab</span></a>
         <div class="nav-links">
             <a href="/login/" class="nav-link">Log in</a>
-            <a href="/register/" class="btn btn-primary" style="padding:0.5rem 1rem;font-size:0.875rem;">Sign up free</a>
+            <a href="/register/" class="btn btn-primary" style="padding:0.55rem 1.25rem;font-size:0.88rem;">Sign up free</a>
         </div>
     </nav>
 
     <section class="hero">
-        <div class="trial-banner-hero">🎉 Freelancers get 1 month free trial — no card needed</div>
+        <div class="trial-badge">🎉 Freelancers get 1 month free trial — no card required</div>
         <h1>Swipe right to <span>collaborate</span></h1>
-        <p>The smartest way for freelancers and companies to find each other. Swipe, match, chat, and collaborate — all in one place.</p>
+        <p>The smartest marketplace for top freelancers and tech teams to connect. Swipe skill cards, match instantly, chat in real time, and build together.</p>
         <div class="hero-btns">
-            <a href="/register/" class="btn btn-primary">Get started free</a>
-            <a href="/login/" class="btn btn-ghost">Log in</a>
+            <a href="/register/" class="btn btn-primary">Get started free ↗</a>
+            <a href="/login/" class="btn btn-ghost">Log in to platform</a>
         </div>
     </section>
 
-    <section class="features">
-        <div class="feature-card"><div class="feature-icon">🃏</div><h3>Swipe to discover</h3><p>Browse freelancers and companies on cards. Like, pass, or super-like based on skill match score.</p></div>
-        <div class="feature-card"><div class="feature-icon">🤝</div><h3>Mutual match</h3><p>When both sides like each other, it's a match. A private chat room opens instantly.</p></div>
-        <div class="feature-card"><div class="feature-icon">💬</div><h3>Real-time chat</h3><p>Message your matches with read receipts, typing indicators, and emoji reactions.</p></div>
-        <div class="feature-card"><div class="feature-icon">🎥</div><h3>Collab sessions</h3><p>Schedule a Google Meet or Zoom directly from your match. Rate your collaborator after.</p></div>
-        <div class="feature-card"><div class="feature-icon">📋</div><h3>Post projects</h3><p>Companies post projects, freelancers apply. Hiring made simple alongside the swipe flow.</p></div>
-        <div class="feature-card"><div class="feature-icon">🔒</div><h3>Verified profiles</h3><p>Email + face verification before anyone can swipe. Safe and trustworthy community.</p></div>
+    <section class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">🃏</div>
+            <h3>Swipe to Discover</h3>
+            <p>Explore skill-matched developer profiles and active projects. Swipe right to connect, pass, or send a Super Like.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">⚡</div>
+            <h3>Instant Mutual Match</h3>
+            <p>When interest is mutual, a high-speed collaboration room unlocks automatically with zero latency.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">💬</div>
+            <h3>Real-Time Chat</h3>
+            <p>Message your matches with typing indicators, online presence, file sharing, and interactive status badges.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">🎥</div>
+            <h3>Collab Sessions</h3>
+            <p>Schedule Google Meet or Zoom calls directly inside your match thread and leave verified review ratings.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">💼</div>
+            <h3>Post & Hire Projects</h3>
+            <p>Companies post projects with clear budget ranges and skill requirements. Freelancers apply directly.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">🛡️</div>
+            <h3>Verified Security</h3>
+            <p>Integrated email verification and OpenCV facial anti-bot verification keep your talent pool 100% genuine.</p>
+        </div>
     </section>
 
     <section class="how-section">
-        <h2>How it works</h2>
-        <div class="steps">
-            <div class="step"><div class="step-num">1</div><div class="step-text"><h4>Sign up and verify</h4><p>Register as a freelancer or company. Verify your email and face before swiping.</p></div></div>
-            <div class="step"><div class="step-num">2</div><div class="step-text"><h4>Build your profile</h4><p>Add your skills, bio, portfolio, and availability. Better profile = better matches.</p></div></div>
-            <div class="step"><div class="step-num">3</div><div class="step-text"><h4>Start swiping</h4><p>See skill-matched cards. Like, pass, or super-like. 48 hours to message after a match.</p></div></div>
-            <div class="step"><div class="step-num">4</div><div class="step-text"><h4>Chat and collaborate</h4><p>Message your match, book a collab session, and rate each other after.</p></div></div>
+        <h2>How SwipeCollab Works</h2>
+        <div class="steps-container">
+            <div class="step-card">
+                <div class="step-num">1</div>
+                <div class="step-content">
+                    <h4>Create Account & Verify</h4>
+                    <p>Register as a freelancer or hiring company. Complete email and facial verification in seconds.</p>
+                </div>
+            </div>
+            <div class="step-card">
+                <div class="step-num">2</div>
+                <div class="step-content">
+                    <h4>Build Your Talent Profile</h4>
+                    <p>Add skills, portfolio links, hourly rates, and city location. Better details yield higher match scores.</p>
+                </div>
+            </div>
+            <div class="step-card">
+                <div class="step-num">3</div>
+                <div class="step-content">
+                    <h4>Swipe & Connect</h4>
+                    <p>Review candidate and project cards. Right swipe or Super Like to express interest instantly.</p>
+                </div>
+            </div>
+            <div class="step-card">
+                <div class="step-num">4</div>
+                <div class="step-content">
+                    <h4>Collaborate & Build</h4>
+                    <p>Chat with your match, schedule video calls, launch project milestones, and rate your experience.</p>
+                </div>
+            </div>
         </div>
     </section>
 
-    <footer>© 2025 SwipeCollab. All rights reserved.</footer>
+    <footer>© 2026 SwipeCollab. Designed & Engineered by PixelForge Software Development Company.</footer>
 
     <script src="/static/js/api.js"></script>
     <script>if (getToken()) window.location.href = '/dashboard/'</script>

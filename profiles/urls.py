@@ -9,6 +9,10 @@ from .views import (
     CompanyProfileDetailView,
     CompanyProfileListView,
     CompanyProfileByUserView,
+    PortfolioItemView,
+    PortfolioItemDetailView,
+    PortfolioItemLikeToggleView,
+    PortfolioItemCommentView,
 )
 
 urlpatterns = [
@@ -23,4 +27,9 @@ urlpatterns = [
     path('company/',                        CompanyProfileListView.as_view(),       name='company-list'),
     path('company/<int:pk>/',               CompanyProfileDetailView.as_view(),     name='company-detail'),
     path('company/by-user/<str:uid>/',      CompanyProfileByUserView.as_view(),     name='company-by-user'),
+
+    path('portfolio/',                      PortfolioItemView.as_view(),            name='portfolio-item-list'),
+    path('portfolio/<int:pk>/',             PortfolioItemDetailView.as_view(),      name='portfolio-item-detail'),
+    path('portfolio/<int:pk>/like/',        PortfolioItemLikeToggleView.as_view(),  name='portfolio-item-like'),
+    path('portfolio/<int:pk>/comment/',     PortfolioItemCommentView.as_view(),     name='portfolio-item-comment'),
 ]

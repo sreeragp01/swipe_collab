@@ -60,12 +60,15 @@ class Command(BaseCommand):
                 'email': 'arjun@test.com',
                 'username': 'arjun_devops',
                 'name': 'Arjun Menon',
-                'bio': 'DevOps engineer specializing in cloud infrastructure and CI/CD pipelines.',
+                'bio': 'DevOps engineer specializing in cloud infrastructure, Kubernetes, and CI/CD automation pipelines.',
                 'experience_years': 6,
                 'availability': 'full_time',
                 'city': 'Pune',
                 'country': 'India',
                 'skills': ['Docker', 'Kubernetes', 'AWS', 'CI/CD'],
+                'portfolio_url': 'https://arjunmenon.dev',
+                'github_url': 'https://github.com/arjun-devops',
+                'linkedin_url': 'https://linkedin.com/in/arjun-menon-dev',
             },
         ]
 
@@ -102,74 +105,193 @@ class Command(BaseCommand):
 
         created_count = 0
 
+        # Create companies & projects
+        company_projects = {
+            'techcorp@test.com': [
+                {
+                    'title': 'SaaS Platform Backend & Frontend',
+                    'description': 'Building a scalable multi-tenant SaaS platform using Django REST framework and React dashboard.',
+                    'budget_min': 25000,
+                    'budget_max': 50000,
+                    'duration': '3_6_months',
+                    'skills': ['Python', 'Django', 'React', 'PostgreSQL'],
+                },
+                {
+                    'title': 'Payment Gateway Integration',
+                    'description': 'Integrate Razorpay and Stripe payment flows into our backend web app.',
+                    'budget_min': 10000,
+                    'budget_max': 20000,
+                    'duration': 'less_1_month',
+                    'skills': ['Django', 'Python', 'PostgreSQL'],
+                },
+            ],
+            'designstudio@test.com': [
+                {
+                    'title': 'Fintech Mobile App UI/UX Redesign',
+                    'description': 'Need an experienced designer to create modern, responsive Figma wireframes and interactive prototypes.',
+                    'budget_min': 15000,
+                    'budget_max': 30000,
+                    'duration': '1_3_months',
+                    'skills': ['UI/UX Design', 'Figma', 'Prototyping'],
+                },
+            ],
+            'ailab@test.com': [
+                {
+                    'title': 'Clinical NLP & Healthcare AI Model',
+                    'description': 'Train transformer and NLP models to summarize medical reports accurately and safely.',
+                    'budget_min': 35000,
+                    'budget_max': 70000,
+                    'duration': '3_6_months',
+                    'skills': ['Machine Learning', 'Python', 'TensorFlow', 'NLP'],
+                },
+            ],
+        }
+
         # Create freelancers
         for data in freelancers:
-            if User.objects.filter(email=data['email']).exists():
-                self.stdout.write(f"  Skipping {data['email']} — already exists")
-                continue
-
-            user = User.objects.create_user(
+            user, u_created = User.objects.get_or_create(
                 email=data['email'],
-                username=data['username'],
-                password='Test@1234',
-                role=User.ROLE_FREELANCER,
-                is_verified=True,
-                face_verified=True,
-                is_paid=True,
-                is_active=True,
+                defaults={
+                    'username': data['username'],
+                    'role': User.ROLE_FREELANCER,
+                    'is_verified': True,
+                    'face_verified': True,
+                    'is_paid': True,
+                    'is_active': True,
+                }
             )
+            if u_created:
+                user.set_password('Test@1234')
+                user.save()
 
-            skills = Skill.objects.filter(name__in=data['skills'])
-            profile = FreelancerProfile.objects.create(
+            profile, _ = FreelancerProfile.objects.get_or_create(
                 user=user,
-                name=data['name'],
-                bio=data['bio'],
-                experience_years=data['experience_years'],
-                availability=data['availability'],
-                city=data['city'],
-                country=data['country'],
+                defaults={
+                    'name': data['name'],
+                    'bio': data['bio'],
+                    'experience_years': data['experience_years'],
+                    'availability': data['availability'],
+                    'city': data['city'],
+                    'country': data['country'],
+                    'portfolio_url': data.get('portfolio_url', ''),
+                    'github_url': data.get('github_url', ''),
+                    'linkedin_url': data.get('linkedin_url', ''),
+                }
             )
+            if data.get('portfolio_url'):
+                profile.portfolio_url = data['portfolio_url']
+            if data.get('github_url'):
+                profile.github_url = data['github_url']
+            if data.get('linkedin_url'):
+                profile.linkedin_url = data['linkedin_url']
+            profile.save()
+            skills = []
+            for s_name in data['skills']:
+                sk, _ = Skill.objects.get_or_create(name=s_name, defaults={'category': 'General'})
+                skills.append(sk)
             profile.skills.set(skills)
 
-            self.stdout.write(self.style.SUCCESS(f"  ✓ Freelancer: {data['email']}"))
+            self.stdout.write(self.style.SUCCESS(f"  [OK] Freelancer: {data['email']}"))
             created_count += 1
 
         # Create companies
         for data in companies:
-            if User.objects.filter(email=data['email']).exists():
-                self.stdout.write(f"  Skipping {data['email']} — already exists")
-                continue
-
-            user = User.objects.create_user(
+            user, u_created = User.objects.get_or_create(
                 email=data['email'],
-                username=data['username'],
-                password='Test@1234',
-                role=User.ROLE_COMPANY,
-                is_verified=True,
-                face_verified=True,
-                is_paid=True,
-                is_active=True,
+                defaults={
+                    'username': data['username'],
+                    'role': User.ROLE_COMPANY,
+                    'is_verified': True,
+                    'face_verified': True,
+                    'is_paid': True,
+                    'is_active': True,
+                }
             )
+            if u_created:
+                user.set_password('Test@1234')
+                user.save()
 
-            skills = Skill.objects.filter(name__in=data['skills'])
-            profile = CompanyProfile.objects.create(
+            profile, _ = CompanyProfile.objects.get_or_create(
                 user=user,
-                name=data['name'],
-                description=data['description'],
-                city=data['city'],
-                country=data['country'],
+                defaults={
+                    'name': data['name'],
+                    'description': data['description'],
+                    'city': data['city'],
+                    'country': data['country'],
+                }
             )
+            skills = []
+            for s_name in data['skills']:
+                sk, _ = Skill.objects.get_or_create(name=s_name, defaults={'category': 'General'})
+                skills.append(sk)
             profile.skills.set(skills)
 
-            self.stdout.write(self.style.SUCCESS(f"  ✓ Company: {data['email']}"))
+            # Add projects for company
+            from projects.models import Project
+            p_list = company_projects.get(data['email'], [])
+            for p_data in p_list:
+                proj, p_created = Project.objects.get_or_create(
+                    company=profile,
+                    title=p_data['title'],
+                    defaults={
+                        'description': p_data['description'],
+                        'budget_min': p_data['budget_min'],
+                        'budget_max': p_data['budget_max'],
+                        'duration': p_data['duration'],
+                        'status': Project.STATUS_OPEN,
+                    }
+                )
+                p_skills = []
+                for s_name in p_data['skills']:
+                    sk, _ = Skill.objects.get_or_create(name=s_name, defaults={'category': 'General'})
+                    p_skills.append(sk)
+                proj.skills.set(p_skills)
+
+            self.stdout.write(self.style.SUCCESS(f"  [OK] Company: {data['email']} (with {len(p_list)} projects)"))
             created_count += 1
+
+        # Seed Portfolio Items for Arjun (arjun@test.com)
+        from profiles.models import PortfolioItem
+        try:
+            arjun_profile = FreelancerProfile.objects.get(user__email='arjun@test.com')
+            # 1. Video showcase
+            pi1, _ = PortfolioItem.objects.get_or_create(
+                freelancer=arjun_profile,
+                title='AI Automated Code Reviewer & CI/CD Pipeline',
+                defaults={
+                    'description': 'Built an intelligent AI agent system that inspects pull requests, runs unit tests, and posts automated code improvements directly to GitHub.',
+                    'experience_gained': 'Mastered LangChain, Python AsyncIO, Docker Containers, and GitHub Actions API.',
+                    'project_url': 'https://github.com/arjun/ai-code-reviewer',
+                    'media_file': 'portfolio_media/demo_video.mp4',
+                }
+            )
+            pi1.media_file = 'portfolio_media/demo_video.mp4'
+            pi1.save()
+
+            # 2. Photo showcase
+            pi2, _ = PortfolioItem.objects.get_or_create(
+                freelancer=arjun_profile,
+                title='Real-Time Cloud Analytics Dashboard',
+                defaults={
+                    'description': 'Designed and built a sleek dark-mode financial & cloud analytics dashboard with dynamic graphs, instant metrics, and security alerting.',
+                    'experience_gained': 'Deep expertise in React, WebSockets, Kubernetes monitoring, and Stripe API integration.',
+                    'project_url': 'https://github.com/arjun/fintech-dashboard',
+                    'media_file': 'portfolio_media/dashboard_photo.png',
+                }
+            )
+            pi2.media_file = 'portfolio_media/dashboard_photo.png'
+            pi2.save()
+
+            self.stdout.write(self.style.SUCCESS("  [OK] Seeded sample work showcase items for Arjun (video & photo media attached)"))
+        except FreelancerProfile.DoesNotExist:
+            pass
 
         self.stdout.write('')
         self.stdout.write(self.style.SUCCESS(
-            f'Done! {created_count} test users created.'
+            f'Done! Test users and projects created/updated.'
         ))
         self.stdout.write('')
-        self.stdout.write('Login credentials for all test users:')
+        self.stdout.write('Login credentials for test users:')
         self.stdout.write('  Password: Test@1234')
         self.stdout.write('')
         self.stdout.write('Freelancers:')

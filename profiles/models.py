@@ -74,3 +74,67 @@ class CompanyProfile(models.Model):
 
     def __str__(self):
         return f"Company: {self.name} ({self.user.email})"
+
+
+class PortfolioItem(models.Model):
+    freelancer = models.ForeignKey(
+        FreelancerProfile,
+        on_delete=models.CASCADE,
+        related_name="portfolio_items",
+    )
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    experience_gained = models.TextField(blank=True)
+    media_file = models.FileField(upload_to="portfolio_media/", blank=True, null=True)
+    project_url = models.URLField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "profiles_portfolio_item"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.title} by {self.freelancer.name}"
+
+
+class PortfolioItemLike(models.Model):
+    item = models.ForeignKey(
+        PortfolioItem,
+        on_delete=models.CASCADE,
+        related_name="likes",
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="portfolio_likes",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "profiles_portfolio_like"
+        unique_together = ("item", "user")
+
+    def __str__(self):
+        return f"{self.user.email} liked {self.item.title}"
+
+
+class PortfolioItemComment(models.Model):
+    item = models.ForeignKey(
+        PortfolioItem,
+        on_delete=models.CASCADE,
+        related_name="comments",
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="portfolio_comments",
+    )
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "profiles_portfolio_comment"
+        ordering = ["created_at"]
+
+    def __str__(self):
+        return f"{self.user.email} on {self.item.title}: {self.text[:30]}"
