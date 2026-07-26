@@ -78,7 +78,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 ASGI_APPLICATION = 'config.asgi.application'
 
-# Database configuration: Uses DATABASE_URL if present (Render/Railway), otherwise falls back to local MySQL
+# Database configuration: Uses DATABASE_URL if present (Render/Railway), otherwise sqlite3 on Render or local MySQL
 DATABASE_URL = os.environ.get('DATABASE_URL')
 if DATABASE_URL:
     DATABASES = {
@@ -87,6 +87,13 @@ if DATABASE_URL:
             conn_max_age=600,
             conn_health_checks=True,
         )
+    }
+elif os.environ.get('RENDER'):
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
     }
 else:
     DATABASES = {
