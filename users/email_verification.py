@@ -39,13 +39,14 @@ def verify_token(token, max_age_seconds=86400):
         return None, f"Token error: {str(e)}"
 
 
-def send_verification_email(user, request=None):
+def send_verification_email(user, request=None, base_url=None):
     token = generate_verification_token(user)
 
-    if request:
-        base_url = f"{request.scheme}://{request.get_host()}"
-    else:
-        base_url = getattr(settings, 'SITE_URL', 'http://127.0.0.1:8000')
+    if not base_url:
+        if request:
+            base_url = f"{request.scheme}://{request.get_host()}"
+        else:
+            base_url = getattr(settings, 'SITE_URL', 'http://127.0.0.1:8000')
 
     verify_url = f"{base_url}/api/v1/auth/verify-email/{token}/"
     username = user.email.split('@')[0]

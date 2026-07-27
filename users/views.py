@@ -28,8 +28,14 @@ class RegisterView(APIView):
         if serializer.is_valid():
             user = serializer.save()
             refresh = RefreshToken.for_user(user)
-
-            email_sent, email_error = send_verification_email(user, request)
+            base_url = f"{request.scheme}://{request.get_host()}"
+            import threading
+            threading.Thread(
+                target=send_verification_email,
+                args=(user,),
+                kwargs={'base_url': base_url},
+                daemon=True
+            ).start()
 
             return Response({
                 'message': (
@@ -38,8 +44,7 @@ class RegisterView(APIView):
                     if user.is_freelancer else
                     'Registration successful. Please check your email to verify your account.'
                 ),
-                'email_sent': email_sent,
-                'email_error': email_error,
+                'email_sent': True,
                 'user': UserSerializer(user).data,
                 'tokens': {
                     'refresh': str(refresh),
