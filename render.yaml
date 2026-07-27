@@ -3,8 +3,10 @@ services:
     name: swipecollab
     env: python
     buildCommand: ./build.sh
-    startCommand: daphne -b 0.0.0.0 -p $PORT config.asgi:application
+    startCommand: daphne -b 0.0.0.0 -p ${PORT:-10000} config.asgi:application
     envVars:
+      - key: PORT
+        value: "10000"
       - key: PYTHON_VERSION
         value: 3.11.0
       - key: DEBUG
