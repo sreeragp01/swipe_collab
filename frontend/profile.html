@@ -103,13 +103,14 @@
 
     <div class="page" style="max-width:800px;">
 
-        <!-- Action Bar: Toggle View / Edit -->
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;flex-wrap:wrap;gap:0.75rem;">
-            <h1 style="font-size:1.4rem;font-weight:700;" id="page-heading">Your Professional Profile</h1>
-            <div>
-                <button class="btn btn-primary" id="edit-mode-btn" style="padding:0.45rem 1.1rem;font-weight:700;" onclick="toggleMode('edit')">✏️ Edit Profile</button>
-                <button class="btn btn-ghost" id="view-mode-btn" style="display:none;border:1px solid var(--border);" onclick="toggleMode('view')">👁️ View Professional Profile</button>
-            </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:0.75rem;">
+            <h1 style="font-size:1.4rem;font-weight:700;" id="page-heading">Your Account Profile</h1>
+        </div>
+
+        <!-- Top Mode Switcher Tabs -->
+        <div class="tabs" style="margin-bottom:1.5rem;background:var(--bg2);padding:0.35rem;border-radius:var(--radius);border:1px solid var(--border);display:flex;gap:0.5rem;">
+            <button class="tab active" id="mode-tab-edit" style="flex:1;text-align:center;font-weight:700;padding:0.65rem;border-radius:var(--radius-sm);" onclick="toggleMode('edit')">✏️ Edit & Complete Profile</button>
+            <button class="tab" id="mode-tab-view" style="flex:1;text-align:center;font-weight:700;padding:0.65rem;border-radius:var(--radius-sm);" onclick="toggleMode('view')">👁️ View Professional Profile</button>
         </div>
 
         <!-- ════════════════ PROFESSIONAL VIEW MODE (NO INPUT BOXES) ════════════════ -->
@@ -604,9 +605,8 @@
             currentMode = mode
             const viewSec = document.getElementById('profile-view-section')
             const editSec = document.getElementById('profile-edit-section')
-            const editBtn = document.getElementById('edit-mode-btn')
-            const viewBtn = document.getElementById('view-mode-btn')
-            const pageHeading = document.getElementById('page-heading')
+            const tabEdit = document.getElementById('mode-tab-edit')
+            const tabView = document.getElementById('mode-tab-view')
 
             const isCompany = user?.role === 'company'
             const fSection = document.getElementById('freelancer-form-section')
@@ -615,9 +615,8 @@
             if (mode === 'edit') {
                 viewSec.style.display = 'none'
                 editSec.style.display = 'block'
-                editBtn.style.display = 'none'
-                viewBtn.style.display = 'inline-block'
-                pageHeading.textContent = 'Edit Profile Details'
+                if (tabEdit) tabEdit.classList.add('active')
+                if (tabView) tabView.classList.remove('active')
 
                 if (isCompany) {
                     if (cSection) cSection.style.display = 'block'
@@ -629,9 +628,8 @@
             } else {
                 viewSec.style.display = 'block'
                 editSec.style.display = 'none'
-                editBtn.style.display = 'inline-block'
-                viewBtn.style.display = 'none'
-                pageHeading.textContent = 'Your Professional Profile'
+                if (tabView) tabView.classList.add('active')
+                if (tabEdit) tabEdit.classList.remove('active')
                 renderViewMode()
             }
         }
@@ -1029,14 +1027,10 @@
                     profileData = await res.json()
                     populateEditForm(profileData)
                     
-                    // Auto-open Edit/Completion mode if profile is missing name or completion is low
-                    const hasName = profileData && profileData.name && profileData.name.trim().length > 0
-                    const isComplete = hasName && calcCompletion(profileData) >= 40
-                    
-                    if (!isComplete || location.hash === '#edit' || location.search.includes('mode=edit')) {
-                        toggleMode('edit')
-                    } else {
+                    if (location.search.includes('mode=view')) {
                         toggleMode('view')
+                    } else {
+                        toggleMode('edit')
                     }
                 } else {
                     toggleMode('edit')
