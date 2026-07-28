@@ -360,7 +360,7 @@
                         <div class="form-group">
                             <label>Portfolio URL (External Link or Auto-Generated)</label>
                             <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
-                                <input type="url" id="f-portfolio" placeholder="https://yourportfolio.com or /portfolio-show/" style="flex:1;">
+                                <input type="text" id="f-portfolio" placeholder="https://yourportfolio.com or /portfolio-show/" style="flex:1;">
                                 <button type="button" class="btn btn-ghost" onclick="useGeneratedPortfolioUrl()" style="white-space:nowrap;font-size:0.8rem;border:1px solid var(--border);">
                                     ⚡ Use Auto-Generated Link
                                 </button>
@@ -368,11 +368,11 @@
                         </div>
                         <div class="form-group">
                             <label>GitHub Profile</label>
-                            <input type="url" id="f-github" placeholder="https://github.com/username">
+                            <input type="text" id="f-github" placeholder="https://github.com/username">
                         </div>
                         <div class="form-group">
                             <label>LinkedIn Profile</label>
-                            <input type="url" id="f-linkedin" placeholder="https://linkedin.com/in/username">
+                            <input type="text" id="f-linkedin" placeholder="https://linkedin.com/in/username">
                         </div>
                         <button class="btn btn-primary" onclick="saveFreelancerLinks()">Save & View Profile</button>
                     </div>
@@ -432,7 +432,7 @@
                         </div>
                         <div class="form-group">
                             <label>Company Website URL</label>
-                            <input type="url" id="c-website" placeholder="https://yourcompany.com">
+                            <input type="text" id="c-website" placeholder="https://yourcompany.com">
                         </div>
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
                             <div class="form-group"><label>Headquarters City</label><input type="text" id="c-city" placeholder="Bangalore"></div>
@@ -1257,6 +1257,14 @@
             } catch { showToast('Error saving freelancer profile.', 'error') }
 
             btn.disabled = false; btn.textContent = 'Save & View Profile'
+        }
+
+        function useGeneratedPortfolioUrl() {
+            const el = document.getElementById('f-portfolio')
+            if (el) {
+                el.value = '/portfolio-show/'
+                showToast('✓ Set portfolio URL to auto-generated page (/portfolio-show/)')
+            }
         }
 
         // ── Save Freelancer Links ──────────────────
