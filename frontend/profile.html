@@ -81,10 +81,6 @@
         .studio-style-card { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.85rem; background: var(--bg2); cursor: pointer; transition: all 0.2s ease; }
         .studio-style-card:hover { border-color: var(--accent); transform: translateY(-2px); }
         .studio-style-card.active { border: 2px solid var(--accent); background: rgba(124, 58, 237, 0.12); box-shadow: 0 0 15px rgba(124, 58, 237, 0.25); }
-        
-        /* Edit Form Tab Panels */
-        .tab-panel { display: none; }
-        .tab-panel.active { display: block; }
     </style>
 </head>
 <body>
@@ -103,14 +99,13 @@
 
     <div class="page" style="max-width:800px;">
 
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:0.75rem;">
-            <h1 style="font-size:1.4rem;font-weight:700;" id="page-heading">Your Account Profile</h1>
-        </div>
-
-        <!-- Top Mode Switcher Tabs -->
-        <div class="tabs" style="margin-bottom:1.5rem;background:var(--bg2);padding:0.35rem;border-radius:var(--radius);border:1px solid var(--border);display:flex;gap:0.5rem;">
-            <button class="tab active" id="mode-tab-edit" style="flex:1;text-align:center;font-weight:700;padding:0.65rem;border-radius:var(--radius-sm);" onclick="toggleMode('edit')">✏️ Edit & Complete Profile</button>
-            <button class="tab" id="mode-tab-view" style="flex:1;text-align:center;font-weight:700;padding:0.65rem;border-radius:var(--radius-sm);" onclick="toggleMode('view')">👁️ View Professional Profile</button>
+        <!-- Action Bar: Toggle View / Edit -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">
+            <h1 style="font-size:1.4rem;font-weight:700;" id="page-heading">Your Professional Profile</h1>
+            <div>
+                <button class="btn btn-ghost" id="edit-mode-btn" style="border:1px solid var(--border);" onclick="toggleMode('edit')">✏️ Edit Profile</button>
+                <button class="btn btn-primary" id="view-mode-btn" style="display:none;" onclick="toggleMode('view')">👁️ View Professional Profile</button>
+            </div>
         </div>
 
         <!-- ════════════════ PROFESSIONAL VIEW MODE (NO INPUT BOXES) ════════════════ -->
@@ -123,10 +118,7 @@
                         <div class="avatar-placeholder-box" id="v-avatar-initials">?</div>
                     </div>
                     <div style="flex:1;">
-                        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;">
-                            <div id="v-role-badge"></div>
-                            <button type="button" class="btn btn-ghost" style="font-size:0.8rem;padding:0.3rem 0.75rem;border:1px solid var(--border);" onclick="toggleMode('edit')">✏️ Edit Profile</button>
-                        </div>
+                        <div id="v-role-badge"></div>
                         <h2 class="profile-view-name" id="v-name">Loading...</h2>
                         <div style="color:var(--text2);font-size:0.88rem;" id="v-location">📍 Location not set</div>
                         
@@ -605,31 +597,22 @@
             currentMode = mode
             const viewSec = document.getElementById('profile-view-section')
             const editSec = document.getElementById('profile-edit-section')
-            const tabEdit = document.getElementById('mode-tab-edit')
-            const tabView = document.getElementById('mode-tab-view')
-
-            const isCompany = user?.role === 'company'
-            const fSection = document.getElementById('freelancer-form-section')
-            const cSection = document.getElementById('company-form-section')
+            const editBtn = document.getElementById('edit-mode-btn')
+            const viewBtn = document.getElementById('view-mode-btn')
+            const pageHeading = document.getElementById('page-heading')
 
             if (mode === 'edit') {
                 viewSec.style.display = 'none'
                 editSec.style.display = 'block'
-                if (tabEdit) tabEdit.classList.add('active')
-                if (tabView) tabView.classList.remove('active')
-
-                if (isCompany) {
-                    if (cSection) cSection.style.display = 'block'
-                    if (fSection) fSection.style.display = 'none'
-                } else {
-                    if (fSection) fSection.style.display = 'block'
-                    if (cSection) cSection.style.display = 'none'
-                }
+                editBtn.style.display = 'none'
+                viewBtn.style.display = 'inline-block'
+                pageHeading.textContent = 'Edit Profile Details'
             } else {
                 viewSec.style.display = 'block'
                 editSec.style.display = 'none'
-                if (tabView) tabView.classList.add('active')
-                if (tabEdit) tabEdit.classList.remove('active')
+                editBtn.style.display = 'inline-block'
+                viewBtn.style.display = 'none'
+                pageHeading.textContent = 'Your Professional Profile'
                 renderViewMode()
             }
         }
@@ -1004,19 +987,16 @@
             const badgeWrap = document.getElementById('role-badge-wrap')
             const overlayText = document.getElementById('avatar-overlay-text')
 
-            const fSection = document.getElementById('freelancer-form-section')
-            const cSection = document.getElementById('company-form-section')
-
             if (isCompany) {
-                if (cSection) cSection.style.display = 'block'
-                if (fSection) fSection.style.display = 'none'
-                if (badgeWrap) badgeWrap.innerHTML = '<span class="role-badge badge-accent">🏢 Company</span>'
-                if (overlayText) overlayText.textContent = '📷 Upload Logo'
+                document.getElementById('company-form-section').style.display = 'block'
+                document.getElementById('freelancer-form-section').style.display = 'none'
+                badgeWrap.innerHTML = '<span class="role-badge badge-accent">🏢 Company</span>'
+                overlayText.textContent = '📷 Upload Logo'
             } else {
-                if (fSection) fSection.style.display = 'block'
-                if (cSection) cSection.style.display = 'none'
-                if (badgeWrap) badgeWrap.innerHTML = '<span class="role-badge badge-green">🧑‍💻 Freelancer</span>'
-                if (overlayText) overlayText.textContent = '📷 Upload Photo'
+                document.getElementById('freelancer-form-section').style.display = 'block'
+                document.getElementById('company-form-section').style.display = 'none'
+                badgeWrap.innerHTML = '<span class="role-badge badge-green">🧑‍💻 Freelancer</span>'
+                overlayText.textContent = '📷 Upload Photo'
             }
 
             const endpoint = isCompany ? '/profiles/company/me/' : '/profiles/freelancer/me/'
@@ -1026,18 +1006,12 @@
                 if (res && res.ok) {
                     profileData = await res.json()
                     populateEditForm(profileData)
-                    
-                    if (location.search.includes('mode=view')) {
-                        toggleMode('view')
-                    } else {
-                        toggleMode('edit')
-                    }
-                } else {
-                    toggleMode('edit')
+                    toggleMode('view') // Show Professional Profile view first!
+                } else if (res && res.status === 404) {
+                    toggleMode('edit') // If no profile, show Edit form
                 }
             } catch (e) {
                 console.error('loadProfile error:', e)
-                toggleMode('edit')
             }
 
             // Load verification badges
@@ -1061,12 +1035,11 @@
 
         function populateEditForm(p) {
             const isCompany = user?.role === 'company'
-            const defaultName = user?.username || (user?.email ? user.email.split('@')[0] : '')
-            document.getElementById('profile-name-display').textContent = p.name || defaultName || 'Your Profile'
-            setAvatar(p.avatar || p.logo || null, p.name || defaultName)
+            document.getElementById('profile-name-display').textContent = p.name || 'Your Profile'
+            setAvatar(p.avatar || p.logo || null, p.name)
 
             if (isCompany) {
-                document.getElementById('c-name').value = p.name || defaultName || ''
+                document.getElementById('c-name').value = p.name || ''
                 document.getElementById('c-description').value = p.description || ''
                 document.getElementById('c-website').value = p.website_url || ''
                 document.getElementById('c-city').value = p.city || ''
@@ -1254,14 +1227,6 @@
             } catch { showToast('Error saving freelancer profile.', 'error') }
 
             btn.disabled = false; btn.textContent = 'Save & View Profile'
-        }
-
-        function useGeneratedPortfolioUrl() {
-            const el = document.getElementById('f-portfolio')
-            if (el) {
-                el.value = '/portfolio-show/'
-                showToast('✓ Set portfolio URL to auto-generated page (/portfolio-show/)')
-            }
         }
 
         // ── Save Freelancer Links ──────────────────
