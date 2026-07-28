@@ -933,54 +933,71 @@
 
         // ── Load Profile Data ──────────────────────
         async function loadProfile() {
-            const isCompany = user?.role === 'company'
-            const badgeWrap = document.getElementById('role-badge-wrap')
-            const overlayText = document.getElementById('avatar-overlay-text')
-
-            if (isCompany) {
-                document.getElementById('company-form-section').style.display = 'block'
-                document.getElementById('freelancer-form-section').style.display = 'none'
-                badgeWrap.innerHTML = '<span class="role-badge badge-accent">🏢 Company</span>'
-                overlayText.textContent = '📷 Upload Logo'
-            } else {
-                document.getElementById('freelancer-form-section').style.display = 'block'
-                document.getElementById('company-form-section').style.display = 'none'
-                badgeWrap.innerHTML = '<span class="role-badge badge-green">🧑‍💻 Freelancer</span>'
-                overlayText.textContent = '📷 Upload Photo'
-            }
-
-            const endpoint = isCompany ? '/profiles/company/me/' : '/profiles/freelancer/me/'
-
             try {
+                const isCompany = user?.role === 'company'
+                const badgeWrap = document.getElementById('role-badge-wrap')
+                const overlayText = document.getElementById('avatar-overlay-text')
+                const fSec = document.getElementById('freelancer-form-section')
+                const cSec = document.getElementById('company-form-section')
+
+                if (isCompany) {
+                    if (cSec) cSec.style.display = 'block'
+                    if (fSec) fSec.style.display = 'none'
+                    if (badgeWrap) badgeWrap.innerHTML = '<span class="role-badge badge-accent">🏢 Company</span>'
+                    if (overlayText) overlayText.textContent = '📷 Upload Logo'
+                } else {
+                    if (fSec) fSec.style.display = 'block'
+                    if (cSec) cSec.style.display = 'none'
+                    if (badgeWrap) badgeWrap.innerHTML = '<span class="role-badge badge-green">🧑‍💻 Freelancer</span>'
+                    if (overlayText) overlayText.textContent = '📷 Upload Photo'
+                }
+
+                const endpoint = isCompany ? '/profiles/company/me/' : '/profiles/freelancer/me/'
                 const res = await api(endpoint)
+
                 if (res && res.ok) {
                     profileData = await res.json()
                     populateEditForm(profileData)
-                    toggleMode('view') // Show Professional Profile view first!
-                } else if (res && res.status === 404) {
-                    toggleMode('edit') // If no profile, show Edit form
+                    const completion = calcCompletion(profileData)
+                    if (location.hash === '#edit' || location.search.includes('mode=edit') || completion < 100) {
+                        toggleMode('edit')
+                    } else {
+                        toggleMode('view')
+                    }
+                } else {
+                    // Profile not created yet — open Edit mode so user can save details for the first time
+                    profileData = null
+                    toggleMode('edit')
                 }
+
+                // Load verification badges
+                const isVerified = user?.is_verified
+                const faceVerified = user?.face_verified
+                const emailBadge = isVerified ? '<span class="badge badge-green">✓ Verified</span>' : '<span class="badge badge-yellow">Pending</span>'
+                const faceBadge = faceVerified ? '<span class="badge badge-green">✓ Verified</span>' : '<span class="badge badge-yellow">Not verified</span>'
+
+                if (isCompany) {
+                    const ce = document.getElementById('c-email-badge')
+                    const cf = document.getElementById('c-face-badge')
+                    const cfu = document.getElementById('c-face-upload-section')
+                    if (ce) ce.innerHTML = emailBadge
+                    if (cf) cf.innerHTML = faceBadge
+                    if (cfu && !faceVerified) cfu.style.display = 'block'
+                } else {
+                    const fe = document.getElementById('f-email-badge')
+                    const ff = document.getElementById('f-face-badge')
+                    const ffu = document.getElementById('f-face-upload-section')
+                    if (fe) fe.innerHTML = emailBadge
+                    if (ff) ff.innerHTML = faceBadge
+                    if (ffu && !faceVerified) ffu.style.display = 'block'
+                }
+
+                await loadSkillsDropdown()
+
             } catch (e) {
                 console.error('loadProfile error:', e)
+                toggleMode('edit')
             }
-
-            // Load verification badges
-            const isVerified = user?.is_verified
-            const faceVerified = user?.face_verified
-            const emailBadge = isVerified ? '<span class="badge badge-green">✓ Verified</span>' : '<span class="badge badge-yellow">Pending</span>'
-            const faceBadge = faceVerified ? '<span class="badge badge-green">✓ Verified</span>' : '<span class="badge badge-yellow">Not verified</span>'
-
-            if (isCompany) {
-                document.getElementById('c-email-badge').innerHTML = emailBadge
-                document.getElementById('c-face-badge').innerHTML = faceBadge
-                if (!faceVerified) document.getElementById('c-face-upload-section').style.display = 'block'
-            } else {
-                document.getElementById('f-email-badge').innerHTML = emailBadge
-                document.getElementById('f-face-badge').innerHTML = faceBadge
-                if (!faceVerified) document.getElementById('f-face-upload-section').style.display = 'block'
-            }
-
-            await loadSkillsDropdown()
         }
 
         function populateEditForm(p) {
