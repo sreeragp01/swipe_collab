@@ -81,6 +81,10 @@
         .studio-style-card { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.85rem; background: var(--bg2); cursor: pointer; transition: all 0.2s ease; }
         .studio-style-card:hover { border-color: var(--accent); transform: translateY(-2px); }
         .studio-style-card.active { border: 2px solid var(--accent); background: rgba(124, 58, 237, 0.12); box-shadow: 0 0 15px rgba(124, 58, 237, 0.25); }
+        
+        /* Edit Form Tab Panels */
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
     </style>
 </head>
 <body>
@@ -604,12 +608,24 @@
             const viewBtn = document.getElementById('view-mode-btn')
             const pageHeading = document.getElementById('page-heading')
 
+            const isCompany = user?.role === 'company'
+            const fSection = document.getElementById('freelancer-form-section')
+            const cSection = document.getElementById('company-form-section')
+
             if (mode === 'edit') {
                 viewSec.style.display = 'none'
                 editSec.style.display = 'block'
                 editBtn.style.display = 'none'
                 viewBtn.style.display = 'inline-block'
                 pageHeading.textContent = 'Edit Profile Details'
+
+                if (isCompany) {
+                    if (cSection) cSection.style.display = 'block'
+                    if (fSection) fSection.style.display = 'none'
+                } else {
+                    if (fSection) fSection.style.display = 'block'
+                    if (cSection) cSection.style.display = 'none'
+                }
             } else {
                 viewSec.style.display = 'block'
                 editSec.style.display = 'none'
@@ -990,16 +1006,19 @@
             const badgeWrap = document.getElementById('role-badge-wrap')
             const overlayText = document.getElementById('avatar-overlay-text')
 
+            const fSection = document.getElementById('freelancer-form-section')
+            const cSection = document.getElementById('company-form-section')
+
             if (isCompany) {
-                document.getElementById('company-form-section').style.display = 'block'
-                document.getElementById('freelancer-form-section').style.display = 'none'
-                badgeWrap.innerHTML = '<span class="role-badge badge-accent">🏢 Company</span>'
-                overlayText.textContent = '📷 Upload Logo'
+                if (cSection) cSection.style.display = 'block'
+                if (fSection) fSection.style.display = 'none'
+                if (badgeWrap) badgeWrap.innerHTML = '<span class="role-badge badge-accent">🏢 Company</span>'
+                if (overlayText) overlayText.textContent = '📷 Upload Logo'
             } else {
-                document.getElementById('freelancer-form-section').style.display = 'block'
-                document.getElementById('company-form-section').style.display = 'none'
-                badgeWrap.innerHTML = '<span class="role-badge badge-green">🧑‍💻 Freelancer</span>'
-                overlayText.textContent = '📷 Upload Photo'
+                if (fSection) fSection.style.display = 'block'
+                if (cSection) cSection.style.display = 'none'
+                if (badgeWrap) badgeWrap.innerHTML = '<span class="role-badge badge-green">🧑‍💻 Freelancer</span>'
+                if (overlayText) overlayText.textContent = '📷 Upload Photo'
             }
 
             const endpoint = isCompany ? '/profiles/company/me/' : '/profiles/freelancer/me/'
