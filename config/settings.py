@@ -195,6 +195,8 @@ DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'SwipeCollab <noreply@
 
 if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD:
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    if not os.environ.get('DEFAULT_FROM_EMAIL'):
+        DEFAULT_FROM_EMAIL = f"SwipeCollab <{EMAIL_HOST_USER}>"
 else:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
