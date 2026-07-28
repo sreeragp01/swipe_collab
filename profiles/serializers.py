@@ -84,6 +84,7 @@ class FreelancerProfileSerializer(serializers.ModelSerializer):
             'id', 'email', 'role',
             'name', 'bio', 'avatar',
             'portfolio_url', 'github_url', 'linkedin_url',
+            'portfolio_style', 'portfolio_custom_data',
             'experience_years', 'availability',
             'city', 'country',
             'skills', 'skill_ids', 'portfolio_items',

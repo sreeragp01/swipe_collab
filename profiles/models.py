@@ -38,6 +38,8 @@ class FreelancerProfile(models.Model):
     portfolio_url = models.URLField(blank=True, null=True)
     github_url = models.URLField(blank=True, null=True)
     linkedin_url = models.URLField(blank=True, null=True)
+    portfolio_style = models.CharField(max_length=50, default="modern_glass", blank=True)
+    portfolio_custom_data = models.JSONField(default=dict, blank=True)
     experience_years = models.PositiveSmallIntegerField(default=0)
     availability = models.CharField(max_length=20, choices=AVAILABILITY_CHOICES, default=AVAILABILITY_FULL_TIME)
     city = models.CharField(max_length=100, blank=True)
