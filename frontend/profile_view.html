@@ -310,9 +310,9 @@
             const extUrl = p.portfolio_url || p.website_url
             if (extUrl) {
                 try {
-                    const domain = new URL(extUrl).hostname.replace('www.','')
-                    document.getElementById('pv-portfolio-domain-name').textContent = domain
-                } catch {
+                    const parsedUrl = new URL(extUrl, window.location.origin)
+                    document.getElementById('pv-portfolio-domain-name').textContent = parsedUrl.hostname.replace('www.','') || 'Portfolio Showcase'
+                } catch (e) {
                     document.getElementById('pv-portfolio-domain-name').textContent = 'Portfolio Website'
                 }
                 document.getElementById('pv-portfolio-url-display').textContent = extUrl
