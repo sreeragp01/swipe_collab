@@ -268,7 +268,7 @@
                     saveTokens(data.tokens.access, data.tokens.refresh)
                     saveUser(data.user)
                     showToast(data.message || 'Account created!', 'success')
-                    setTimeout(() => window.location.href = '/profile/', 1000)
+                    setTimeout(() => window.location.href = '/profile/?mode=edit', 1000)
                 } else {
                     if (data.email) showError('err-email', data.email[0])
                     else if (data.username) showError('err-username', data.username[0])

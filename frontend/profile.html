@@ -601,12 +601,24 @@
             const viewBtn = document.getElementById('view-mode-btn')
             const pageHeading = document.getElementById('page-heading')
 
+            const isCompany = user?.role === 'company'
+            const fSec = document.getElementById('freelancer-form-section')
+            const cSec = document.getElementById('company-form-section')
+
             if (mode === 'edit') {
                 viewSec.style.display = 'none'
                 editSec.style.display = 'block'
                 editBtn.style.display = 'none'
                 viewBtn.style.display = 'inline-block'
                 pageHeading.textContent = 'Edit Profile Details'
+
+                if (isCompany) {
+                    if (cSec) cSec.style.display = 'block'
+                    if (fSec) fSec.style.display = 'none'
+                } else {
+                    if (fSec) fSec.style.display = 'block'
+                    if (cSec) cSec.style.display = 'none'
+                }
             } else {
                 viewSec.style.display = 'block'
                 editSec.style.display = 'none'
@@ -1006,9 +1018,13 @@
                 if (res && res.ok) {
                     profileData = await res.json()
                     populateEditForm(profileData)
-                    toggleMode('view') // Show Professional Profile view first!
-                } else if (res && res.status === 404) {
-                    toggleMode('edit') // If no profile, show Edit form
+                    if (location.hash === '#edit' || location.search.includes('mode=edit') || !profileData.name) {
+                        toggleMode('edit')
+                    } else {
+                        toggleMode('view')
+                    }
+                } else {
+                    toggleMode('edit')
                 }
             } catch (e) {
                 console.error('loadProfile error:', e)
