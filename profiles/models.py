@@ -43,6 +43,8 @@ class FreelancerProfile(models.Model):
     city = models.CharField(max_length=100, blank=True)
     country = models.CharField(max_length=100, blank=True)
     skills = models.ManyToManyField(Skill, blank=True, related_name="freelancers")
+    portfolio_style = models.CharField(max_length=50, default="modern_glass", blank=True)
+    portfolio_custom_data = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

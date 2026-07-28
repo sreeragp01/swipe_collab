@@ -10,6 +10,7 @@ from .views import (
     ChangePasswordView,
     FaceVerifyView,
     VerifyEmailView,
+    InstantVerifyEmailView,
     ResendVerificationEmailView,
 )
 
@@ -23,5 +24,6 @@ urlpatterns = [
     path('change-password/',  ChangePasswordView.as_view(), name='auth-change-password'),
     path('face-verify/',      FaceVerifyView.as_view(),     name='auth-face-verify'),
     path('resend-email/',     ResendVerificationEmailView.as_view(), name='auth-resend-email'),
+    path('instant-verify/',   InstantVerifyEmailView.as_view(),      name='auth-instant-verify'),
     path('verify-email/<str:token>/', VerifyEmailView.as_view(), name='auth-verify-email'),
 ]

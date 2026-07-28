@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="page-title">Portfolio Showcase — SwipeCollab</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+    
+    <style id="theme-style-overrides">
+        /* Base Dynamic Themes setup */
+        :root {
+            --p-bg: #090d16;
+            --p-card-bg: rgba(18, 24, 38, 0.75);
+            --p-border: rgba(255, 255, 255, 0.08);
+            --p-text: #f8fafc;
+            --p-text2: #94a3b8;
+            --p-accent: #8b5cf6;
+            --p-accent-glow: rgba(139, 92, 246, 0.4);
+            --p-gradient: linear-gradient(135deg, #7c3aed 0%, #3b82f6 100%);
+            --p-font: 'Plus Jakarta Sans', sans-serif;
+            --p-head-font: 'Space Grotesk', sans-serif;
+            --p-radius: 16px;
+        }
+
+        /* 🔮 STYLE 1: Modern Glassmorphism (Dark Glass, Purple/Violet glow) */
+        body.theme-modern_glass {
+            --p-bg: #0b0f19;
+            --p-card-bg: rgba(20, 27, 44, 0.65);
+            --p-border: rgba(139, 92, 246, 0.2);
+            --p-text: #f8fafc;
+            --p-text2: #a1a1aa;
+            --p-accent: #a78bfa;
+            --p-accent-glow: rgba(167, 139, 250, 0.35);
+            --p-gradient: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+            --p-font: 'Plus Jakarta Sans', sans-serif;
+            --p-head-font: 'Space Grotesk', sans-serif;
+            --p-radius: 20px;
+        }
+
+        /* 📄 STYLE 2: Minimalist Executive (Clean Light Slate) */
+        body.theme-minimal_light {
+            --p-bg: #f8fafc;
+            --p-card-bg: #ffffff;
+            --p-border: #e2e8f0;
+            --p-text: #0f172a;
+            --p-text2: #64748b;
+            --p-accent: #2563eb;
+            --p-accent-glow: rgba(37, 99, 235, 0.15);
+            --p-gradient: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            --p-font: 'Plus Jakarta Sans', sans-serif;
+            --p-head-font: 'Plus Jakarta Sans', sans-serif;
+            --p-radius: 12px;
+        }
+
+        /* ⚡ STYLE 3: Cyberpunk Tech (High Contrast Dark Slate & Neon Cyan/Lime) */
+        body.theme-cyberpunk_tech {
+            --p-bg: #050b14;
+            --p-card-bg: #0a1322;
+            --p-border: #00f2fe;
+            --p-text: #00f2fe;
+            --p-text2: #64748b;
+            --p-accent: #00f2fe;
+            --p-accent-glow: rgba(0, 242, 254, 0.4);
+            --p-gradient: linear-gradient(90deg, #00f2fe 0%, #4facfe 100%);
+            --p-font: 'Fira Code', monospace;
+            --p-head-font: 'Fira Code', monospace;
+            --p-radius: 6px;
+        }
+
+        /* 🌈 STYLE 4: Creative Gradient (Vibrant Multi-Color Accents) */
+        body.theme-creative_gradient {
+            --p-bg: #0f0c1b;
+            --p-card-bg: rgba(30, 23, 50, 0.7);
+            --p-border: rgba(244, 63, 94, 0.25);
+            --p-text: #ffffff;
+            --p-text2: #cbd5e1;
+            --p-accent: #f43f5e;
+            --p-accent-glow: rgba(244, 63, 94, 0.4);
+            --p-gradient: linear-gradient(135deg, #f43f5e 0%, #fb923c 50%, #a855f7 100%);
+            --p-font: 'Plus Jakarta Sans', sans-serif;
+            --p-head-font: 'Space Grotesk', sans-serif;
+            --p-radius: 24px;
+        }
+
+        /* Shared Portfolio Styles */
+        body {
+            background-color: var(--p-bg);
+            color: var(--p-text);
+            font-family: var(--p-font);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            transition: background-color 0.4s ease, color 0.4s ease;
+        }
+
+        .portfolio-wrapper {
+            max-width: 1080px;
+            margin: 0 auto;
+            padding: 2.5rem 1.5rem 5rem 1.5rem;
+        }
+
+        .p-top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .p-back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--p-text2);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+        .p-back-link:hover { color: var(--p-accent); }
+
+        .theme-selector-pill {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: var(--p-card-bg);
+            border: 1px solid var(--p-border);
+            padding: 0.3rem 0.6rem;
+            border-radius: 999px;
+            font-size: 0.8rem;
+        }
+
+        .theme-opt-btn {
+            background: none;
+            border: none;
+            color: var(--p-text2);
+            padding: 0.35rem 0.75rem;
+            border-radius: 999px;
+            cursor: pointer;
+            font-size: 0.78rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .theme-opt-btn.active {
+            background: var(--p-accent);
+            color: #ffffff;
+            box-shadow: 0 0 12px var(--p-accent-glow);
+        }
+
+        /* Hero Header */
+        .p-hero {
+            background: var(--p-card-bg);
+            border: 1px solid var(--p-border);
+            border-radius: var(--p-radius);
+            padding: 2.5rem;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            margin-bottom: 2rem;
+        }
+
+        .p-hero-banner {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: var(--p-gradient);
+        }
+
+        .p-hero-content {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .p-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--p-accent);
+            box-shadow: 0 0 25px var(--p-accent-glow);
+            flex-shrink: 0;
+        }
+
+        .p-avatar-placeholder {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: var(--p-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        .p-name {
+            font-family: var(--p-head-font);
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin: 0 0 0.4rem 0;
+            letter-spacing: -0.02em;
+        }
+
+        .p-tagline {
+            font-size: 1.15rem;
+            color: var(--p-accent);
+            font-weight: 600;
+            margin-bottom: 0.8rem;
+        }
+
+        .p-location-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: var(--p-text2);
+            font-size: 0.9rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.2rem;
+        }
+
+        .p-socials {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .p-social-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.45rem 0.9rem;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid var(--p-border);
+            border-radius: var(--p-radius);
+            color: var(--p-text);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        .p-social-btn:hover {
+            background: var(--p-accent);
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px var(--p-accent-glow);
+        }
+
+        /* Section Cards */
+        .p-section {
+            background: var(--p-card-bg);
+            border: 1px solid var(--p-border);
+            border-radius: var(--p-radius);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(12px);
+        }
+
+        .p-section-title {
+            font-family: var(--p-head-font);
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-top: 0;
+            margin-bottom: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            border-bottom: 1px solid var(--p-border);
+            padding-bottom: 0.75rem;
+        }
+
+        .p-bio-text {
+            font-size: 1.05rem;
+            line-height: 1.7;
+            color: var(--p-text2);
+            margin: 0;
+        }
+
+        /* Skills grid */
+        .p-skills-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.65rem;
+        }
+
+        .p-skill-pill {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--p-border);
+            padding: 0.45rem 1rem;
+            border-radius: 999px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--p-text);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            transition: transform 0.2s;
+        }
+        .p-skill-pill:hover {
+            border-color: var(--p-accent);
+            transform: scale(1.04);
+            color: var(--p-accent);
+        }
+
+        /* Projects Gallery */
+        .p-projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .p-project-card {
+            background: rgba(0,0,0,0.15);
+            border: 1px solid var(--p-border);
+            border-radius: var(--p-radius);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .p-project-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4), 0 0 20px var(--p-accent-glow);
+            border-color: var(--p-accent);
+        }
+
+        .p-project-media {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            background: #111;
+        }
+
+        .p-project-body {
+            padding: 1.25rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .p-project-title {
+            font-family: var(--p-head-font);
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin: 0 0 0.5rem 0;
+            color: var(--p-text);
+        }
+
+        .p-project-desc {
+            font-size: 0.9rem;
+            color: var(--p-text2);
+            line-height: 1.55;
+            margin-bottom: 1rem;
+            flex: 1;
+        }
+
+        .p-project-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid var(--p-border);
+            padding-top: 0.75rem;
+            margin-top: auto;
+        }
+
+        .p-btn-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            color: var(--p-accent);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+        .p-btn-link:hover { text-decoration: underline; }
+
+        /* Contact Section */
+        .p-contact-box {
+            text-align: center;
+            background: var(--p-gradient);
+            padding: 3rem 2rem;
+            border-radius: var(--p-radius);
+            color: #ffffff;
+            box-shadow: 0 15px 35px var(--p-accent-glow);
+        }
+
+        .p-contact-box h2 {
+            font-family: var(--p-head-font);
+            font-size: 2rem;
+            margin: 0 0 0.6rem 0;
+            font-weight: 800;
+        }
+
+        .p-contact-box p {
+            font-size: 1.05rem;
+            opacity: 0.9;
+            margin-bottom: 1.8rem;
+            max-width: 550px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .p-cta-btn {
+            display: inline-block;
+            background: #ffffff;
+            color: #0f172a;
+            padding: 0.85rem 2.2rem;
+            border-radius: 999px;
+            font-weight: 800;
+            font-size: 1rem;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+        }
+        .p-cta-btn:hover {
+            transform: scale(1.06);
+            background: #f8fafc;
+        }
+    </style>
+</head>
+<body class="theme-modern_glass">
+
+    <div class="portfolio-wrapper">
+
+        <!-- Navigation / Theme Selector Bar -->
+        <div class="p-top-bar">
+            <a href="/profile/" class="p-back-link">← Back to Profile</a>
+
+            <div class="theme-selector-pill">
+                <span style="color:var(--p-text2);font-weight:600;margin-right:0.3rem;">Style:</span>
+                <button class="theme-opt-btn active" onclick="switchTheme('modern_glass', this)">🔮 Glass</button>
+                <button class="theme-opt-btn" onclick="switchTheme('minimal_light', this)">📄 Minimal</button>
+                <button class="theme-opt-btn" onclick="switchTheme('cyberpunk_tech', this)">⚡ Cyber</button>
+                <button class="theme-opt-btn" onclick="switchTheme('creative_gradient', this)">🌈 Gradient</button>
+            </div>
+        </div>
+
+        <!-- Hero Card -->
+        <div class="p-hero" id="portfolio-hero">
+            <div class="p-hero-banner"></div>
+            <div class="p-hero-content">
+                <div id="p-avatar-wrap">
+                    <div class="p-avatar-placeholder" id="p-avatar-initials">?</div>
+                </div>
+                <div style="flex:1;">
+                    <h1 class="p-name" id="p-name">Loading...</h1>
+                    <div class="p-tagline" id="p-tagline">Freelancer Professional</div>
+                    <div class="p-location-row">
+                        <span id="p-location">📍 Location unavailable</span>
+                        <span>•</span>
+                        <span id="p-experience">💼 0 Years Exp</span>
+                        <span>•</span>
+                        <span id="p-avail" class="badge badge-accent">Available</span>
+                    </div>
+                    <div class="p-socials" id="p-socials">
+                        <!-- Social buttons dynamically injected -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- About Me Section -->
+        <div class="p-section">
+            <h2 class="p-section-title">👋 About Me</h2>
+            <p class="p-bio-text" id="p-bio">No bio provided yet.</p>
+        </div>
+
+        <!-- Technical Skills Section -->
+        <div class="p-section">
+            <h2 class="p-section-title">🛠️ Technical Skills & Expertise</h2>
+            <div class="p-skills-grid" id="p-skills-grid">
+                <span style="color:var(--p-text2);">No skills listed.</span>
+            </div>
+        </div>
+
+        <!-- Portfolio Showcase Gallery -->
+        <div class="p-section">
+            <h2 class="p-section-title">🎨 Featured Projects & Work Showcase</h2>
+            <div class="p-projects-grid" id="p-projects-grid">
+                <div style="grid-column: 1/-1; text-align:center; padding:2rem; color:var(--p-text2);">
+                    No portfolio projects added yet.
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact & Hire Me Banner -->
+        <div class="p-contact-box">
+            <h2>Let's Build Something Together!</h2>
+            <p id="p-contact-desc">Interested in collaborating or hiring for your next project? Get in touch today!</p>
+            <a href="mailto:" id="p-cta-email" class="p-cta-btn">✉️ Contact Me</a>
+        </div>
+
+    </div>
+
+    <script>
+        let currentProfileData = null;
+
+        function getQueryParam(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+
+        function switchTheme(themeName, btnEl) {
+            document.body.className = `theme-${themeName}`;
+            if (btnEl) {
+                document.querySelectorAll('.theme-opt-btn').forEach(b => b.classList.remove('active'));
+                btnEl.classList.add('active');
+            }
+        }
+
+        async function loadPortfolioData() {
+            const freelancerId = getQueryParam('id') || getQueryParam('uid');
+            const token = localStorage.getItem('access_token');
+            let endpoint = '/api/v1/profiles/freelancers/me/';
+            
+            if (freelancerId) {
+                endpoint = `/api/v1/profiles/freelancers/${freelancerId}/`;
+            }
+
+            const headers = {};
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
+            try {
+                const res = await fetch(endpoint, { headers });
+                if (!res.ok) throw new Error('Failed to load portfolio data');
+                const data = await res.json();
+                currentProfileData = data;
+                renderPortfolio(data);
+            } catch (err) {
+                console.error(err);
+                document.getElementById('p-name').textContent = 'User Profile Not Found';
+            }
+        }
+
+        function renderPortfolio(data) {
+            // Apply saved portfolio style theme or URL preview style parameter if available
+            const urlStyle = getQueryParam('style');
+            const style = urlStyle || data.portfolio_style || 'modern_glass';
+            switchTheme(style, document.querySelector(`.theme-opt-btn[onclick*="${style}"]`));
+
+            // Custom data overrides if present
+            const customData = data.portfolio_custom_data || {};
+
+            // Title
+            document.getElementById('page-title').textContent = `${data.name} — Portfolio`;
+
+            // Avatar
+            const avatarWrap = document.getElementById('p-avatar-wrap');
+            if (data.avatar) {
+                avatarWrap.innerHTML = `<img src="${data.avatar}" alt="${data.name}" class="p-avatar">`;
+            } else {
+                const initials = data.name ? data.name.charAt(0).toUpperCase() : '?';
+                avatarWrap.innerHTML = `<div class="p-avatar-placeholder">${initials}</div>`;
+            }
+
+            // Hero Details
+            document.getElementById('p-name').textContent = data.name || 'Anonymous Freelancer';
+            
+            const tagline = customData.tagline || (data.experience_years ? `Experienced ${data.role || 'Freelancer'} (${data.experience_years}+ Years Exp)` : `Professional ${data.role || 'Freelancer'}`);
+            document.getElementById('p-tagline').textContent = tagline;
+
+            const locParts = [data.city, data.country].filter(Boolean).join(', ');
+            document.getElementById('p-location').textContent = locParts ? `📍 ${locParts}` : '📍 Remote';
+            document.getElementById('p-experience').textContent = `💼 ${data.experience_years || 0} Years Exp`;
+            
+            const availText = (data.availability || 'full_time').replace('_', ' ').toUpperCase();
+            document.getElementById('p-avail').textContent = `⚡ ${availText}`;
+
+            // Bio
+            const bioText = customData.custom_bio || data.bio || 'Welcome to my portfolio website! I specialize in crafting high quality solutions and collaborating on impactful projects.';
+            document.getElementById('p-bio').textContent = bioText;
+
+            // Social links
+            const socialsContainer = document.getElementById('p-socials');
+            socialsContainer.innerHTML = '';
+            if (data.email) {
+                socialsContainer.innerHTML += `<a href="mailto:${data.email}" class="p-social-btn">✉️ Email</a>`;
+                document.getElementById('p-cta-email').href = `mailto:${data.email}`;
+            }
+            if (data.github_url) {
+                socialsContainer.innerHTML += `<a href="${data.github_url}" target="_blank" class="p-social-btn">💻 GitHub</a>`;
+            }
+            if (data.linkedin_url) {
+                socialsContainer.innerHTML += `<a href="${data.linkedin_url}" target="_blank" class="p-social-btn">💼 LinkedIn</a>`;
+            }
+
+            // Skills
+            const skillsGrid = document.getElementById('p-skills-grid');
+            if (data.skills && data.skills.length > 0) {
+                skillsGrid.innerHTML = data.skills.map(s => `
+                    <div class="p-skill-pill">⚡ ${s.name}</div>
+                `).join('');
+            } else {
+                skillsGrid.innerHTML = '<span style="color:var(--p-text2);">No skills listed.</span>';
+            }
+
+            // Projects Showcase
+            const projectsGrid = document.getElementById('p-projects-grid');
+            if (data.portfolio_items && data.portfolio_items.length > 0) {
+                projectsGrid.innerHTML = data.portfolio_items.map(item => `
+                    <div class="p-project-card">
+                        ${item.media_file ? `<img src="${item.media_file}" class="p-project-media" alt="${item.title}">` : ''}
+                        <div class="p-project-body">
+                            <h3 class="p-project-title">${item.title}</h3>
+                            <p class="p-project-desc">${item.description || ''}</p>
+                            ${item.experience_gained ? `<div style="font-size:0.8rem;color:var(--p-accent);margin-bottom:0.75rem;">💡 Key Learning: ${item.experience_gained}</div>` : ''}
+                            <div class="p-project-footer">
+                                ${item.project_url ? `<a href="${item.project_url}" target="_blank" class="p-btn-link">🔗 View Live Project ↗</a>` : '<span></span>'}
+                                <span style="font-size:0.8rem;color:var(--p-text2);">❤️ ${item.like_count || 0}</span>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                projectsGrid.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align:center; padding:2rem; background:rgba(255,255,255,0.03); border:1px dashed var(--p-border); border-radius:var(--p-radius);">
+                        <div style="font-size:2rem;margin-bottom:0.4rem;">🎨</div>
+                        <strong style="color:var(--p-text);">Showcase Gallery Empty</strong>
+                        <p style="color:var(--p-text2);font-size:0.88rem;margin-top:0.25rem;">Projects added in SwipeCollab will automatically feature here!</p>
+                    </div>
+                `;
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', loadPortfolioData);
+    </script>
+</body>
+</html>

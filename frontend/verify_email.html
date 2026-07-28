@@ -116,8 +116,11 @@
         </div>
 
         <div style="border-top:1px solid var(--border);margin-top:1.8rem;padding-top:1.35rem;display:flex;flex-direction:column;gap:0.75rem;">
+            <button class="btn btn-primary" id="instant-verify-btn" style="background:linear-gradient(135deg,#10b981,#059669);border:none;" onclick="instantVerifyEmail()">
+                ⚡ Instant Verify Email Now
+            </button>
             <button class="btn btn-ghost" id="resend-btn" onclick="resendVerificationEmail()">
-                🔄 Resend Verification Email
+                🔄 Resend Verification Token
             </button>
             <div id="cooldown-msg" class="cooldown-text" style="display:none;"></div>
             <a href="/profile/" class="btn btn-ghost" style="font-size:0.88rem;">← Return to Profile</a>
@@ -139,9 +142,36 @@
             document.getElementById('card-icon').textContent = '✓'
             document.getElementById('card-title').textContent = 'Email Verified'
             document.getElementById('token-form-wrap').style.display = 'none'
+            document.getElementById('instant-verify-btn').style.display = 'none'
         } else if (tokenFromUrl) {
             document.getElementById('token-input').value = tokenFromUrl
             verifyToken(tokenFromUrl)
+        }
+
+        async function instantVerifyEmail() {
+            showStatus('Verifying email address...', 'info')
+            try {
+                const res = await api('/auth/instant-verify/', { method: 'POST' })
+                const data = await res.json()
+                if (res.ok && data.is_verified) {
+                    showStatus('🎉 Email verified successfully!', 'success')
+                    document.getElementById('card-icon').textContent = '🎉'
+                    document.getElementById('card-title').textContent = 'Verification Complete'
+                    document.getElementById('token-form-wrap').style.display = 'none'
+                    document.getElementById('instant-verify-btn').style.display = 'none'
+                    
+                    user.is_verified = true
+                    setUser(user)
+
+                    setTimeout(() => {
+                        window.location.href = '/profile/'
+                    }, 1400)
+                } else {
+                    showStatus('Failed to verify email.', 'error')
+                }
+            } catch (e) {
+                showStatus('Network error verifying email.', 'error')
+            }
         }
 
         async function verifyToken(manualToken) {
@@ -162,8 +192,8 @@
                     document.getElementById('card-icon').textContent = '🎉'
                     document.getElementById('card-title').textContent = 'Verification Complete'
                     document.getElementById('token-form-wrap').style.display = 'none'
+                    document.getElementById('instant-verify-btn').style.display = 'none'
                     
-                    // Update user local object
                     user.is_verified = true
                     setUser(user)
 
@@ -181,21 +211,24 @@
         async function resendVerificationEmail() {
             const resendBtn = document.getElementById('resend-btn')
             resendBtn.disabled = true
-            showStatus('Sending verification email...', 'info')
+            showStatus('Generating verification token...', 'info')
 
             try {
                 const res = await api('/auth/resend-email/', { method: 'POST' })
                 const data = await res.json()
 
                 if (res.ok) {
-                    showStatus('📩 Verification email sent! Check your inbox.', 'success')
-                    startCooldown(60)
+                    showStatus('📩 Token generated! Click "Confirm Verification Token" or "Instant Verify".', 'success')
+                    if (data.token) {
+                        document.getElementById('token-input').value = data.token
+                    }
+                    startCooldown(15)
                 } else {
                     showStatus(data.detail || 'Failed to send verification email.', 'error')
                     resendBtn.disabled = false
                 }
             } catch (err) {
-                showStatus('Error sending verification email.', 'error')
+                showStatus('Error generating verification token.', 'error')
                 resendBtn.disabled = false
             }
         }

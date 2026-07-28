@@ -80,7 +80,8 @@ class FreelancerProfileSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'email', 'role',
             'name', 'bio', 'avatar',
-            'portfolio_url', 'github_url', 'linkedin_url',
+            'portfolio_url', 'portfolio_style', 'portfolio_custom_data',
+            'github_url', 'linkedin_url',
             'experience_years', 'availability',
             'city', 'country',
             'skills', 'skill_ids', 'portfolio_items',
@@ -101,7 +102,8 @@ class FreelancerProfileCardSerializer(serializers.ModelSerializer):
         model = FreelancerProfile
         fields = [
             'id', 'user_id', 'email', 'role', 'name', 'bio', 'avatar',
-            'portfolio_url', 'github_url', 'linkedin_url',
+            'portfolio_url', 'portfolio_style', 'portfolio_custom_data',
+            'github_url', 'linkedin_url',
             'experience_years', 'availability',
             'city', 'country', 'skills', 'portfolio_items',
         ]

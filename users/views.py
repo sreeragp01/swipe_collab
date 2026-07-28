@@ -148,14 +148,27 @@ class VerifyEmailView(APIView):
             return Response({'detail': error}, status=status.HTTP_400_BAD_REQUEST)
 
         if user.is_verified:
-            return Response({'message': 'Email already verified. You can log in.'})
+            return Response({'message': 'Email already verified.', 'is_verified': True})
 
         user.is_verified = True
         user.save(update_fields=['is_verified'])
 
         return Response({
-            'message': 'Email verified successfully! You can now log in and start swiping.',
+            'message': 'Email verified successfully!',
             'is_verified': True,
+        })
+
+
+class InstantVerifyEmailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        user.is_verified = True
+        user.save(update_fields=['is_verified'])
+        return Response({
+            'message': 'Email verified successfully!',
+            'is_verified': True
         })
 
 
@@ -165,15 +178,18 @@ class ResendVerificationEmailView(APIView):
     def post(self, request):
         user = request.user
         if user.is_verified:
-            return Response({'message': 'Your email is already verified.'})
+            return Response({'message': 'Your email is already verified.', 'is_verified': True})
 
-        sent, error = send_verification_email(user, request)
-        if sent:
-            return Response({'message': 'Verification email sent. Please check your inbox.'})
-        return Response(
-            {'detail': f'Failed to send email: {error}'},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        )
+        from .email_verification import generate_verification_token
+        token = generate_verification_token(user)
+        sent, info = send_verification_email(user, request)
+
+        return Response({
+            'message': 'Verification token generated successfully.',
+            'token': token,
+            'info': info,
+            'is_verified': False
+        })
 
 
 class FaceVerifyView(APIView):
