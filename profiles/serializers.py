@@ -61,6 +61,9 @@ class PortfolioItemSerializer(serializers.ModelSerializer):
 
 
 class FreelancerProfileSerializer(serializers.ModelSerializer):
+    portfolio_url = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    github_url = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    linkedin_url = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     skills = SkillSerializer(many=True, read_only=True)
     skill_ids = serializers.PrimaryKeyRelatedField(
         queryset=Skill.objects.all(),
@@ -120,12 +123,14 @@ class CompanyProjectCardSerializer(serializers.Serializer):
 
 
 class CompanyProfileSerializer(serializers.ModelSerializer):
+    website_url = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     skills = SkillSerializer(many=True, read_only=True)
     skill_ids = serializers.PrimaryKeyRelatedField(
         queryset=Skill.objects.all(),
         many=True,
         write_only=True,
         source='skills',
+        required=False,
     )
     email = serializers.EmailField(source='user.email', read_only=True)
     role = serializers.CharField(source='user.role', read_only=True)
