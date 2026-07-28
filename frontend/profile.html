@@ -100,11 +100,11 @@
     <div class="page" style="max-width:800px;">
 
         <!-- Action Bar: Toggle View / Edit -->
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;flex-wrap:wrap;gap:0.75rem;">
             <h1 style="font-size:1.4rem;font-weight:700;" id="page-heading">Your Professional Profile</h1>
             <div>
-                <button class="btn btn-ghost" id="edit-mode-btn" style="border:1px solid var(--border);" onclick="toggleMode('edit')">✏️ Edit Profile</button>
-                <button class="btn btn-primary" id="view-mode-btn" style="display:none;" onclick="toggleMode('view')">👁️ View Professional Profile</button>
+                <button class="btn btn-primary" id="edit-mode-btn" style="padding:0.45rem 1.1rem;font-weight:700;" onclick="toggleMode('edit')">✏️ Edit Profile</button>
+                <button class="btn btn-ghost" id="view-mode-btn" style="display:none;border:1px solid var(--border);" onclick="toggleMode('view')">👁️ View Professional Profile</button>
             </div>
         </div>
 
@@ -118,7 +118,10 @@
                         <div class="avatar-placeholder-box" id="v-avatar-initials">?</div>
                     </div>
                     <div style="flex:1;">
-                        <div id="v-role-badge"></div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;">
+                            <div id="v-role-badge"></div>
+                            <button type="button" class="btn btn-ghost" style="font-size:0.8rem;padding:0.3rem 0.75rem;border:1px solid var(--border);" onclick="toggleMode('edit')">✏️ Edit Profile</button>
+                        </div>
                         <h2 class="profile-view-name" id="v-name">Loading...</h2>
                         <div style="color:var(--text2);font-size:0.88rem;" id="v-location">📍 Location not set</div>
                         
