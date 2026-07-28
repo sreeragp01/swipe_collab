@@ -1009,12 +1009,22 @@
                 if (res && res.ok) {
                     profileData = await res.json()
                     populateEditForm(profileData)
-                    toggleMode('view') // Show Professional Profile view first!
-                } else if (res && res.status === 404) {
-                    toggleMode('edit') // If no profile, show Edit form
+                    
+                    // Auto-open Edit/Completion mode if profile is missing name or completion is low
+                    const hasName = profileData && profileData.name && profileData.name.trim().length > 0
+                    const isComplete = hasName && calcCompletion(profileData) >= 40
+                    
+                    if (!isComplete || location.hash === '#edit' || location.search.includes('mode=edit')) {
+                        toggleMode('edit')
+                    } else {
+                        toggleMode('view')
+                    }
+                } else {
+                    toggleMode('edit')
                 }
             } catch (e) {
                 console.error('loadProfile error:', e)
+                toggleMode('edit')
             }
 
             // Load verification badges
@@ -1038,11 +1048,12 @@
 
         function populateEditForm(p) {
             const isCompany = user?.role === 'company'
-            document.getElementById('profile-name-display').textContent = p.name || 'Your Profile'
-            setAvatar(p.avatar || p.logo || null, p.name)
+            const defaultName = user?.username || (user?.email ? user.email.split('@')[0] : '')
+            document.getElementById('profile-name-display').textContent = p.name || defaultName || 'Your Profile'
+            setAvatar(p.avatar || p.logo || null, p.name || defaultName)
 
             if (isCompany) {
-                document.getElementById('c-name').value = p.name || ''
+                document.getElementById('c-name').value = p.name || defaultName || ''
                 document.getElementById('c-description').value = p.description || ''
                 document.getElementById('c-website').value = p.website_url || ''
                 document.getElementById('c-city').value = p.city || ''
