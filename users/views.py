@@ -210,11 +210,14 @@ class ResendVerificationEmailView(APIView):
         token = generate_verification_token(user)
         sent, info = send_verification_email(user, request)
 
+        msg = f'📩 Verification email dispatched to {user.email}! Check your inbox or confirm code below.' if sent else f'🔑 OTP token generated for {user.email}! Confirm code below.'
+
         return Response({
-            'message': f'Verification OTP/token dispatched to {user.email}.',
+            'message': msg,
             'email': user.email,
             'token': token,
             'info': info,
+            'sent': sent,
             'is_verified': False
         })
 
