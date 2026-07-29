@@ -482,7 +482,10 @@
 
         async function loadInterests() {
             try {
-                const res = await api('/swipe/interests/')
+                let res = await api('/swipe/interests/')
+                if (!res || !res.ok) {
+                    res = await api('/swipe/who-liked-me/')
+                }
                 if (!res || !res.ok) return
                 const data = await res.json()
                 interests = Array.isArray(data) ? data : (data.liked_by || data.interests || [])
@@ -491,7 +494,9 @@
                     document.getElementById('match-count').textContent = `${interests.length} interest${interests.length !== 1 ? 's' : ''}`
                 }
                 renderInterestsGrid()
-            } catch {}
+            } catch (e) {
+                console.error('loadInterests error:', e)
+            }
         }
 
         function renderMatchesGrid() {

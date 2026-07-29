@@ -317,7 +317,7 @@ class WhoLikedMeView(APIView):
                 'profile': profile_data,
             })
 
-        return Response({'liked_by': data, 'count': len(data)})
+        return Response({'liked_by': data, 'interests': data, 'count': len(data)})
 
 
 
