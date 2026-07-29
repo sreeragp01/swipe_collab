@@ -130,6 +130,9 @@
             <button class="btn btn-primary" id="instant-verify-btn" style="background:linear-gradient(135deg,#10b981,#059669);border:none;" onclick="instantVerifyEmail()">
                 ⚡ Instant Verify Email Now
             </button>
+            <button class="btn btn-ghost" style="border:1px solid var(--border);font-size:0.85rem;" onclick="retestVerification()">
+                🧪 Re-Test Verification Flow (Reset for Test)
+            </button>
             <div id="cooldown-msg" class="cooldown-text" style="display:none;"></div>
             <a href="/profile/" class="btn btn-ghost" style="font-size:0.88rem;">← Return to Profile</a>
         </div>
@@ -153,12 +156,37 @@
             showStatus('Your email is already verified! ✓', 'success')
             document.getElementById('card-icon').textContent = '✓'
             document.getElementById('card-title').textContent = 'Email Verified'
-            document.getElementById('email-send-wrap').style.display = 'none'
-            document.getElementById('token-form-wrap').style.display = 'none'
             document.getElementById('instant-verify-btn').style.display = 'none'
         } else if (tokenFromUrl) {
             document.getElementById('token-input').value = tokenFromUrl
             verifyToken(tokenFromUrl)
+        }
+
+        async function retestVerification() {
+            const email = document.getElementById('email-input').value.trim() || user?.email
+            if (!email) return showStatus('Please enter your email.', 'error')
+            
+            showStatus('Resetting verification status for test...', 'info')
+            try {
+                const res = await api('/auth/resend-email/', {
+                    method: 'POST',
+                    body: JSON.stringify({ email, force: true })
+                })
+                const data = await res.json()
+                if (res.ok) {
+                    user.is_verified = false
+                    setUser(user)
+                    showStatus(`📩 Test OTP/token generated for ${email}! Confirm token below.`, 'success')
+                    document.getElementById('email-send-wrap').style.display = 'block'
+                    document.getElementById('token-form-wrap').style.display = 'block'
+                    document.getElementById('instant-verify-btn').style.display = 'block'
+                    if (data.token) {
+                        document.getElementById('token-input').value = data.token
+                    }
+                }
+            } catch (err) {
+                showStatus('Error resetting for test.', 'error')
+            }
         }
 
         async function sendOtpToEmail() {

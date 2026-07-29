@@ -198,8 +198,13 @@ class ResendVerificationEmailView(APIView):
         else:
             return Response({'detail': 'Email address is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if user.is_verified:
+        force = request.data.get('force', False)
+        if user.is_verified and not force:
             return Response({'message': f'Email {user.email} is already verified.', 'is_verified': True})
+
+        if force:
+            user.is_verified = False
+            user.save(update_fields=['is_verified'])
 
         from .email_verification import generate_verification_token
         token = generate_verification_token(user)
