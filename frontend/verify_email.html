@@ -233,9 +233,9 @@
                 })
                 const data = await res.json()
                 if (res && res.ok && data.is_verified) {
-                    showStatus(`🎉 Email ${data.email || ''} verified successfully!`, 'success')
-                    document.getElementById('card-icon').textContent = '🎉'
-                    document.getElementById('card-title').textContent = 'Verification Complete'
+                    showStatus(`🎉 Email ${data.email || ''} verified successfully! Redirecting to profile...`, 'success')
+                    document.getElementById('card-icon').textContent = '✅'
+                    document.getElementById('card-title').innerHTML = 'Verification Complete <span class="verified-tick-badge" style="vertical-align:middle;margin-left:0.5rem;"><span class="tick-icon">✓</span> Verified Member</span>'
                     document.getElementById('email-send-wrap').style.display = 'none'
                     document.getElementById('token-form-wrap').style.display = 'none'
                     document.getElementById('instant-verify-btn').style.display = 'none'
@@ -271,9 +271,9 @@
                 const data = await res.json()
 
                 if (res.ok) {
-                    showStatus('🎉 Email verified successfully!', 'success')
-                    document.getElementById('card-icon').textContent = '🎉'
-                    document.getElementById('card-title').textContent = 'Verification Complete'
+                    showStatus('🎉 Email verified successfully! Redirecting to profile...', 'success')
+                    document.getElementById('card-icon').textContent = '✅'
+                    document.getElementById('card-title').innerHTML = 'Verification Complete <span class="verified-tick-badge" style="vertical-align:middle;margin-left:0.5rem;"><span class="tick-icon">✓</span> Verified Member</span>'
                     document.getElementById('email-send-wrap').style.display = 'none'
                     document.getElementById('token-form-wrap').style.display = 'none'
                     document.getElementById('instant-verify-btn').style.display = 'none'
@@ -285,7 +285,7 @@
 
                     setTimeout(() => {
                         window.location.href = '/profile/'
-                    }, 1800)
+                    }, 1400)
                 } else {
                     showStatus(data.detail || 'Invalid or expired verification token.', 'error')
                 }

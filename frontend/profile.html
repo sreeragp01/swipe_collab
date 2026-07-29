@@ -689,7 +689,9 @@
             const isCompany = user?.role === 'company'
             
             // Name & Role
-            document.getElementById('v-name').textContent = profileData.name || (isCompany ? 'Company Name Not Set' : 'Name Not Set')
+            const isVer = user?.is_verified || user?.face_verified
+            const tickBadge = isVer ? `<span class="verified-tick-badge" title="Verified Member"><span class="tick-icon">✓</span> Verified</span>` : ''
+            document.getElementById('v-name').innerHTML = (profileData.name || (isCompany ? 'Company Name Not Set' : 'Name Not Set')) + tickBadge
             document.getElementById('v-role-badge').innerHTML = isCompany 
                 ? '<span class="role-badge badge-accent">🏢 Company</span>' 
                 : '<span class="role-badge badge-green">🧑‍💻 Freelancer</span>'
@@ -1027,8 +1029,9 @@
         }
 
         function populateEditForm(p) {
-            const isCompany = user?.role === 'company'
-            document.getElementById('profile-name-display').textContent = p.name || 'Your Profile'
+            const isVer = user?.is_verified || user?.face_verified
+            const tickBadge = isVer ? `<span class="verified-tick-badge" title="Verified Member"><span class="tick-icon">✓</span> Verified</span>` : ''
+            document.getElementById('profile-name-display').innerHTML = (p.name || 'Your Profile') + tickBadge
             setAvatar(p.avatar || p.logo || null, p.name)
 
             if (isCompany) {

@@ -502,3 +502,32 @@ label {
 .notif-item-title { font-size: 0.85rem; font-weight: 700; color: #fff; margin-bottom: 0.2rem; }
 .notif-item-msg { font-size: 0.78rem; color: var(--text2); line-height: 1.4; }
 .notif-item-time { font-size: 0.7rem; color: var(--text3); margin-top: 0.3rem; }
+
+/* LinkedIn-style Verified Tick Badge */
+.verified-tick-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.45);
+    color: #10b981;
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    margin-left: 0.5rem;
+    vertical-align: middle;
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.25);
+}
+.verified-tick-badge .tick-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 15px;
+    height: 15px;
+    background: #10b981;
+    color: #0f0f13;
+    border-radius: 50%;
+    font-size: 0.65rem;
+    font-weight: 900;
+}
