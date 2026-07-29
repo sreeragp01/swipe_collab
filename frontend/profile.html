@@ -99,18 +99,13 @@
 
     <div class="page" style="max-width:800px;">
 
-        <!-- Action Bar & Mode Switcher Tabs -->
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:0.75rem;">
+        <!-- Action Bar: Toggle View / Edit -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">
             <h1 style="font-size:1.4rem;font-weight:700;" id="page-heading">Your Professional Profile</h1>
             <div>
                 <button class="btn btn-ghost" id="edit-mode-btn" style="border:1px solid var(--border);" onclick="toggleMode('edit')">✏️ Edit Profile</button>
                 <button class="btn btn-primary" id="view-mode-btn" style="display:none;" onclick="toggleMode('view')">👁️ View Professional Profile</button>
             </div>
-        </div>
-
-        <div class="tabs" style="margin-bottom:1.5rem;">
-            <button class="tab active" id="mode-tab-view" onclick="toggleMode('view')">👁️ View Profile</button>
-            <button class="tab" id="mode-tab-edit" onclick="toggleMode('edit')">✏️ Edit & Update Details</button>
         </div>
 
         <!-- ════════════════ PROFESSIONAL VIEW MODE (NO INPUT BOXES) ════════════════ -->
@@ -123,14 +118,9 @@
                         <div class="avatar-placeholder-box" id="v-avatar-initials">?</div>
                     </div>
                     <div style="flex:1;">
-                        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:0.5rem;flex-wrap:wrap;">
-                            <div>
-                                <div id="v-role-badge"></div>
-                                <h2 class="profile-view-name" id="v-name">Loading...</h2>
-                                <div style="color:var(--text2);font-size:0.88rem;" id="v-location">📍 Location not set</div>
-                            </div>
-                            <button class="btn btn-primary" style="font-size:0.82rem;padding:0.4rem 0.85rem;" onclick="toggleMode('edit')">✏️ Edit Profile Info</button>
-                        </div>
+                        <div id="v-role-badge"></div>
+                        <h2 class="profile-view-name" id="v-name">Loading...</h2>
+                        <div style="color:var(--text2);font-size:0.88rem;" id="v-location">📍 Location not set</div>
                         
                         <!-- Info Pills -->
                         <div class="info-pill-grid" id="v-info-pills"></div>
@@ -624,22 +614,16 @@
             const viewBtn = document.getElementById('view-mode-btn')
             const pageHeading = document.getElementById('page-heading')
 
-            const tabView = document.getElementById('mode-tab-view')
-            const tabEdit = document.getElementById('mode-tab-edit')
-
-            const currentUser = getUser() || user
-            const isCompany = currentUser?.role === 'company' || (profileData && profileData.description !== undefined && profileData.website_url !== undefined)
+            const isCompany = user?.role === 'company'
             const fSec = document.getElementById('freelancer-form-section')
             const cSec = document.getElementById('company-form-section')
 
             if (mode === 'edit') {
-                if (viewSec) viewSec.style.display = 'none'
-                if (editSec) editSec.style.display = 'block'
-                if (editBtn) editBtn.style.display = 'none'
-                if (viewBtn) viewBtn.style.display = 'inline-block'
-                if (pageHeading) pageHeading.textContent = 'Edit Profile Details'
-                if (tabView) tabView.classList.remove('active')
-                if (tabEdit) tabEdit.classList.add('active')
+                viewSec.style.display = 'none'
+                editSec.style.display = 'block'
+                editBtn.style.display = 'none'
+                viewBtn.style.display = 'inline-block'
+                pageHeading.textContent = 'Edit Profile Details'
 
                 if (isCompany) {
                     if (cSec) cSec.style.display = 'block'
@@ -649,13 +633,11 @@
                     if (cSec) cSec.style.display = 'none'
                 }
             } else {
-                if (viewSec) viewSec.style.display = 'block'
-                if (editSec) editSec.style.display = 'none'
-                if (editBtn) editBtn.style.display = 'inline-block'
-                if (viewBtn) viewBtn.style.display = 'none'
-                if (pageHeading) pageHeading.textContent = 'Your Professional Profile'
-                if (tabView) tabView.classList.add('active')
-                if (tabEdit) tabEdit.classList.remove('active')
+                viewSec.style.display = 'block'
+                editSec.style.display = 'none'
+                editBtn.style.display = 'inline-block'
+                viewBtn.style.display = 'none'
+                pageHeading.textContent = 'Your Professional Profile'
                 renderViewMode()
             }
         }
@@ -1027,17 +1009,7 @@
         // ── Load Profile Data ──────────────────────
         async function loadProfile() {
             try {
-                // Refresh current user info from server
-                try {
-                    const meRes = await api('/auth/me/')
-                    if (meRes && meRes.ok) {
-                        const freshUser = await meRes.json()
-                        saveUser(freshUser)
-                    }
-                } catch {}
-
-                const currentUser = getUser() || user
-                const isCompany = currentUser?.role === 'company'
+                const isCompany = user?.role === 'company'
                 const badgeWrap = document.getElementById('role-badge-wrap')
                 const overlayText = document.getElementById('avatar-overlay-text')
                 const fSec = document.getElementById('freelancer-form-section')
@@ -1068,20 +1040,14 @@
                         toggleMode('view')
                     }
                 } else {
-                    // Profile not created yet — populate default name and open Edit mode
+                    // Profile not created yet — open Edit mode so user can save details for the first time
                     profileData = null
-                    const defaultProfile = {
-                        name: currentUser?.full_name || (currentUser?.email ? currentUser.email.split('@')[0] : ''),
-                        bio: '',
-                        skills: []
-                    }
-                    populateEditForm(defaultProfile)
                     toggleMode('edit')
                 }
 
                 // Load verification badges
-                const isVerified = currentUser?.is_verified
-                const faceVerified = currentUser?.face_verified
+                const isVerified = user?.is_verified
+                const faceVerified = user?.face_verified
                 const emailBadge = isVerified ? '<span class="badge badge-green">✓ Verified</span>' : '<span class="badge badge-yellow">Pending</span>'
                 const faceBadge = faceVerified ? '<span class="badge badge-green">✓ Verified</span>' : '<span class="badge badge-yellow">Not verified</span>'
 
@@ -1110,44 +1076,26 @@
         }
 
         function populateEditForm(p) {
-            if (!p) return
-            const currentUser = getUser() || user
-            const isCompany = currentUser?.role === 'company'
-            const dispName = p.name || currentUser?.full_name || (currentUser?.email ? currentUser.email.split('@')[0] : 'Your Profile')
-            const nameDisplay = document.getElementById('profile-name-display')
-            if (nameDisplay) nameDisplay.textContent = dispName
-            setAvatar(p.avatar || p.logo || null, dispName)
+            const isCompany = user?.role === 'company'
+            document.getElementById('profile-name-display').textContent = p.name || 'Your Profile'
+            setAvatar(p.avatar || p.logo || null, p.name)
 
             if (isCompany) {
-                const cn = document.getElementById('c-name')
-                if (cn) cn.value = p.name || ''
-                const cd = document.getElementById('c-description')
-                if (cd) cd.value = p.description || ''
-                const cw = document.getElementById('c-website')
-                if (cw) cw.value = p.website_url || ''
-                const cc = document.getElementById('c-city')
-                if (cc) cc.value = p.city || ''
-                const cco = document.getElementById('c-country')
-                if (cco) cco.value = p.country || ''
+                document.getElementById('c-name').value = p.name || ''
+                document.getElementById('c-description').value = p.description || ''
+                document.getElementById('c-website').value = p.website_url || ''
+                document.getElementById('c-city').value = p.city || ''
+                document.getElementById('c-country').value = p.country || ''
             } else {
-                const fn = document.getElementById('f-name')
-                if (fn) fn.value = p.name || ''
-                const fb = document.getElementById('f-bio')
-                if (fb) fb.value = p.bio || ''
-                const fe = document.getElementById('f-experience')
-                if (fe) fe.value = p.experience_years || 0
-                const fa = document.getElementById('f-availability')
-                if (fa) fa.value = p.availability || 'full_time'
-                const fc = document.getElementById('f-city')
-                if (fc) fc.value = p.city || ''
-                const fco = document.getElementById('f-country')
-                if (fco) fco.value = p.country || ''
-                const fp = document.getElementById('f-portfolio')
-                if (fp) fp.value = p.portfolio_url || ''
-                const fg = document.getElementById('f-github')
-                if (fg) fg.value = p.github_url || ''
-                const fl = document.getElementById('f-linkedin')
-                if (fl) fl.value = p.linkedin_url || ''
+                document.getElementById('f-name').value = p.name || ''
+                document.getElementById('f-bio').value = p.bio || ''
+                document.getElementById('f-experience').value = p.experience_years || 0
+                document.getElementById('f-availability').value = p.availability || 'full_time'
+                document.getElementById('f-city').value = p.city || ''
+                document.getElementById('f-country').value = p.country || ''
+                document.getElementById('f-portfolio').value = p.portfolio_url || ''
+                document.getElementById('f-github').value = p.github_url || ''
+                document.getElementById('f-linkedin').value = p.linkedin_url || ''
             }
 
             profileSkillIds = (p.skills || []).map(s => s.id)
