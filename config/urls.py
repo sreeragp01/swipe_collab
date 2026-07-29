@@ -35,5 +35,11 @@ urlpatterns = [
     path('verify-email/', TemplateView.as_view(template_name='verify_email.html'), name='verify-email'),
     path('settings/',     TemplateView.as_view(template_name='settings.html'),     name='settings'),
     path('portfolio-show/', TemplateView.as_view(template_name='portfolio_show.html'), name='portfolio-show'),
+]
 
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# Serve media files in both local dev and production (DEBUG=False)
+from django.views.static import serve
+from django.urls import re_path
+urlpatterns += [
+    re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
+]
