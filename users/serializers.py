@@ -59,12 +59,13 @@ class UserSerializer(serializers.ModelSerializer):
     can_swipe = serializers.ReadOnlyField()
     has_access = serializers.ReadOnlyField()
     trial_expired = serializers.ReadOnlyField()
+    avatar = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = [
             'id', 'email', 'username', 'first_name', 'last_name',
-            'role', 'is_verified', 'face_verified', 'is_paid',
+            'role', 'avatar', 'is_verified', 'face_verified', 'is_paid',
             'is_trial_active', 'trial_started_at', 'trial_ends_at',
             'trial_expired', 'has_access', 'can_swipe',
             'full_name', 'date_joined', 'updated_at',
@@ -74,6 +75,17 @@ class UserSerializer(serializers.ModelSerializer):
             'is_trial_active', 'trial_started_at', 'trial_ends_at',
             'date_joined', 'updated_at',
         ]
+
+    def get_avatar(self, obj):
+        request = self.context.get('request')
+        url = None
+        if hasattr(obj, 'freelancer_profile') and obj.freelancer_profile.avatar:
+            url = obj.freelancer_profile.avatar.url
+        elif hasattr(obj, 'company_profile') and obj.company_profile.logo:
+            url = obj.company_profile.logo.url
+        if url and request:
+            return request.build_absolute_uri(url)
+        return url
 
 
 class ChangePasswordSerializer(serializers.Serializer):

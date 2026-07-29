@@ -622,25 +622,49 @@
 
         // ── Avatar display ─────────────────────────
         function setAvatar(url, name) {
-            const isCompany = user?.role === 'company'
-            // View Mode Avatar
             const vImg = document.getElementById('v-avatar-img')
             const vInitials = document.getElementById('v-avatar-initials')
-            if (url) {
-                vImg.src = url; vImg.style.display = 'block'; vInitials.style.display = 'none'
-            } else {
-                vImg.style.display = 'none'; vInitials.style.display = 'flex'
-                vInitials.textContent = (name || user?.email || 'U')[0].toUpperCase()
-            }
-
-            // Edit Mode Avatar
             const img = document.getElementById('avatar-img')
             const initials = document.getElementById('avatar-initials')
-            if (url) {
-                img.src = url; img.style.display = 'block'; initials.style.display = 'none'
+
+            let cleanUrl = url
+            if (url && typeof url === 'string') {
+                if (!url.startsWith('http') && !url.startsWith('data:') && !url.startsWith('/')) {
+                    cleanUrl = '/' + url
+                }
+            }
+
+            if (cleanUrl) {
+                if (vImg) {
+                    vImg.src = cleanUrl
+                    vImg.style.display = 'block'
+                    vImg.onerror = function() {
+                        this.style.display = 'none'
+                        if (vInitials) vInitials.style.display = 'flex'
+                    }
+                }
+                if (vInitials) vInitials.style.display = 'none'
+
+                if (img) {
+                    img.src = cleanUrl
+                    img.style.display = 'block'
+                    img.onerror = function() {
+                        this.style.display = 'none'
+                        if (initials) initials.style.display = 'flex'
+                    }
+                }
+                if (initials) initials.style.display = 'none'
             } else {
-                img.style.display = 'none'; initials.style.display = 'flex'
-                initials.textContent = (name || user?.email || 'U')[0].toUpperCase()
+                if (vImg) vImg.style.display = 'none'
+                if (vInitials) {
+                    vInitials.style.display = 'flex'
+                    vInitials.textContent = (name || user?.email || 'U')[0].toUpperCase()
+                }
+                if (img) img.style.display = 'none'
+                if (initials) {
+                    initials.style.display = 'flex'
+                    initials.textContent = (name || user?.email || 'U')[0].toUpperCase()
+                }
             }
         }
 
@@ -665,6 +689,15 @@
                 const res = await apiForm(endpoint, form, 'PATCH')
                 if (res && res.ok) {
                     profileData = await res.json()
+                    const newAvatarUrl = profileData.avatar || profileData.logo || null
+                    setAvatar(newAvatarUrl, profileData.name)
+                    
+                    const u = getUser()
+                    if (u) {
+                        u.avatar = newAvatarUrl
+                        saveUser(u)
+                    }
+
                     progress.textContent = '✓ Image updated!'
                     progress.style.color = 'var(--green)'
                     updateCompletionBar(profileData)
