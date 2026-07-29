@@ -99,13 +99,18 @@
 
     <div class="page" style="max-width:800px;">
 
-        <!-- Action Bar: Toggle View / Edit -->
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">
+        <!-- Action Bar & Mode Switcher Tabs -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:0.75rem;">
             <h1 style="font-size:1.4rem;font-weight:700;" id="page-heading">Your Professional Profile</h1>
             <div>
                 <button class="btn btn-ghost" id="edit-mode-btn" style="border:1px solid var(--border);" onclick="toggleMode('edit')">✏️ Edit Profile</button>
                 <button class="btn btn-primary" id="view-mode-btn" style="display:none;" onclick="toggleMode('view')">👁️ View Professional Profile</button>
             </div>
+        </div>
+
+        <div class="tabs" style="margin-bottom:1.5rem;">
+            <button class="tab active" id="mode-tab-view" onclick="toggleMode('view')">👁️ View Profile</button>
+            <button class="tab" id="mode-tab-edit" onclick="toggleMode('edit')">✏️ Edit & Update Details</button>
         </div>
 
         <!-- ════════════════ PROFESSIONAL VIEW MODE (NO INPUT BOXES) ════════════════ -->
@@ -118,9 +123,14 @@
                         <div class="avatar-placeholder-box" id="v-avatar-initials">?</div>
                     </div>
                     <div style="flex:1;">
-                        <div id="v-role-badge"></div>
-                        <h2 class="profile-view-name" id="v-name">Loading...</h2>
-                        <div style="color:var(--text2);font-size:0.88rem;" id="v-location">📍 Location not set</div>
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:0.5rem;flex-wrap:wrap;">
+                            <div>
+                                <div id="v-role-badge"></div>
+                                <h2 class="profile-view-name" id="v-name">Loading...</h2>
+                                <div style="color:var(--text2);font-size:0.88rem;" id="v-location">📍 Location not set</div>
+                            </div>
+                            <button class="btn btn-primary" style="font-size:0.82rem;padding:0.4rem 0.85rem;" onclick="toggleMode('edit')">✏️ Edit Profile Info</button>
+                        </div>
                         
                         <!-- Info Pills -->
                         <div class="info-pill-grid" id="v-info-pills"></div>
@@ -614,16 +624,22 @@
             const viewBtn = document.getElementById('view-mode-btn')
             const pageHeading = document.getElementById('page-heading')
 
-            const isCompany = user?.role === 'company'
+            const tabView = document.getElementById('mode-tab-view')
+            const tabEdit = document.getElementById('mode-tab-edit')
+
+            const currentUser = getUser() || user
+            const isCompany = currentUser?.role === 'company' || (profileData && profileData.description !== undefined && profileData.website_url !== undefined)
             const fSec = document.getElementById('freelancer-form-section')
             const cSec = document.getElementById('company-form-section')
 
             if (mode === 'edit') {
-                viewSec.style.display = 'none'
-                editSec.style.display = 'block'
-                editBtn.style.display = 'none'
-                viewBtn.style.display = 'inline-block'
-                pageHeading.textContent = 'Edit Profile Details'
+                if (viewSec) viewSec.style.display = 'none'
+                if (editSec) editSec.style.display = 'block'
+                if (editBtn) editBtn.style.display = 'none'
+                if (viewBtn) viewBtn.style.display = 'inline-block'
+                if (pageHeading) pageHeading.textContent = 'Edit Profile Details'
+                if (tabView) tabView.classList.remove('active')
+                if (tabEdit) tabEdit.classList.add('active')
 
                 if (isCompany) {
                     if (cSec) cSec.style.display = 'block'
@@ -633,11 +649,13 @@
                     if (cSec) cSec.style.display = 'none'
                 }
             } else {
-                viewSec.style.display = 'block'
-                editSec.style.display = 'none'
-                editBtn.style.display = 'inline-block'
-                viewBtn.style.display = 'none'
-                pageHeading.textContent = 'Your Professional Profile'
+                if (viewSec) viewSec.style.display = 'block'
+                if (editSec) editSec.style.display = 'none'
+                if (editBtn) editBtn.style.display = 'inline-block'
+                if (viewBtn) viewBtn.style.display = 'none'
+                if (pageHeading) pageHeading.textContent = 'Your Professional Profile'
+                if (tabView) tabView.classList.add('active')
+                if (tabEdit) tabEdit.classList.remove('active')
                 renderViewMode()
             }
         }
