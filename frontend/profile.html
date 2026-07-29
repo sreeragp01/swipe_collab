@@ -1414,7 +1414,7 @@
                     document.getElementById(badgeId).innerHTML = '<span class="badge badge-green">✓ Verified</span>'
                     document.getElementById(secId).style.display = 'none'
                     const u = getUser()
-                    if (u) { u.face_verified = true; setUser(u) }
+                    if (u) { u.face_verified = true; saveUser(u) }
                     renderViewMode()
                 } else {
                     showToast(data.detail || 'Verification failed. Try again.', 'error')
@@ -1497,7 +1497,7 @@
                         showToast('🎉 Face verified successfully with OpenCV!', 'success')
                         
                         const u = getUser()
-                        if (u) { u.face_verified = true; setUser(u) }
+                        if (u) { u.face_verified = true; saveUser(u) }
                         
                         setTimeout(() => {
                             closeFaceVerifyModal()

@@ -18,6 +18,9 @@ function clearTokens() {
 function saveUser(user) {
     localStorage.setItem('user', JSON.stringify(user))
 }
+function setUser(user) {
+    saveUser(user)
+}
 
 function getUser() {
     const u = localStorage.getItem('user')

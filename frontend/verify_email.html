@@ -175,7 +175,7 @@
                 const data = await res.json()
                 if (res.ok) {
                     user.is_verified = false
-                    setUser(user)
+                    saveUser(user)
                     showStatus(`📩 Test OTP/token generated for ${email}! Confirm token below.`, 'success')
                     document.getElementById('email-send-wrap').style.display = 'block'
                     document.getElementById('token-form-wrap').style.display = 'block'
@@ -242,7 +242,7 @@
                     
                     if (user) {
                         user.is_verified = true
-                        setUser(user)
+                        saveUser(user)
                     }
 
                     setTimeout(() => {
@@ -280,7 +280,7 @@
                     
                     if (user) {
                         user.is_verified = true
-                        setUser(user)
+                        saveUser(user)
                     }
 
                     setTimeout(() => {
