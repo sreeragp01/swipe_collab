@@ -276,6 +276,19 @@ class PortfolioItemLikeToggleView(APIView):
         else:
             PortfolioItemLike.objects.create(item=item, user=request.user)
             liked = True
+            if item.freelancer.user != request.user:
+                try:
+                    from notifications.models import notify_user, Notification
+                    notify_user(
+                        user=item.freelancer.user,
+                        sender=request.user,
+                        notification_type=Notification.TYPE_PORTFOLIO_LIKE,
+                        title="Project Liked ❤️",
+                        message=f"{request.user.full_name} liked your showcase project '{item.title}'.",
+                        link=f"/profile-view/?id={item.freelancer.user.id}",
+                    )
+                except Exception:
+                    pass
 
         return Response({
             'liked': liked,
@@ -301,5 +314,20 @@ class PortfolioItemCommentView(APIView):
             user=request.user,
             text=text,
         )
+
+        if item.freelancer.user != request.user:
+            try:
+                from notifications.models import notify_user, Notification
+                notify_user(
+                    user=item.freelancer.user,
+                    sender=request.user,
+                    notification_type=Notification.TYPE_PORTFOLIO_COMMENT,
+                    title="New Comment on Project 💬",
+                    message=f"{request.user.full_name} commented on '{item.title}': {text[:40]}",
+                    link=f"/profile-view/?id={item.freelancer.user.id}",
+                )
+            except Exception:
+                pass
+
         serializer = PortfolioItemCommentSerializer(comment)
         return Response(serializer.data, status=status.HTTP_201_CREATED)

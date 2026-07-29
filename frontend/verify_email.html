@@ -105,10 +105,21 @@
 
         <div id="status-message" class="status-box"></div>
 
-        <!-- Token Entry Form -->
-        <div id="token-form-wrap">
-            <div class="form-group" style="margin-bottom:1.35rem;">
-                <input type="text" id="token-input" class="token-input" placeholder="Paste verification token here...">
+        <!-- Email & Token Entry Form -->
+        <div id="email-send-wrap" style="margin-bottom:1.5rem;text-align:left;">
+            <div class="form-group" style="margin-bottom:0.75rem;">
+                <label for="email-input" style="font-size:0.85rem;color:var(--text2);font-weight:600;display:block;margin-bottom:0.35rem;">Email Address</label>
+                <input type="email" id="email-input" class="token-input" style="text-align:left;" placeholder="your.email@example.com">
+            </div>
+            <button class="btn btn-primary btn-full" id="send-otp-btn" style="padding:0.75rem;font-size:0.9rem;" onclick="sendOtpToEmail()">
+                📩 Send OTP / Verification Email ↗
+            </button>
+        </div>
+
+        <div id="token-form-wrap" style="text-align:left;">
+            <div class="form-group" style="margin-bottom:1rem;">
+                <label for="token-input" style="font-size:0.85rem;color:var(--text2);font-weight:600;display:block;margin-bottom:0.35rem;">Verification Token / OTP Code</label>
+                <input type="text" id="token-input" class="token-input" placeholder="Paste verification token or OTP here...">
             </div>
             <button class="btn btn-primary btn-full" style="padding:0.85rem;" onclick="verifyToken()">
                 Confirm Verification Token ↗
@@ -118,9 +129,6 @@
         <div style="border-top:1px solid var(--border);margin-top:1.8rem;padding-top:1.35rem;display:flex;flex-direction:column;gap:0.75rem;">
             <button class="btn btn-primary" id="instant-verify-btn" style="background:linear-gradient(135deg,#10b981,#059669);border:none;" onclick="instantVerifyEmail()">
                 ⚡ Instant Verify Email Now
-            </button>
-            <button class="btn btn-ghost" id="resend-btn" onclick="resendVerificationEmail()">
-                🔄 Resend Verification Token
             </button>
             <div id="cooldown-msg" class="cooldown-text" style="display:none;"></div>
             <a href="/profile/" class="btn btn-ghost" style="font-size:0.88rem;">← Return to Profile</a>
@@ -137,15 +145,53 @@
         const params = new URLSearchParams(location.search)
         const tokenFromUrl = params.get('token')
 
+        if (user && user.email) {
+            document.getElementById('email-input').value = user.email
+        }
+
         if (user && user.is_verified) {
             showStatus('Your email is already verified! ✓', 'success')
             document.getElementById('card-icon').textContent = '✓'
             document.getElementById('card-title').textContent = 'Email Verified'
+            document.getElementById('email-send-wrap').style.display = 'none'
             document.getElementById('token-form-wrap').style.display = 'none'
             document.getElementById('instant-verify-btn').style.display = 'none'
         } else if (tokenFromUrl) {
             document.getElementById('token-input').value = tokenFromUrl
             verifyToken(tokenFromUrl)
+        }
+
+        async function sendOtpToEmail() {
+            const email = document.getElementById('email-input').value.trim()
+            if (!email) {
+                return showStatus('Please enter your email address.', 'error')
+            }
+
+            const sendBtn = document.getElementById('send-otp-btn')
+            sendBtn.disabled = true
+            showStatus('Sending verification OTP / email...', 'info')
+
+            try {
+                const res = await api('/auth/resend-email/', {
+                    method: 'POST',
+                    body: JSON.stringify({ email })
+                })
+                const data = await res.json()
+
+                if (res.ok) {
+                    showStatus(data.message || `📩 OTP/token sent to ${email}! Paste code below to confirm.`, 'success')
+                    if (data.token) {
+                        document.getElementById('token-input').value = data.token
+                    }
+                    startCooldown(15)
+                } else {
+                    showStatus(data.detail || 'Failed to send verification email.', 'error')
+                    sendBtn.disabled = false
+                }
+            } catch (err) {
+                showStatus('Error sending verification OTP/email.', 'error')
+                sendBtn.disabled = false
+            }
         }
 
         async function instantVerifyEmail() {
@@ -157,6 +203,7 @@
                     showStatus('🎉 Email verified successfully!', 'success')
                     document.getElementById('card-icon').textContent = '🎉'
                     document.getElementById('card-title').textContent = 'Verification Complete'
+                    document.getElementById('email-send-wrap').style.display = 'none'
                     document.getElementById('token-form-wrap').style.display = 'none'
                     document.getElementById('instant-verify-btn').style.display = 'none'
                     
@@ -177,7 +224,7 @@
         async function verifyToken(manualToken) {
             const token = manualToken || document.getElementById('token-input').value.trim()
             if (!token) {
-                showStatus('Please paste or enter your verification token.', 'error')
+                showStatus('Please paste or enter your verification token/code.', 'error')
                 return
             }
 
@@ -191,11 +238,14 @@
                     showStatus('🎉 Email verified successfully!', 'success')
                     document.getElementById('card-icon').textContent = '🎉'
                     document.getElementById('card-title').textContent = 'Verification Complete'
+                    document.getElementById('email-send-wrap').style.display = 'none'
                     document.getElementById('token-form-wrap').style.display = 'none'
                     document.getElementById('instant-verify-btn').style.display = 'none'
                     
-                    user.is_verified = true
-                    setUser(user)
+                    if (user) {
+                        user.is_verified = true
+                        setUser(user)
+                    }
 
                     setTimeout(() => {
                         window.location.href = '/profile/'
@@ -208,35 +258,10 @@
             }
         }
 
-        async function resendVerificationEmail() {
-            const resendBtn = document.getElementById('resend-btn')
-            resendBtn.disabled = true
-            showStatus('Generating verification token...', 'info')
-
-            try {
-                const res = await api('/auth/resend-email/', { method: 'POST' })
-                const data = await res.json()
-
-                if (res.ok) {
-                    showStatus('📩 Token generated! Click "Confirm Verification Token" or "Instant Verify".', 'success')
-                    if (data.token) {
-                        document.getElementById('token-input').value = data.token
-                    }
-                    startCooldown(15)
-                } else {
-                    showStatus(data.detail || 'Failed to send verification email.', 'error')
-                    resendBtn.disabled = false
-                }
-            } catch (err) {
-                showStatus('Error generating verification token.', 'error')
-                resendBtn.disabled = false
-            }
-        }
-
         function startCooldown(seconds) {
-            const resendBtn = document.getElementById('resend-btn')
+            const sendBtn = document.getElementById('send-otp-btn')
             const coolMsg = document.getElementById('cooldown-msg')
-            resendBtn.disabled = true
+            sendBtn.disabled = true
             coolMsg.style.display = 'block'
             
             let rem = seconds
@@ -246,7 +271,7 @@
                 rem--
                 if (rem <= 0) {
                     clearInterval(cooldownTimer)
-                    resendBtn.disabled = false
+                    sendBtn.disabled = false
                     coolMsg.style.display = 'none'
                 } else {
                     coolMsg.textContent = `Resend available in ${rem} seconds`

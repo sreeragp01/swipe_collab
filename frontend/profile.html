@@ -445,11 +445,24 @@
                         <div class="skills-wrap" id="c-skills-display">
                             <span class="no-skills-msg">No skills added yet.</span>
                         </div>
-                        <div class="skill-add-row">
-                            <select id="c-skill-select">
-                                <option value="">— Select a skill to add —</option>
-                            </select>
-                            <button class="btn btn-primary" id="c-add-skill-btn" onclick="addSkill('company')">Add Skill</button>
+                        <div style="display:flex;flex-direction:column;gap:0.85rem;margin-top:1rem;">
+                            <div>
+                                <label style="font-size:0.82rem;font-weight:600;margin-bottom:0.35rem;display:block;">Option 1: Select from popular skills</label>
+                                <div class="skill-add-row">
+                                    <select id="c-skill-select" style="flex:1;">
+                                        <option value="">— Select a skill to add —</option>
+                                    </select>
+                                    <button class="btn btn-primary" id="c-add-skill-btn" onclick="addSkill('company')">Add Selected</button>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label style="font-size:0.82rem;font-weight:600;margin-bottom:0.35rem;display:block;">Option 2: Type custom skill name</label>
+                                <div class="skill-add-row">
+                                    <input type="text" id="c-custom-skill-input" placeholder="e.g. Docker, Rust, Kubernetes..." style="flex:1;">
+                                    <button class="btn btn-ghost" id="c-add-custom-btn" style="border:1px solid var(--border);" onclick="addCustomSkill('company')">+ Add Custom</button>
+                                </div>
+                            </div>
                         </div>
                         <div id="c-skill-feedback" style="margin-top:0.75rem;font-size:0.82rem;color:var(--green);display:none;"></div>
                     </div>
@@ -1106,6 +1119,18 @@
                             opt.textContent = s.name + (s.category ? ' (' + s.category + ')' : '')
                             sel.appendChild(opt)
                         })
+                        const otherOpt = document.createElement('option')
+                        otherOpt.value = "other"
+                        otherOpt.textContent = "➕ Other (Type Custom Skill)..."
+                        sel.appendChild(otherOpt)
+
+                        sel.onchange = function() {
+                            if (this.value === 'other') {
+                                const inputId = user?.role === 'company' ? 'c-custom-skill-input' : 'f-custom-skill-input'
+                                const inp = document.getElementById(inputId)
+                                if (inp) { inp.focus(); showToast('Type your custom skill name below and click + Add Custom.', 'info') }
+                            }
+                        }
                     }
                 }
             } catch (e) {

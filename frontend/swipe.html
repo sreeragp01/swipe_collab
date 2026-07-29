@@ -322,6 +322,9 @@
         <div class="swipe-top">
             <h2 style="font-size:1.2rem;color:#fff;">Discover Candidates & Work</h2>
             <div style="display:flex;gap:0.6rem;align-items:center;">
+                <div class="super-likes-left" id="free-swipes-badge" style="background:rgba(52, 211, 153, 0.15);border-color:rgba(52, 211, 153, 0.35);color:#34d399;">
+                    🎯 <span id="swipes-rem-count">20</span>/20 Free Swipes
+                </div>
                 <div class="super-likes-left">⚡ <span id="super-left">3</span> super likes</div>
                 <button class="filter-btn" onclick="toggleFilter()">⚙️ Filter</button>
             </div>
@@ -411,10 +414,26 @@
                     const data = await res.json()
                     feed = data.feed || []
                     document.getElementById('super-left').textContent = data.super_likes_remaining ?? 3
+                    
+                    const badge = document.getElementById('free-swipes-badge')
+                    if (data.has_unlimited_access) {
+                        badge.style.display = 'none'
+                    } else {
+                        badge.style.display = 'inline-block'
+                        document.getElementById('swipes-rem-count').textContent = data.free_swipes_remaining ?? (20 - (data.swipes_count || 0))
+                    }
+
                     renderCards()
-                } else if (res && res.status === 403) {
+                } else if (res && (res.status === 402 || res.status === 403)) {
                     const d = await res.json()
-                    document.getElementById('card-stack').innerHTML = `<div class="empty-state"><div class="empty-state-icon">🔒</div><strong style="color:#fff;">Access Required</strong><p>${d.detail}</p><a href="/payment/" class="btn btn-primary" style="margin-top:0.75rem;">Pay ₹49 to Unlock ↗</a></div>`
+                    document.getElementById('card-stack').innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">🔒</div>
+                            <strong style="color:#fff;font-size:1.2rem;">Free Swipes Completed (20/20)</strong>
+                            <p style="margin-top:0.5rem;line-height:1.5;color:var(--text2);">${d.detail || 'You have enjoyed your 20 free swipes! Choose a plan to unlock unlimited swiping.'}</p>
+                            <a href="/payment/" class="btn btn-primary" style="margin-top:1rem;padding:0.85rem 1.5rem;">💳 Unlock Unlimited Swiping (₹49) ↗</a>
+                        </div>`
+                    document.getElementById('swipe-btns').style.display = 'none'
                 }
             } catch { showToast('Could not load feed.', 'error') }
         }
@@ -538,6 +557,9 @@
                     const data = await res.json()
                     document.getElementById('super-left').textContent = data.super_likes_remaining ?? 3
                     if (data.matched) { currentMatchId = data.match_id; setTimeout(() => showMatch(data.match_id), 400) }
+                } else if (res && res.status === 402) {
+                    showToast('20 Free Swipes Limit Reached! Redirecting to payment...', 'error')
+                    setTimeout(() => { window.location.href = '/payment/' }, 1500)
                 } else if (res && res.status === 429) { showToast('Super like daily limit reached!', 'error') }
             } catch {}
         }

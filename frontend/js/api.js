@@ -123,3 +123,99 @@ function logout() {
         root.style.removeProperty('--accent')
     }
 })()
+
+async function initNotifications() {
+    if (!getToken()) return
+    const navLinks = document.querySelector('.nav-links')
+    if (!navLinks || document.getElementById('notif-bell-wrap')) return
+
+    const wrap = document.createElement('div')
+    wrap.className = 'nav-notif-wrap'
+    wrap.id = 'notif-bell-wrap'
+    wrap.innerHTML = `
+        <button class="notif-bell-btn" id="notif-bell-btn" onclick="toggleNotifDropdown(event)" title="Notifications">
+            🔔 <span class="notif-badge-count" id="notif-badge" style="display:none;">0</span>
+        </button>
+        <div class="notif-dropdown" id="notif-dropdown" onclick="event.stopPropagation()">
+            <div class="notif-header">
+                <h4>Notifications</h4>
+                <button class="notif-mark-all" onclick="markAllNotificationsRead()">Mark all read</button>
+            </div>
+            <div class="notif-list" id="notif-list">
+                <div style="padding:1.5rem;text-align:center;color:var(--text3);font-size:0.85rem;">Loading notifications...</div>
+            </div>
+        </div>`
+
+    navLinks.insertBefore(wrap, navLinks.firstChild)
+
+    document.addEventListener('click', () => {
+        const drop = document.getElementById('notif-dropdown')
+        if (drop) drop.classList.remove('active')
+    })
+
+    await fetchNotifications()
+    setInterval(fetchNotifications, 15000)
+}
+
+function toggleNotifDropdown(e) {
+    e.stopPropagation()
+    const drop = document.getElementById('notif-dropdown')
+    if (drop) drop.classList.toggle('active')
+}
+
+async function fetchNotifications() {
+    try {
+        const res = await api('/notifications/')
+        if (res && res.ok) {
+            const data = await res.json()
+            const badge = document.getElementById('notif-badge')
+            const list = document.getElementById('notif-list')
+
+            if (data.unread_count > 0) {
+                badge.style.display = 'inline-block'
+                badge.textContent = data.unread_count > 99 ? '99+' : data.unread_count
+            } else {
+                badge.style.display = 'none'
+            }
+
+            const notifs = data.notifications || []
+            if (notifs.length === 0) {
+                list.innerHTML = `<div style="padding:1.5rem;text-align:center;color:var(--text3);font-size:0.85rem;">No notifications yet!</div>`
+            } else {
+                list.innerHTML = notifs.map(n => `
+                    <div class="notif-item ${n.is_read ? '' : 'unread'}" onclick="handleNotifClick('${n.id}', '${n.link || ''}')">
+                        <div style="flex:1;">
+                            <div class="notif-item-title">${n.title}</div>
+                            <div class="notif-item-msg">${n.message}</div>
+                            <div class="notif-item-time">${new Date(n.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
+                        </div>
+                    </div>`).join('')
+            }
+        }
+    } catch {}
+}
+
+async function handleNotifClick(id, link) {
+    try {
+        await api(`/notifications/${id}/read/`, { method: 'PATCH' })
+    } catch {}
+    if (link && link !== 'null') {
+        window.location.href = link
+    } else {
+        await fetchNotifications()
+    }
+}
+
+async function markAllNotificationsRead() {
+    try {
+        const res = await api('/notifications/mark-all-read/', { method: 'POST' })
+        if (res && res.ok) {
+            showToast('All notifications marked as read.')
+            await fetchNotifications()
+        }
+    } catch {}
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (getToken()) initNotifications()
+})

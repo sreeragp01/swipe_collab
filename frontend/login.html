@@ -89,7 +89,12 @@
             </div>
             <div class="form-group">
                 <label for="password">Password</label>
-                <input type="password" id="password" placeholder="Enter your password" autocomplete="current-password">
+                <div style="position:relative;display:flex;align-items:center;">
+                    <input type="password" id="password" placeholder="Enter your password" autocomplete="current-password" style="padding-right:2.8rem;width:100%;">
+                    <button type="button" id="toggle-pw-btn" onclick="togglePasswordVisibility()" style="position:absolute;right:0.75rem;background:none;border:none;color:var(--text2);cursor:pointer;font-size:1.1rem;padding:0.2rem;" title="Show/Hide Password">
+                        👁️
+                    </button>
+                </div>
                 <div class="sc-error" id="err-password"></div>
             </div>
             <div class="sc-error" id="err-general" style="margin-bottom:1rem;"></div>
@@ -101,6 +106,18 @@
     <script src="/static/js/api.js"></script>
     <script>
         if (getToken()) window.location.href = '/dashboard/'
+
+        function togglePasswordVisibility() {
+            const pwInput = document.getElementById('password')
+            const btn = document.getElementById('toggle-pw-btn')
+            if (pwInput.type === 'password') {
+                pwInput.type = 'text'
+                btn.textContent = '🙈'
+            } else {
+                pwInput.type = 'password'
+                btn.textContent = '👁️'
+            }
+        }
 
         async function login() {
             clearErrors()

@@ -60,11 +60,18 @@ class User(AbstractUser):
         return False
 
     @property
+    def swipes_count(self):
+        from swipe.models import SwipeAction
+        return SwipeAction.objects.filter(swiper=self).count()
+
+    @property
     def can_swipe(self):
         from django.conf import settings
         if getattr(settings, 'DEBUG', False) or getattr(settings, 'TESTING_MODE', False):
             return True
-        return self.is_verified and self.face_verified and self.has_access
+        if self.swipes_count < 20:
+            return True
+        return self.has_access
 
     @property
     def full_name(self):

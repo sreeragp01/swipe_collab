@@ -36,11 +36,17 @@ class SwipeFeedView(APIView):
 
 
         TESTING_MODE = getattr(settings, 'TESTING_MODE', False)
+        swipes_count = SwipeAction.objects.filter(swiper=user).count()
 
-        if not TESTING_MODE and not user.can_swipe:
+        if not TESTING_MODE and swipes_count >= 20 and not user.has_access:
             return Response(
-                {'detail': 'You must be verified and have an active plan to swipe.'},
-                status=status.HTTP_403_FORBIDDEN,
+                {
+                    'detail': 'You have used your 20 free swipes! Please upgrade to a plan to unlock unlimited swiping.',
+                    'requires_payment': True,
+                    'swipes_count': swipes_count,
+                    'free_swipes_limit': 20,
+                },
+                status=status.HTTP_402_PAYMENT_REQUIRED,
             )
 
         already_swiped = SwipeAction.objects.filter(swiper=user).values_list('target_id', flat=True)
@@ -108,6 +114,9 @@ class SwipeFeedView(APIView):
             'feed': feed,
             'count': len(feed),
             'super_likes_remaining': super_likes_left,
+            'swipes_count': swipes_count,
+            'free_swipes_remaining': max(0, 20 - swipes_count),
+            'has_unlimited_access': user.has_access,
         })
 
 
@@ -116,14 +125,18 @@ class SwipeActionView(APIView):
 
     def post(self, request):
         user = request.user
-
-
         TESTING_MODE = getattr(settings, 'TESTING_MODE', False)
+        swipes_count = SwipeAction.objects.filter(swiper=user).count()
 
-        if not TESTING_MODE and not user.can_swipe:
+        if not TESTING_MODE and swipes_count >= 20 and not user.has_access:
             return Response(
-                {'detail': 'You must be verified and have an active plan to swipe.'},
-                status=status.HTTP_403_FORBIDDEN,
+                {
+                    'detail': 'You have used your 20 free swipes! Please upgrade to a plan to unlock unlimited swiping.',
+                    'requires_payment': True,
+                    'swipes_count': swipes_count,
+                    'free_swipes_limit': 20,
+                },
+                status=status.HTTP_402_PAYMENT_REQUIRED,
             )
 
         target_id = request.data.get('target_id')
@@ -173,6 +186,16 @@ class SwipeActionView(APIView):
         }
 
         if action in [SwipeAction.ACTION_LIKE, SwipeAction.ACTION_SUPER_LIKE]:
+            from notifications.models import notify_user, Notification
+            notify_user(
+                user=target,
+                sender=user,
+                notification_type=Notification.TYPE_INTEREST_RECEIVED,
+                title="New Interest Received! ✨",
+                message=f"{user.full_name} showed interest in your profile.",
+                link="/matches/",
+            )
+
             if SwipeAction.is_mutual_like(user, target):
                 match = Match.create(user, target)
                 from chat.models import ChatRoom
@@ -180,6 +203,23 @@ class SwipeActionView(APIView):
                 response_data['matched'] = True
                 response_data['match_id'] = match.id
                 response_data['hours_to_send_message'] = 48
+
+                notify_user(
+                    user=user,
+                    sender=target,
+                    notification_type=Notification.TYPE_MATCH_MADE,
+                    title="It's a Match! 🎉",
+                    message=f"You and {target.full_name} matched! Start chatting now.",
+                    link=f"/chat/?match={match.id}",
+                )
+                notify_user(
+                    user=target,
+                    sender=user,
+                    notification_type=Notification.TYPE_MATCH_MADE,
+                    title="It's a Match! 🎉",
+                    message=f"You and {user.full_name} matched! Start chatting now.",
+                    link=f"/chat/?match={match.id}",
+                )
 
                 try:
                     stats = user.engagement_stats

@@ -17,6 +17,7 @@ urlpatterns = [
     path('api/v1/payments/',   include('payments.urls')),
     path('api/v1/moderation/', include('moderation.urls')),
     path('api/v1/analytics/',  include('analytics.urls')),
+    path('api/v1/notifications/', include('notifications.urls')),
 
     # Frontend HTML pages
     path('',              TemplateView.as_view(template_name='index.html'),        name='index'),

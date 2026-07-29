@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'payments.apps.PaymentsConfig',
     'moderation.apps.ModerationConfig',
     'analytics.apps.AnalyticsConfig',
+    'notifications.apps.NotificationsConfig',
 ]
 
 MIDDLEWARE = [

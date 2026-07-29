@@ -63,7 +63,21 @@ class MessageListView(APIView):
 
         serializer = MessageSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(room=room, sender=request.user)
+            msg_obj = serializer.save(room=room, sender=request.user)
+            recipient = room.match.user2 if room.match.user1 == request.user else room.match.user1
+            try:
+                from notifications.models import notify_user, Notification
+                notify_user(
+                    user=recipient,
+                    sender=request.user,
+                    notification_type=Notification.TYPE_CHAT_MESSAGE,
+                    title="New Chat Message 💬",
+                    message=f"{request.user.full_name}: {msg_obj.text[:50] if hasattr(msg_obj, 'text') and msg_obj.text else 'Sent a message'}",
+                    link=f"/chat/?match={room.match.id}",
+                )
+            except Exception as e:
+                print(f"Chat notification error: {e}")
+
             try:
                 stats = request.user.engagement_stats
                 stats.increment('message_count')

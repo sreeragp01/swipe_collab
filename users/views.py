@@ -173,19 +173,30 @@ class InstantVerifyEmailView(APIView):
 
 
 class ResendVerificationEmailView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def post(self, request):
-        user = request.user
+        email = request.data.get('email')
+        if email:
+            try:
+                user = User.objects.get(email=email.strip().lower())
+            except User.DoesNotExist:
+                return Response({'detail': 'No user account found with that email address.'}, status=status.HTTP_404_NOT_FOUND)
+        elif request.user and request.user.is_authenticated:
+            user = request.user
+        else:
+            return Response({'detail': 'Email address is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
         if user.is_verified:
-            return Response({'message': 'Your email is already verified.', 'is_verified': True})
+            return Response({'message': f'Email {user.email} is already verified.', 'is_verified': True})
 
         from .email_verification import generate_verification_token
         token = generate_verification_token(user)
         sent, info = send_verification_email(user, request)
 
         return Response({
-            'message': 'Verification token generated successfully.',
+            'message': f'Verification OTP/token dispatched to {user.email}.',
+            'email': user.email,
             'token': token,
             'info': info,
             'is_verified': False
