@@ -16,7 +16,7 @@ from .serializers import (
 )
 
 
-class SkillListView(generics.ListAPIView):
+class SkillListView(generics.ListCreateAPIView):
     queryset = Skill.objects.all()
     serializer_class = SkillSerializer
     permission_classes = [AllowAny]
@@ -27,6 +27,17 @@ class SkillListView(generics.ListAPIView):
         if category:
             queryset = queryset.filter(category__icontains=category)
         return queryset
+
+    def create(self, request, *args, **kwargs):
+        name = request.data.get('name', '').strip()
+        if not name:
+            return Response({'detail': 'Skill name is required.'}, status=status.HTTP_400_BAD_REQUEST)
+        skill, created = Skill.objects.get_or_create(
+            name__iexact=name,
+            defaults={'name': name, 'category': request.data.get('category', 'Custom')}
+        )
+        serializer = self.get_serializer(skill)
+        return Response(serializer.data, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
 
 
 class FreelancerProfileMeView(APIView):
