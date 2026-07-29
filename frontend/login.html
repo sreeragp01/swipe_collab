@@ -77,10 +77,14 @@
 </head>
 <body>
     <div class="auth-wrap">
-        <a href="/" class="auth-logo" style="display:flex;text-decoration:none;">Swipe<span>Collab</span></a>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+            <a href="/" class="auth-logo" style="text-decoration:none;margin-bottom:0;">Swipe<span>Collab</span></a>
+            <div class="sc-lang-switcher-container"></div>
+        </div>
         <div class="auth-card">
-            <h1 class="auth-title">Welcome back</h1>
-            <p class="auth-sub">Log in to your workspace and start matching</p>
+            <h1 class="auth-title" data-i18n="dash_welcome">Welcome back</h1>
+            <p class="auth-sub" data-i18n="hero_subtitle">Log in to your workspace and start matching</p>
+
 
             <div class="form-group">
                 <label for="email">Email Address</label>
@@ -104,6 +108,8 @@
     </div>
 
     <script src="/static/js/api.js"></script>
+    <script src="/static/js/i18n.js"></script>
+
     <script>
         if (getToken()) window.location.href = '/dashboard/'
 

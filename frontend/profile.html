@@ -83,16 +83,18 @@
 <body>
     <nav class="nav">
         <a href="/" class="nav-logo">Swipe<span style="color:var(--accent)">Collab</span></a>
-        <div class="nav-links">
-            <a href="/dashboard/" class="nav-link">Home</a>
-            <a href="/swipe/" class="nav-link">Swipe</a>
-            <a href="/matches/" class="nav-link">Matches</a>
-            <a href="/projects/" class="nav-link">Projects</a>
-            <a href="/profile/" class="nav-link active">Profile</a>
-            <a href="/moderation/" class="nav-link" style="color:var(--red);">🛡️ Safety</a>
-            <button class="btn btn-ghost" style="padding:0.4rem 0.85rem;font-size:0.8rem;" onclick="logout()">Logout</button>
+        <div class="nav-links" style="display:flex;align-items:center;gap:0.75rem;">
+            <div class="sc-lang-switcher-container"></div>
+            <a href="/dashboard/" class="nav-link" data-i18n="nav_home">Home</a>
+            <a href="/swipe/" class="nav-link" data-i18n="nav_swipe">Swipe</a>
+            <a href="/matches/" class="nav-link" data-i18n="nav_matches">Matches</a>
+            <a href="/projects/" class="nav-link" data-i18n="nav_projects">Projects</a>
+            <a href="/profile/" class="nav-link active" data-i18n="nav_profile">Profile</a>
+            <a href="/moderation/" class="nav-link" style="color:var(--red);" data-i18n="nav_moderation">🛡️ Safety</a>
+            <button class="btn btn-ghost" style="padding:0.4rem 0.85rem;font-size:0.8rem;" onclick="logout()" data-i18n="nav_logout">Logout</button>
         </div>
     </nav>
+
 
     <div class="page" style="max-width:800px;">
 
@@ -560,6 +562,8 @@
     </div>
 
     <script src="/static/js/api.js"></script>
+    <script src="/static/js/i18n.js"></script>
+
     <script>
         requireAuth()
         const user = getUser()

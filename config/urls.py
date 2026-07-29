@@ -4,11 +4,15 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import TemplateView
 
+from config.views import translate_view
+
 urlpatterns = [
     path('admin/', admin.site.urls),
 
     # API endpoints
+    path('api/v1/translate/',   translate_view, name='translate_api'),
     path('api/v1/auth/',       include('users.urls')),
+
     path('api/v1/profiles/',   include('profiles.urls')),
     path('api/v1/swipe/',      include('swipe.urls')),
     path('api/v1/matches/',    include('matches.urls')),

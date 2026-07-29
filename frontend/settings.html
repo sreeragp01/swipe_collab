@@ -185,8 +185,23 @@
                         </div>
                     </div>
 
+                    <!-- Section: Language & Localization -->
+                    <div class="settings-card">
+                        <div class="settings-card-title" data-i18n="settings_language">🌐 Interface Language</div>
+                        <div class="settings-card-desc">Select your preferred application interface language.</div>
+
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-label">Application Interface Language</div>
+                                <div class="setting-sub">Applies to buttons, menus, titles, and system messages instantly.</div>
+                            </div>
+                            <div class="sc-lang-switcher-container"></div>
+                        </div>
+                    </div>
+
                     <!-- Section 3: App Themes & Sound FX -->
                     <div class="settings-card">
+
                         <div class="settings-card-title">🎨 Custom App Themes & Sound FX</div>
                         <div class="settings-card-desc">Personalize your visual experience and toggle audio haptics.</div>
 
@@ -286,6 +301,8 @@
     </div>
 
     <script src="/static/js/api.js"></script>
+    <script src="/static/js/i18n.js"></script>
+
     <script>
         requireAuth()
         const user = getUser()

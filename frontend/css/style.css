@@ -531,3 +531,89 @@ label {
     font-size: 0.65rem;
     font-weight: 900;
 }
+
+/* Language Switcher UI */
+.sc-lang-switcher-container {
+    display: inline-block;
+    position: relative;
+    vertical-align: middle;
+}
+.sc-lang-dropdown {
+    position: relative;
+}
+.sc-lang-btn {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text1);
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 0.4rem 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+    transition: var(--transition);
+    backdrop-filter: var(--glass-blur);
+}
+.sc-lang-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: var(--border-hover);
+}
+.sc-lang-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    min-width: 150px;
+    background: rgba(18, 20, 32, 0.95);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 0.35rem 0;
+    display: none;
+    flex-direction: column;
+    z-index: 1000;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+    backdrop-filter: var(--glass-blur);
+}
+.sc-lang-menu.show {
+    display: flex;
+}
+.sc-lang-option {
+    background: none;
+    border: none;
+    color: var(--text2);
+    padding: 0.5rem 0.9rem;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    transition: var(--transition);
+}
+.sc-lang-option:hover, .sc-lang-option.active {
+    background: rgba(139, 92, 246, 0.15);
+    color: #fff;
+}
+
+/* Inline Dynamic Translate Button */
+.btn-translate {
+    background: rgba(139, 92, 246, 0.1);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    color: var(--accent-light);
+    font-size: 0.75rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 0.35rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    transition: var(--transition);
+}
+.btn-translate:hover {
+    background: rgba(139, 92, 246, 0.25);
+    color: #fff;
+}
