@@ -1009,7 +1009,17 @@
         // ── Load Profile Data ──────────────────────
         async function loadProfile() {
             try {
-                const isCompany = user?.role === 'company'
+                // Refresh current user info from server
+                try {
+                    const meRes = await api('/auth/me/')
+                    if (meRes && meRes.ok) {
+                        const freshUser = await meRes.json()
+                        saveUser(freshUser)
+                    }
+                } catch {}
+
+                const currentUser = getUser() || user
+                const isCompany = currentUser?.role === 'company'
                 const badgeWrap = document.getElementById('role-badge-wrap')
                 const overlayText = document.getElementById('avatar-overlay-text')
                 const fSec = document.getElementById('freelancer-form-section')
@@ -1040,14 +1050,20 @@
                         toggleMode('view')
                     }
                 } else {
-                    // Profile not created yet — open Edit mode so user can save details for the first time
+                    // Profile not created yet — populate default name and open Edit mode
                     profileData = null
+                    const defaultProfile = {
+                        name: currentUser?.full_name || (currentUser?.email ? currentUser.email.split('@')[0] : ''),
+                        bio: '',
+                        skills: []
+                    }
+                    populateEditForm(defaultProfile)
                     toggleMode('edit')
                 }
 
                 // Load verification badges
-                const isVerified = user?.is_verified
-                const faceVerified = user?.face_verified
+                const isVerified = currentUser?.is_verified
+                const faceVerified = currentUser?.face_verified
                 const emailBadge = isVerified ? '<span class="badge badge-green">✓ Verified</span>' : '<span class="badge badge-yellow">Pending</span>'
                 const faceBadge = faceVerified ? '<span class="badge badge-green">✓ Verified</span>' : '<span class="badge badge-yellow">Not verified</span>'
 
@@ -1076,26 +1092,44 @@
         }
 
         function populateEditForm(p) {
-            const isCompany = user?.role === 'company'
-            document.getElementById('profile-name-display').textContent = p.name || 'Your Profile'
-            setAvatar(p.avatar || p.logo || null, p.name)
+            if (!p) return
+            const currentUser = getUser() || user
+            const isCompany = currentUser?.role === 'company'
+            const dispName = p.name || currentUser?.full_name || (currentUser?.email ? currentUser.email.split('@')[0] : 'Your Profile')
+            const nameDisplay = document.getElementById('profile-name-display')
+            if (nameDisplay) nameDisplay.textContent = dispName
+            setAvatar(p.avatar || p.logo || null, dispName)
 
             if (isCompany) {
-                document.getElementById('c-name').value = p.name || ''
-                document.getElementById('c-description').value = p.description || ''
-                document.getElementById('c-website').value = p.website_url || ''
-                document.getElementById('c-city').value = p.city || ''
-                document.getElementById('c-country').value = p.country || ''
+                const cn = document.getElementById('c-name')
+                if (cn) cn.value = p.name || ''
+                const cd = document.getElementById('c-description')
+                if (cd) cd.value = p.description || ''
+                const cw = document.getElementById('c-website')
+                if (cw) cw.value = p.website_url || ''
+                const cc = document.getElementById('c-city')
+                if (cc) cc.value = p.city || ''
+                const cco = document.getElementById('c-country')
+                if (cco) cco.value = p.country || ''
             } else {
-                document.getElementById('f-name').value = p.name || ''
-                document.getElementById('f-bio').value = p.bio || ''
-                document.getElementById('f-experience').value = p.experience_years || 0
-                document.getElementById('f-availability').value = p.availability || 'full_time'
-                document.getElementById('f-city').value = p.city || ''
-                document.getElementById('f-country').value = p.country || ''
-                document.getElementById('f-portfolio').value = p.portfolio_url || ''
-                document.getElementById('f-github').value = p.github_url || ''
-                document.getElementById('f-linkedin').value = p.linkedin_url || ''
+                const fn = document.getElementById('f-name')
+                if (fn) fn.value = p.name || ''
+                const fb = document.getElementById('f-bio')
+                if (fb) fb.value = p.bio || ''
+                const fe = document.getElementById('f-experience')
+                if (fe) fe.value = p.experience_years || 0
+                const fa = document.getElementById('f-availability')
+                if (fa) fa.value = p.availability || 'full_time'
+                const fc = document.getElementById('f-city')
+                if (fc) fc.value = p.city || ''
+                const fco = document.getElementById('f-country')
+                if (fco) fco.value = p.country || ''
+                const fp = document.getElementById('f-portfolio')
+                if (fp) fp.value = p.portfolio_url || ''
+                const fg = document.getElementById('f-github')
+                if (fg) fg.value = p.github_url || ''
+                const fl = document.getElementById('f-linkedin')
+                if (fl) fl.value = p.linkedin_url || ''
             }
 
             profileSkillIds = (p.skills || []).map(s => s.id)
