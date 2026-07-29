@@ -93,17 +93,18 @@
         <aside class="sidebar">
             <a href="/dashboard/" class="sidebar-logo" style="text-decoration:none;">Swipe<span>Collab</span></a>
             
-            <div class="sidebar-section">Main Menu</div>
-            <a href="/dashboard/" class="sidebar-link"><span class="icon">📊</span> Dashboard</a>
-            <a href="/swipe/" class="sidebar-link"><span class="icon">⚡</span> Swipe Feed</a>
-            <a href="/matches/" class="sidebar-link"><span class="icon">♥</span> Matches</a>
-            <a href="/chat/" class="sidebar-link"><span class="icon">💬</span> Messages</a>
-            <a href="/projects/" class="sidebar-link"><span class="icon">💼</span> Projects</a>
-            <a href="/profile/" class="sidebar-link"><span class="icon">🧑‍💻</span> Profile</a>
+            <div class="sidebar-section" data-i18n="sidebar_main_workspace">Main Menu</div>
+            <a href="/dashboard/" class="sidebar-link"><span class="icon">📊</span> <span data-i18n="nav_dashboard">Dashboard</span></a>
+            <a href="/swipe/" class="sidebar-link"><span class="icon">⚡</span> <span data-i18n="nav_swipe">Swipe Feed</span></a>
+            <a href="/matches/" class="sidebar-link"><span class="icon">♥</span> <span data-i18n="nav_matches">Matches</span></a>
+            <a href="/chat/" class="sidebar-link"><span class="icon">💬</span> <span data-i18n="nav_chat">Messages</span></a>
+            <a href="/projects/" class="sidebar-link"><span class="icon">💼</span> <span data-i18n="nav_projects">Projects</span></a>
+            <a href="/profile/" class="sidebar-link"><span class="icon">🧑‍💻</span> <span data-i18n="nav_profile">Profile</span></a>
 
             <div class="sidebar-section">System</div>
-            <a href="/settings/" class="sidebar-link active"><span class="icon">⚙️</span> Settings</a>
-            <a href="/verify-email/" class="sidebar-link"><span class="icon">🛡️</span> Email Verification</a>
+            <a href="/settings/" class="sidebar-link active"><span class="icon">⚙️</span> <span data-i18n="nav_settings">Settings</span></a>
+            <a href="/verify-email/" class="sidebar-link"><span class="icon">🛡️</span> <span data-i18n="sidebar_safety">Email Verification</span></a>
+
 
             <div class="sidebar-bottom">
                 <div class="user-chip">
@@ -120,52 +121,52 @@
         <main class="dash-main">
             <div class="settings-container">
                 <div class="settings-header">
-                    <h1 class="settings-title">⚙️ App Settings & Preferences</h1>
-                    <p class="settings-sub">Manage your security, swipe preferences, visual themes, and app options.</p>
+                    <h1 class="settings-title" data-i18n="settings_page_title">⚙️ App Settings & Preferences</h1>
+                    <p class="settings-sub" data-i18n="settings_page_sub">Manage your security, swipe preferences, visual themes, and app options.</p>
                 </div>
 
                 <div class="settings-grid">
 
                     <!-- Section 1: Security & Password -->
                     <div class="settings-card">
-                        <div class="settings-card-title">🔐 Account & Security Settings</div>
-                        <div class="settings-card-desc">Update your login credentials and check verification badges.</div>
+                        <div class="settings-card-title" data-i18n="settings_sec_account">🔐 Account & Security Settings</div>
+                        <div class="settings-card-desc" data-i18n="settings_sec_account_desc">Update your login credentials and check verification badges.</div>
 
                         <div class="setting-row">
                             <div class="setting-info">
-                                <div class="setting-label">Email Verification Status</div>
+                                <div class="setting-label" data-i18n="settings_email_status">Email Verification Status</div>
                                 <div class="setting-sub" id="email-status-sub">Checking status...</div>
                             </div>
-                            <a href="/verify-email/" class="btn btn-ghost" style="font-size:0.8rem;padding:0.35rem 0.75rem;">Manage Email</a>
+                            <a href="/verify-email/" class="btn btn-ghost" style="font-size:0.8rem;padding:0.35rem 0.75rem;" data-i18n="settings_manage_email">Manage Email</a>
                         </div>
 
                         <div class="setting-row">
                             <div class="setting-info">
-                                <div class="setting-label">Identity Face Verification (OpenCV)</div>
+                                <div class="setting-label" data-i18n="settings_face_status">Identity Face Verification (OpenCV)</div>
                                 <div class="setting-sub" id="face-status-sub">Checking status...</div>
                             </div>
-                            <a href="/profile/" class="btn btn-ghost" style="font-size:0.8rem;padding:0.35rem 0.75rem;">Manage Face Scan</a>
+                            <a href="/profile/" class="btn btn-ghost" style="font-size:0.8rem;padding:0.35rem 0.75rem;" data-i18n="settings_manage_face">Manage Face Scan</a>
                         </div>
 
                         <div style="margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid var(--border);">
-                            <h4 style="font-size:0.92rem;font-weight:700;margin-bottom:0.75rem;">Change Password</h4>
+                            <h4 style="font-size:0.92rem;font-weight:700;margin-bottom:0.75rem;" data-i18n="settings_change_password">Change Password</h4>
                             <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:0.75rem;margin-bottom:0.75rem;">
-                                <input type="password" id="old-pass" placeholder="Current password" style="padding:0.5rem 0.75rem;font-size:0.85rem;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text);">
-                                <input type="password" id="new-pass" placeholder="New password" style="padding:0.5rem 0.75rem;font-size:0.85rem;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text);">
+                                <input type="password" id="old-pass" placeholder="Current password" data-i18n-placeholder="settings_current_password" style="padding:0.5rem 0.75rem;font-size:0.85rem;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text);">
+                                <input type="password" id="new-pass" placeholder="New password" data-i18n-placeholder="settings_new_password" style="padding:0.5rem 0.75rem;font-size:0.85rem;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text);">
                             </div>
-                            <button class="btn btn-primary" style="font-size:0.82rem;padding:0.4rem 0.85rem;" onclick="changePassword()">Update Password</button>
+                            <button class="btn btn-primary" style="font-size:0.82rem;padding:0.4rem 0.85rem;" onclick="changePassword()" data-i18n="settings_update_password">Update Password</button>
                         </div>
                     </div>
 
                     <!-- Section 2: Privacy & Swipe Preferences -->
                     <div class="settings-card">
-                        <div class="settings-card-title">👁️ Privacy & Swipe Discovery</div>
-                        <div class="settings-card-desc">Control how your profile appears in the swipe feed and discovery search.</div>
+                        <div class="settings-card-title" data-i18n="settings_sec_privacy">👁️ Privacy & Swipe Discovery</div>
+                        <div class="settings-card-desc" data-i18n="settings_sec_privacy_desc">Control how your profile appears in the swipe feed and discovery search.</div>
 
                         <div class="setting-row">
                             <div class="setting-info">
-                                <div class="setting-label">Show Profile in Swipe Feed</div>
-                                <div class="setting-sub">Allow other freelancers & companies to discover your profile.</div>
+                                <div class="setting-label" data-i18n="settings_show_profile">Show Profile in Swipe Feed</div>
+                                <div class="setting-sub" data-i18n="settings_show_profile_sub">Allow other freelancers & companies to discover your profile.</div>
                             </div>
                             <label class="toggle-switch">
                                 <input type="checkbox" id="toggle-visible" checked onchange="savePreference('show_visible', this.checked)">
@@ -175,8 +176,8 @@
 
                         <div class="setting-row">
                             <div class="setting-info">
-                                <div class="setting-label">Show Online / Active Badge</div>
-                                <div class="setting-sub">Display a green online indicator when you are active on the app.</div>
+                                <div class="setting-label" data-i18n="settings_show_online">Show Online / Active Badge</div>
+                                <div class="setting-sub" data-i18n="settings_show_online_sub">Display a green online indicator when you are active on the app.</div>
                             </div>
                             <label class="toggle-switch">
                                 <input type="checkbox" id="toggle-online" checked onchange="savePreference('show_online', this.checked)">
@@ -187,13 +188,13 @@
 
                     <!-- Section: Language & Localization -->
                     <div class="settings-card">
-                        <div class="settings-card-title" data-i18n="settings_language">🌐 Interface Language</div>
-                        <div class="settings-card-desc">Select your preferred application interface language.</div>
+                        <div class="settings-card-title" data-i18n="settings_lang_title">🌐 Interface Language</div>
+                        <div class="settings-card-desc" data-i18n="settings_lang_desc">Select your preferred application interface language.</div>
 
                         <div class="setting-row">
                             <div class="setting-info">
-                                <div class="setting-label">Application Interface Language</div>
-                                <div class="setting-sub">Applies to buttons, menus, titles, and system messages instantly.</div>
+                                <div class="setting-label" data-i18n="settings_app_lang">Application Interface Language</div>
+                                <div class="setting-sub" data-i18n="settings_app_lang_sub">Applies to buttons, menus, titles, and system messages instantly.</div>
                             </div>
                             <div class="sc-lang-switcher-container"></div>
                         </div>
@@ -202,13 +203,13 @@
                     <!-- Section 3: App Themes & Sound FX -->
                     <div class="settings-card">
 
-                        <div class="settings-card-title">🎨 Custom App Themes & Sound FX</div>
-                        <div class="settings-card-desc">Personalize your visual experience and toggle audio haptics.</div>
+                        <div class="settings-card-title" data-i18n="settings_sec_themes">🎨 Custom App Themes & Sound FX</div>
+                        <div class="settings-card-desc" data-i18n="settings_sec_themes_desc">Personalize your visual experience and toggle audio haptics.</div>
 
                         <div class="setting-row">
                             <div class="setting-info">
-                                <div class="setting-label">Swipe Audio & Sound Effects</div>
-                                <div class="setting-sub">Play subtle audio feedback when Swiping Like or Match request.</div>
+                                <div class="setting-label" data-i18n="settings_swipe_audio">Swipe Audio & Sound Effects</div>
+                                <div class="setting-sub" data-i18n="settings_swipe_audio_sub">Play subtle audio feedback when Swiping Like or Match request.</div>
                             </div>
                             <label class="toggle-switch">
                                 <input type="checkbox" id="toggle-sound" checked onchange="savePreference('swipe_sound', this.checked)">
@@ -217,7 +218,7 @@
                         </div>
 
                         <div style="margin-top:1.25rem;">
-                            <label class="setting-label" style="display:block;margin-bottom:0.4rem;">Select Visual Theme</label>
+                            <label class="setting-label" style="display:block;margin-bottom:0.4rem;" data-i18n="settings_select_theme">Select Visual Theme</label>
                             <div class="theme-picker">
                                 <div class="theme-card active" id="theme-default" onclick="setAppTheme('default')">
                                     <div class="theme-swatch">
@@ -250,6 +251,7 @@
                             </div>
                         </div>
                     </div>
+
 
                     <!-- Section 4: Developer Copyright & Credits (PixelForge) -->
                     <div class="pixelforge-box">
