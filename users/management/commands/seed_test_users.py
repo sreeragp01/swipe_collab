@@ -70,6 +70,33 @@ class Command(BaseCommand):
                 'github_url': 'https://github.com/arjun-devops',
                 'linkedin_url': 'https://linkedin.com/in/arjun-menon-dev',
             },
+            {
+                'email': 'neha@test.com',
+                'username': 'neha_frontend',
+                'name': 'Neha Gupta',
+                'bio': 'Senior Frontend Developer specializing in React, Next.js, and high-performance Web UI architecture.',
+                'experience_years': 5,
+                'availability': 'full_time',
+                'city': 'Delhi',
+                'country': 'India',
+                'skills': ['React', 'Next.js', 'TypeScript', 'TailwindCSS'],
+                'portfolio_url': 'https://nehagupta.design',
+                'github_url': 'https://github.com/neha-frontend',
+                'linkedin_url': 'https://linkedin.com/in/neha-gupta-ui',
+            },
+            {
+                'email': 'vikram@test.com',
+                'username': 'vikram_cyber',
+                'name': 'Vikram Singh',
+                'bio': 'Ethical hacker and cybersecurity consultant conducting penetration testing and secure API auditing.',
+                'experience_years': 7,
+                'availability': 'contract',
+                'city': 'Chennai',
+                'country': 'India',
+                'skills': ['Cybersecurity', 'Penetration Testing', 'Python', 'Docker'],
+                'portfolio_url': 'https://vikramsec.io',
+                'github_url': 'https://github.com/vikram-cyber',
+            },
         ]
 
         # ── Companies ─────────────────────────────────
@@ -100,6 +127,24 @@ class Command(BaseCommand):
                 'city': 'Hyderabad',
                 'country': 'India',
                 'skills': ['Machine Learning', 'Python', 'TensorFlow', 'NLP'],
+            },
+            {
+                'email': 'cybernet@test.com',
+                'username': 'cybernet',
+                'name': 'CyberShield Solutions',
+                'description': 'Enterprise cybersecurity and vulnerability assessment firm for fintech and cloud applications.',
+                'city': 'Chennai',
+                'country': 'India',
+                'skills': ['Cybersecurity', 'Penetration Testing', 'Docker', 'Python'],
+            },
+            {
+                'email': 'cloudscale@test.com',
+                'username': 'cloudscale',
+                'name': 'CloudScale Labs',
+                'description': 'High-performance cloud infrastructure engineering and distributed backend microservices.',
+                'city': 'Delhi',
+                'country': 'India',
+                'skills': ['Kubernetes', 'Docker', 'AWS', 'Python', 'Django'],
             },
         ]
 
@@ -143,6 +188,26 @@ class Command(BaseCommand):
                     'budget_max': 70000,
                     'duration': '3_6_months',
                     'skills': ['Machine Learning', 'Python', 'TensorFlow', 'NLP'],
+                },
+            ],
+            'cybernet@test.com': [
+                {
+                    'title': 'Penetration Testing & Security Audit',
+                    'description': 'Conduct comprehensive security auditing, OWASP vulnerability scans, and API penetration tests.',
+                    'budget_min': 30000,
+                    'budget_max': 60000,
+                    'duration': '1_3_months',
+                    'skills': ['Cybersecurity', 'Penetration Testing', 'Python'],
+                },
+            ],
+            'cloudscale@test.com': [
+                {
+                    'title': 'Kubernetes Cluster Migration & CI/CD Pipeline',
+                    'description': 'Migrate AWS EC2 instances to automated Kubernetes clusters with GitHub Actions CI/CD.',
+                    'budget_min': 40000,
+                    'budget_max': 80000,
+                    'duration': '3_6_months',
+                    'skills': ['Kubernetes', 'Docker', 'AWS', 'CI/CD'],
                 },
             ],
         }
