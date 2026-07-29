@@ -21,6 +21,7 @@ User = get_user_model()
 
 
 class RegisterView(APIView):
+    authentication_classes = []
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -140,6 +141,7 @@ class ChangePasswordView(APIView):
 
 
 class VerifyEmailView(APIView):
+    authentication_classes = []
     permission_classes = [AllowAny]
 
     def get(self, request, token):
@@ -160,6 +162,7 @@ class VerifyEmailView(APIView):
 
 
 class InstantVerifyEmailView(APIView):
+    authentication_classes = []
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -184,6 +187,7 @@ class InstantVerifyEmailView(APIView):
 
 
 class ResendVerificationEmailView(APIView):
+    authentication_classes = []
     permission_classes = [AllowAny]
 
     def post(self, request):
