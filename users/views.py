@@ -30,13 +30,10 @@ class RegisterView(APIView):
             user = serializer.save()
             refresh = RefreshToken.for_user(user)
             base_url = f"{request.scheme}://{request.get_host()}"
-            import threading
-            threading.Thread(
-                target=send_verification_email,
-                args=(user,),
-                kwargs={'base_url': base_url},
-                daemon=True
-            ).start()
+            try:
+                send_verification_email(user, base_url=base_url)
+            except Exception as e:
+                print(f"Error sending registration email: {str(e)}")
 
             return Response({
                 'message': (
