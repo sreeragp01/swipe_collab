@@ -583,6 +583,9 @@
                 editBtn.style.display = 'none'
                 viewBtn.style.display = 'inline-block'
                 pageHeading.textContent = 'Edit Profile Details'
+                if (profileData) {
+                    populateEditForm(profileData)
+                }
             } else {
                 viewSec.style.display = 'block'
                 editSec.style.display = 'none'
@@ -1236,7 +1239,7 @@
             return false
         }
 
-        // ── Save Freelancer Basic Info ─────────────
+        // ── Save Freelancer Basic Info & Links ─────────────
         async function saveFreelancerBasic() {
             const nameVal = document.getElementById('f-name').value.trim()
             if (!nameVal) return showToast('Name is required.', 'error')
@@ -1248,6 +1251,9 @@
                 availability: document.getElementById('f-availability').value,
                 city: document.getElementById('f-city').value.trim(),
                 country: document.getElementById('f-country').value.trim(),
+                portfolio_url: document.getElementById('f-portfolio').value.trim() || null,
+                github_url: document.getElementById('f-github').value.trim() || null,
+                linkedin_url: document.getElementById('f-linkedin').value.trim() || null,
             }
 
             const method = profileData ? 'PATCH' : 'POST'
@@ -1261,6 +1267,7 @@
                 }
                 if (res && res.ok) {
                     profileData = await res.json()
+                    populateEditForm(profileData)
                     updateCompletionBar(profileData)
                     showToast('Freelancer profile saved successfully!')
                     toggleMode('view') // Switch to Professional View Mode!
@@ -1285,6 +1292,7 @@
                 const res = await api('/profiles/freelancer/me/', { method: 'PATCH', body: JSON.stringify(body) })
                 if (res && res.ok) {
                     profileData = await res.json()
+                    populateEditForm(profileData)
                     updateCompletionBar(profileData)
                     showToast('Social links saved successfully!')
                     toggleMode('view')
@@ -1316,6 +1324,7 @@
                 }
                 if (res && res.ok) {
                     profileData = await res.json()
+                    populateEditForm(profileData)
                     updateCompletionBar(profileData)
                     showToast('Company profile saved successfully!')
                     toggleMode('view') // Switch to Professional View Mode!
