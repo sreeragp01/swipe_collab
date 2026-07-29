@@ -195,28 +195,36 @@
         }
 
         async function instantVerifyEmail() {
+            const emailInput = document.getElementById('email-input')
+            const email = emailInput ? emailInput.value.trim() : (user?.email || '')
             showStatus('Verifying email address...', 'info')
             try {
-                const res = await api('/auth/instant-verify/', { method: 'POST' })
+                const res = await api('/auth/instant-verify/', {
+                    method: 'POST',
+                    body: JSON.stringify({ email })
+                })
                 const data = await res.json()
-                if (res.ok && data.is_verified) {
-                    showStatus('🎉 Email verified successfully!', 'success')
+                if (res && res.ok && data.is_verified) {
+                    showStatus(`🎉 Email ${data.email || ''} verified successfully!`, 'success')
                     document.getElementById('card-icon').textContent = '🎉'
                     document.getElementById('card-title').textContent = 'Verification Complete'
                     document.getElementById('email-send-wrap').style.display = 'none'
                     document.getElementById('token-form-wrap').style.display = 'none'
                     document.getElementById('instant-verify-btn').style.display = 'none'
                     
-                    user.is_verified = true
-                    setUser(user)
+                    if (user) {
+                        user.is_verified = true
+                        setUser(user)
+                    }
 
                     setTimeout(() => {
                         window.location.href = '/profile/'
                     }, 1400)
                 } else {
-                    showStatus('Failed to verify email.', 'error')
+                    showStatus(data.detail || 'Failed to verify email.', 'error')
                 }
             } catch (e) {
+                console.error(e)
                 showStatus('Network error verifying email.', 'error')
             }
         }

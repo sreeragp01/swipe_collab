@@ -160,14 +160,25 @@ class VerifyEmailView(APIView):
 
 
 class InstantVerifyEmailView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def post(self, request):
-        user = request.user
+        email = request.data.get('email')
+        if email:
+            try:
+                user = User.objects.get(email=email.strip().lower())
+            except User.DoesNotExist:
+                return Response({'detail': 'No account found with that email address.'}, status=status.HTTP_404_NOT_FOUND)
+        elif request.user and request.user.is_authenticated:
+            user = request.user
+        else:
+            return Response({'detail': 'Email address or authentication is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
         user.is_verified = True
         user.save(update_fields=['is_verified'])
         return Response({
-            'message': 'Email verified successfully!',
+            'message': f'Email {user.email} verified successfully!',
+            'email': user.email,
             'is_verified': True
         })
 
