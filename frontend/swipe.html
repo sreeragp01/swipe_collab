@@ -496,20 +496,24 @@
                 }
             }
 
+            const avatarContent = p.avatar || p.logo 
+                ? `<img src="${p.avatar || p.logo}" alt="${p.name}" class="card-avatar" style="object-fit:cover;border-radius:50%;cursor:pointer;" onclick="viewProfile(event, this.closest('.swipe-card'))">`
+                : `<div class="avatar-placeholder card-avatar" style="cursor:pointer;" onclick="viewProfile(event, this.closest('.swipe-card'))">${initials}</div>`
+
             card.innerHTML = `
                 <div class="like-indicator">LIKE</div>
                 <div class="pass-indicator">PASS</div>
                 <div class="super-indicator">SUPER</div>
                 ${score}
-                <div class="avatar-placeholder card-avatar">${initials}</div>
-                <div class="card-name" onclick="viewProfile(event, '${card.dataset.id}', '${p.skill_match_score || ''}')" style="cursor:pointer;text-decoration:underline;text-underline-offset:3px;">${p.name || 'Unknown'} 👁️</div>
+                ${avatarContent}
+                <div class="card-name" onclick="viewProfile(event, this.closest('.swipe-card'))" style="cursor:pointer;text-decoration:underline;text-underline-offset:3px;">${p.name || 'Unknown'} 👁️</div>
                 <div class="card-role">${isCompany ? '🏢 Company' : '🧑‍💻 Freelancer'} ${avail ? '· ' + avail : ''}</div>
                 <div class="card-bio">${p.bio || p.description || 'No bio added yet.'}</div>
                 <div class="card-skills">${skills}</div>
                 <div class="card-meta">${meta ? `📍 ${meta}` : ''} ${exp ? `· ${exp}` : ''}</div>
                 ${projectsHtml}
                 <div style="margin-top:0.85rem;display:flex;justify-content:space-between;align-items:center;">
-                    <button onclick="viewProfile(event, card)" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:0.82rem;font-weight:700;">👤 View Full Profile ↗</button>
+                    <button onclick="viewProfile(event, this.closest('.swipe-card'))" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:0.82rem;font-weight:700;">👤 View Full Profile ↗</button>
                     <button onclick="openReportModal(event, '${card.dataset.id}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:0.78rem;">🚩 Report</button>
                 </div>`
             return card
