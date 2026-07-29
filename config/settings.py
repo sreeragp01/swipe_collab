@@ -192,13 +192,19 @@ RAZORPAY_WEBHOOK_SECRET = os.environ.get('RAZORPAY_WEBHOOK_SECRET', 'your_webhoo
 # Testing Mode Flag
 TESTING_MODE = os.environ.get('TESTING_MODE', 'True').lower() in ('true', '1', 'yes')
 
+# Helper to clean quotes and trailing \\n from env variables
+def _clean_env(val):
+    if not val:
+        return ''
+    return str(val).strip().replace(r'\n', '').replace('\n', '').strip('"').strip("'")
+
 # SMTP Email Configuration
-EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
-EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
-EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True').lower() in ('true', '1')
-EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
-DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'SwipeCollab <noreply@swipecollab.com>')
+EMAIL_HOST = _clean_env(os.environ.get('EMAIL_HOST', 'smtp.gmail.com'))
+EMAIL_PORT = int(_clean_env(os.environ.get('EMAIL_PORT', '587')) or 587)
+EMAIL_USE_TLS = _clean_env(os.environ.get('EMAIL_USE_TLS', 'True')).lower() in ('true', '1')
+EMAIL_HOST_USER = _clean_env(os.environ.get('EMAIL_HOST_USER', ''))
+EMAIL_HOST_PASSWORD = _clean_env(os.environ.get('EMAIL_HOST_PASSWORD', ''))
+DEFAULT_FROM_EMAIL = _clean_env(os.environ.get('DEFAULT_FROM_EMAIL', '')) or 'SwipeCollab <noreply@swipecollab.com>'
 
 if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD:
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
