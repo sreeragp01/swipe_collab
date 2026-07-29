@@ -141,6 +141,16 @@ If you did not create a SwipeCollab account, please ignore this email.
 </html>
     """.strip()
 
+    has_credentials = bool(getattr(settings, 'EMAIL_HOST_USER', None) and getattr(settings, 'EMAIL_HOST_PASSWORD', None))
+
+    if not has_credentials:
+        info_msg = "SMTP Credentials (EMAIL_HOST_USER & EMAIL_HOST_PASSWORD) not set in server environment. Generated token for in-app verification."
+        print(f"==================================================")
+        print(f"SMTP skipped. {info_msg}")
+        print(f"User: {user.email} | Token: {token}")
+        print(f"==================================================")
+        return False, info_msg
+
     try:
         send_mail(
             subject=subject,
@@ -150,12 +160,11 @@ If you did not create a SwipeCollab account, please ignore this email.
             html_message=html_message,
             fail_silently=False,
         )
-        return True, "Email sent via SMTP"
+        return True, f"Email sent successfully to {user.email} via SMTP."
     except Exception as e:
+        err_msg = f"SMTP error while sending to {user.email}: {str(e)}"
         print(f"==================================================")
-        print(f"SMTP failed ({str(e)}). Local Verification Token for {user.email}:")
-        print(f"Token: {token}")
-        print(f"Link: {verify_url}")
+        print(f"{err_msg}")
+        print(f"Fallback Token: {token}")
         print(f"==================================================")
-        # In local/debug mode, allow token generation so testing is not blocked
-        return True, f"Token generated (Local dev mode). Token: {token}"
+        return False, err_msg
