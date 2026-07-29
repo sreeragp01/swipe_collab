@@ -1404,10 +1404,7 @@
             form.append('face_image', file)
 
             try {
-                const res = await api('/auth/face-verify/', {
-                    method: 'POST',
-                    body: form,
-                })
+                const res = await apiForm('/auth/face-verify/', form)
                 const data = await res.json()
                 if (res && res.ok && data.face_verified) {
                     showToast('🎉 Face verified successfully with OpenCV!', 'success')
@@ -1488,10 +1485,7 @@
                 formData.append('face_image', blob, 'webcam_selfie.jpg')
 
                 try {
-                    const res = await api('/auth/face-verify/', {
-                        method: 'POST',
-                        body: formData,
-                    })
+                    const res = await apiForm('/auth/face-verify/', formData)
                     const data = await res.json()
 
                     if (res.ok && data.face_verified) {

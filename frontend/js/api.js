@@ -33,6 +33,9 @@ function requireAuth() {
 
 async function api(endpoint, options = {}) {
     const headers = { 'Content-Type': 'application/json', ...options.headers }
+    if (options.body instanceof FormData) {
+        delete headers['Content-Type']
+    }
     const token = getToken()
     if (token) headers['Authorization'] = `Bearer ${token}`
 
