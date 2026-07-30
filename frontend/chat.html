@@ -602,15 +602,14 @@
                 const res = await apiForm(`/chat/rooms/${activeRoomKey}/messages/`, formData, 'POST')
                 if (res && res.ok) {
                     const data = await res.json()
-                    appendMessage(data)
-                    scrollToBottom()
                     if (ws && ws.readyState === WebSocket.OPEN) {
                         ws.send(JSON.stringify({
-                            type: 'message',
-                            message_type: 'audio',
-                            content: '🎤 Voice Note',
-                            file: data.file
+                            type: 'audio_sent',
+                            message: data
                         }))
+                    } else {
+                        appendMessage(data)
+                        scrollToBottom()
                     }
                     showToast('✓ Voice note sent!')
                 } else {
@@ -622,6 +621,7 @@
                 showToast('Error uploading voice note.', 'error')
             }
         }
+
 
 
         const currentAudios = {}

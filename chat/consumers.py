@@ -156,21 +156,20 @@ class ChatConsumer(AsyncWebsocketConsumer):
         }))
 
     async def broadcast_audio(self, event):
-        user = self.scope['user']
-        if str(user.id) != event['sender_id']:
-            m = event['message_data']
-            await self.send(text_data=json.dumps({
-                'type':            'message',
-                'message_id':      m.get('id'),
-                'sender_id':       event['sender_id'],
-                'sender_email':    m.get('sender_email', ''),
-                'sender_username': m.get('sender_username', ''),
-                'content':         m.get('content', '🎤 Voice Note'),
-                'message_type':    'audio',
-                'file':            m.get('file'),
-                'is_read':         False,
-                'created_at':      m.get('created_at'),
-            }))
+        m = event['message_data']
+        await self.send(text_data=json.dumps({
+            'type':            'message',
+            'message_id':      m.get('id'),
+            'sender_id':       event['sender_id'],
+            'sender_email':    m.get('sender_email', ''),
+            'sender_username': m.get('sender_username', ''),
+            'content':         m.get('content', '🎤 Voice Note'),
+            'message_type':    'audio',
+            'file':            m.get('file'),
+            'is_read':         False,
+            'created_at':      m.get('created_at'),
+        }))
+
 
     async def message_deleted_event(self, event):
         await self.send(text_data=json.dumps({
