@@ -540,7 +540,10 @@
         }
 
         async function uploadAndSendAudio(blob) {
-            if (!activeRoomKey) return
+            if (!activeRoomKey) {
+                showToast('Please select a chat room first.', 'error')
+                return
+            }
             const formData = new FormData()
             formData.append('file', blob, `voice_${Date.now()}.webm`)
             formData.append('message_type', 'audio')
@@ -563,12 +566,15 @@
                     }
                     showToast('✓ Voice note sent!')
                 } else {
-                    showToast('Failed to send voice note.', 'error')
+                    const errData = await res.json().catch(() => ({}))
+                    console.error('Audio upload error:', errData)
+                    showToast(errData.detail || 'Failed to send voice note.', 'error')
                 }
             } catch (err) {
                 showToast('Error uploading voice note.', 'error')
             }
         }
+
 
         const currentAudios = {}
         function playVoiceNote(id, url) {
