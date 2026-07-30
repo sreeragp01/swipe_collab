@@ -85,6 +85,30 @@
         }
         .pixelforge-logo { font-size: 1.5rem; font-weight: 800; font-family: var(--font-head); letter-spacing: -0.02em; color: #fff; margin-bottom: 0.35rem; }
         .pixelforge-logo span { background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+        @media (max-width: 900px) {
+            .dash-wrapper { grid-template-columns: 1fr; }
+            .sidebar {
+                display: none;
+                position: fixed;
+                top: 60px;
+                left: 0;
+                width: 280px;
+                height: calc(100vh - 60px);
+                z-index: 998;
+                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+            }
+            .sidebar.mobile-show {
+                display: flex;
+                animation: slideInLeft 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            .mobile-sidebar-bar { display: block !important; }
+            .settings-container { padding: 1.25rem 1rem; }
+        }
+        @keyframes slideInLeft {
+            from { transform: translateX(-100%); }
+            to { transform: translateX(0); }
+        }
     </style>
 </head>
 <body>
@@ -120,6 +144,11 @@
         <!-- Main Settings Area -->
         <main class="dash-main">
             <div class="settings-container">
+                <div class="mobile-sidebar-bar" style="display:none;margin-bottom:1.25rem;">
+                    <button class="btn btn-ghost" style="padding:0.5rem 1rem;font-size:0.85rem;width:100%;justify-content:space-between;" onclick="toggleMobileSidebar()">
+                        <span>📁 Workspace Menu</span> <span>▼</span>
+                    </button>
+                </div>
                 <div class="settings-header">
                     <h1 class="settings-title" data-i18n="settings_page_title">⚙️ App Settings & Preferences</h1>
                     <p class="settings-sub" data-i18n="settings_page_sub">Manage your security, swipe preferences, visual themes, and app options.</p>
@@ -358,6 +387,11 @@
 
         function openTermsModal() { document.getElementById('terms-modal').style.display = 'flex' }
         function closeTermsModal() { document.getElementById('terms-modal').style.display = 'none' }
+
+        function toggleMobileSidebar() {
+            const sb = document.querySelector('.sidebar')
+            if (sb) sb.classList.toggle('mobile-show')
+        }
     </script>
 </body>
 </html>

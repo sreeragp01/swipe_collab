@@ -50,6 +50,16 @@
         .swipe-btn-pass:hover  { background: var(--red); color: #fff; transform: scale(1.1); box-shadow: 0 0 25px rgba(239, 68, 68, 0.5); }
         .swipe-btn-super:hover { background: var(--accent); color: #fff; transform: scale(1.1); box-shadow: 0 0 25px rgba(139, 92, 246, 0.5); }
         .swipe-btn-like:hover  { background: var(--green); color: #fff; transform: scale(1.1); box-shadow: 0 0 25px rgba(16, 185, 129, 0.5); }
+        
+        @media (max-width: 640px) {
+            .profile-header-card { padding: 1.25rem; }
+            .profile-header-top { flex-direction: column; align-items: center; text-align: center; gap: 1rem; }
+            .info-pill-grid { justify-content: center; }
+            .swipe-action-bar { gap: 0.85rem; }
+            .swipe-btn-lg { width: 52px; height: 52px; font-size: 1.35rem; }
+            .swipe-btn-super { width: 44px; height: 44px; font-size: 1.1rem; }
+        }
+
         .availability-badge { border-radius: 999px; font-size: 0.8rem; font-weight: 700; padding: 0.25rem 0.75rem; }
         .avail-full_time     { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
         .avail-part_time     { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }

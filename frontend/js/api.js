@@ -237,6 +237,41 @@ async function markAllNotificationsRead() {
     } catch {}
 }
 
+function initMobileNav() {
+    const nav = document.querySelector('.nav')
+    const navLinks = document.querySelector('.nav-links')
+    if (!nav || !navLinks || document.getElementById('nav-toggle-btn')) return
+
+    const toggleBtn = document.createElement('button')
+    toggleBtn.className = 'nav-toggle-btn'
+    toggleBtn.id = 'nav-toggle-btn'
+    toggleBtn.setAttribute('aria-label', 'Toggle menu')
+    toggleBtn.innerHTML = '☰'
+    
+    toggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation()
+        const isOpen = navLinks.classList.toggle('open')
+        toggleBtn.innerHTML = isOpen ? '✕' : '☰'
+    })
+
+    document.addEventListener('click', (e) => {
+        if (navLinks.classList.contains('open') && !nav.contains(e.target)) {
+            navLinks.classList.remove('open')
+            toggleBtn.innerHTML = '☰'
+        }
+    })
+
+    navLinks.querySelectorAll('a, button').forEach(item => {
+        item.addEventListener('click', () => {
+            navLinks.classList.remove('open')
+            toggleBtn.innerHTML = '☰'
+        })
+    })
+
+    nav.appendChild(toggleBtn)
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+    initMobileNav()
     if (getToken()) initNotifications()
 })

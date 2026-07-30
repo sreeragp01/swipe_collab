@@ -38,7 +38,7 @@
             position: relative;
             width: 100%;
             max-width: 420px;
-            height: 600px;
+            height: clamp(440px, 66vh, 580px);
         }
 
         .swipe-card {
@@ -53,8 +53,8 @@
             top: 0;
             transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             width: 100%;
-            height: 600px;
-            max-height: 600px;
+            height: clamp(440px, 66vh, 580px);
+            max-height: 580px;
             box-sizing: border-box;
             overflow-y: auto;
             user-select: none;
@@ -253,6 +253,13 @@
         .btn-pass:hover  { background: var(--red); color: #fff; transform: scale(1.1); box-shadow: 0 0 25px rgba(239, 68, 68, 0.5); }
         .btn-super:hover { background: var(--accent); color: #fff; transform: scale(1.1); box-shadow: 0 0 25px rgba(139, 92, 246, 0.5); }
         .btn-like:hover  { background: var(--green); color: #fff; transform: scale(1.1); box-shadow: 0 0 25px rgba(16, 185, 129, 0.5); }
+
+        @media (max-width: 480px) {
+            .swipe-page { padding: 1rem 0.5rem; }
+            .swipe-btns { gap: 0.85rem; margin-top: 1.2rem; }
+            .btn-pass, .btn-like { width: 54px; height: 54px; font-size: 1.4rem; }
+            .btn-super { width: 46px; height: 46px; font-size: 1.15rem; }
+        }
 
         .match-overlay {
             background: rgba(9, 10, 15, 0.88);

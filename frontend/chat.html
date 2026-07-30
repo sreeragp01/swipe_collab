@@ -287,9 +287,15 @@
             justify-content: center;
         }
 
-        @media (max-width: 640px) {
-            .chat-sidebar { display: none; }
-            .chat-layout { grid-template-columns: 1fr; }
+        @media (max-width: 768px) {
+            .chat-layout { grid-template-columns: 1fr; height: calc(100vh - 60px); position: relative; }
+            .chat-sidebar { width: 100%; height: 100%; display: flex; }
+            .chat-sidebar.mobile-hide { display: none !important; }
+            .chat-main { display: none; width: 100%; height: 100%; }
+            .chat-main.mobile-show { display: flex !important; }
+            .mobile-back-btn { display: inline-flex !important; }
+            .chat-header { flex-wrap: wrap; gap: 0.5rem; padding: 0.75rem 1rem; }
+            .chat-input-area { padding: 0.75rem 1rem; }
         }
     </style>
 </head>
@@ -322,15 +328,16 @@
             </div>
             <div id="active-chat" style="display:none;flex-direction:column;height:100%;">
                 <div class="chat-header">
+                    <button class="btn btn-ghost mobile-back-btn" style="display:none;padding:0.4rem 0.75rem;font-size:0.85rem;" onclick="showMobileRooms()">← Back</button>
                     <div class="avatar-placeholder room-avatar" id="chat-avatar" style="width:44px;height:44px;font-size:1.1rem;"></div>
-                    <div style="flex:1;">
+                    <div style="flex:1;min-width:0;">
                         <div class="chat-header-name" id="chat-name"></div>
                         <div class="chat-header-status" id="chat-status">Active now</div>
                     </div>
-                    <div style="display:flex;gap:0.6rem;">
-                        <button onclick="viewChatProfile()" class="btn btn-ghost" style="font-size:0.82rem;padding:0.4rem 0.85rem;">👁️ View Profile</button>
-                        <button onclick="openChatReport()" class="btn btn-ghost" style="font-size:0.82rem;padding:0.4rem 0.85rem;">🚩 Report</button>
-                        <button onclick="openChatBlock()" class="btn btn-ghost" style="font-size:0.82rem;padding:0.4rem 0.85rem;color:#f87171;border-color:rgba(239,68,68,0.4);">🚫 Block</button>
+                    <div style="display:flex;gap:0.4rem;flex-wrap:wrap;">
+                        <button onclick="viewChatProfile()" class="btn btn-ghost" style="font-size:0.82rem;padding:0.4rem 0.75rem;">👁️ View Profile</button>
+                        <button onclick="openChatReport()" class="btn btn-ghost" style="font-size:0.82rem;padding:0.4rem 0.75rem;">🚩 Report</button>
+                        <button onclick="openChatBlock()" class="btn btn-ghost" style="font-size:0.82rem;padding:0.4rem 0.75rem;color:#f87171;border-color:rgba(239,68,68,0.4);">🚫 Block</button>
                     </div>
                 </div>
                 <div class="messages-area" id="messages-area"></div>
@@ -758,6 +765,10 @@
             activeRoomKey = roomKey
             document.getElementById('no-chat').style.display = 'none'
             document.getElementById('active-chat').style.display = 'flex'
+            const sidebar = document.querySelector('.chat-sidebar')
+            const main = document.querySelector('.chat-main')
+            if (sidebar) sidebar.classList.add('mobile-hide')
+            if (main) main.classList.add('mobile-show')
             const displayName = typeof otherUser === 'string' ? otherUser : (otherUser?.display_name || otherUser?.username || (otherUser?.email ? otherUser.email.split('@')[0] : 'User'))
             document.getElementById('chat-name').textContent = displayName
             chatOtherUserId = (typeof otherUser === 'object' && otherUser) ? (otherUser.id || null) : null
@@ -765,6 +776,13 @@
             document.querySelectorAll('.room-item').forEach(i => i.classList.toggle('active', i.dataset.key === roomKey))
             await loadMessages(roomKey)
             connectWS(roomKey)
+        }
+
+        function showMobileRooms() {
+            const sidebar = document.querySelector('.chat-sidebar')
+            const main = document.querySelector('.chat-main')
+            if (sidebar) sidebar.classList.remove('mobile-hide')
+            if (main) main.classList.remove('mobile-show')
         }
 
         async function loadMessages(roomKey) {

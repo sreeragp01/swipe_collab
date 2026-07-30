@@ -364,9 +364,29 @@
 
         @media (max-width: 900px) {
             .dash-wrapper { grid-template-columns: 1fr; }
-            .sidebar { display: none; }
+            .sidebar {
+                display: none;
+                position: fixed;
+                top: 60px;
+                left: 0;
+                width: 280px;
+                height: calc(100vh - 60px);
+                z-index: 998;
+                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+            }
+            .sidebar.mobile-show {
+                display: flex;
+                animation: slideInLeft 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            .mobile-sidebar-bar { display: block !important; }
             .bottom-grid { grid-template-columns: 1fr; }
-            .dash-main { padding: 1.5rem; }
+            .quick-grid { grid-template-columns: 1fr; }
+            .dash-main { padding: 1.25rem 1rem; }
+            .welcome-text h1 { font-size: 1.5rem; }
+        }
+        @keyframes slideInLeft {
+            from { transform: translateX(-100%); }
+            to { transform: translateX(0); }
         }
     </style>
 </head>
@@ -421,6 +441,12 @@
 
         <!-- Main -->
         <main class="dash-main">
+            <div class="mobile-sidebar-bar" style="display:none;margin-bottom:1.25rem;">
+                <button class="btn btn-ghost" style="padding:0.5rem 1rem;font-size:0.85rem;width:100%;justify-content:space-between;" onclick="toggleMobileSidebar()">
+                    <span>📁 Workspace Menu</span> <span>▼</span>
+                </button>
+            </div>
+
             <!-- Trial banner -->
             <div class="trial-banner" id="trial-banner"></div>
 
@@ -575,6 +601,11 @@
                     }
                 }
             } catch {}
+        }
+
+        function toggleMobileSidebar() {
+            const sb = document.querySelector('.sidebar')
+            if (sb) sb.classList.toggle('mobile-show')
         }
 
         loadDashboard()

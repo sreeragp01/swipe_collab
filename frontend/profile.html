@@ -53,11 +53,18 @@
         .info-pill { background: var(--bg3); border: 1px solid var(--border); border-radius: 999px; padding: 0.4rem 0.95rem; font-size: 0.85rem; font-weight: 600; color: #fff; display: inline-flex; align-items: center; gap: 0.4rem; }
         
         /* Showcase Media Cards */
-        .showcase-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; margin-top: 1.2rem; }
+        .showcase-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.5rem; margin-top: 1.2rem; }
         .showcase-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; transition: var(--transition); backdrop-filter: var(--glass-blur); box-shadow: var(--shadow); }
         .showcase-card:hover { border-color: var(--border-hover); transform: translateY(-4px); box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), var(--shadow-glow); }
         .showcase-media-container { width: 100%; height: 200px; background: #000; overflow: hidden; position: relative; }
         .showcase-media { width: 100%; height: 100%; object-fit: cover; }
+
+        @media (max-width: 640px) {
+            .profile-view-header { flex-direction: column; align-items: center; text-align: center; gap: 1rem; }
+            .info-pill-grid { justify-content: center; }
+            .skill-add-row { flex-direction: column; }
+            .showcase-grid { grid-template-columns: 1fr; }
+        }
         .showcase-body { padding: 1.25rem; flex: 1; display: flex; flex-direction: column; }
         .showcase-title { font-size: 1.05rem; font-weight: 800; margin-bottom: 0.4rem; color: #fff; }
         .showcase-desc { font-size: 0.88rem; color: var(--text2); line-height: 1.5; margin-bottom: 0.75rem; }
@@ -112,10 +119,13 @@
             <!-- Header Card -->
             <div class="profile-header-card">
                 <div class="profile-view-header">
-                    <div class="avatar-wrap" onclick="if(currentMode==='edit') document.getElementById('avatar-input').click()">
+                    <div class="avatar-wrap" onclick="document.getElementById('avatar-input').click()" title="Click to upload profile photo">
                         <img id="v-avatar-img" class="avatar-img" alt="Avatar">
                         <div class="avatar-placeholder-box" id="v-avatar-initials">?</div>
+                        <div class="avatar-overlay">📷 Change Photo</div>
                     </div>
+                    <input type="file" id="avatar-input" accept="image/*" style="display:none;" onchange="uploadAvatarFile(this)">
+
                     <div style="flex:1;">
                         <div id="v-role-badge"></div>
                         <h2 class="profile-view-name" id="v-name">Loading...</h2>
@@ -751,11 +761,49 @@
             }
         }
 
+        async function uploadAvatarFile(input) {
+            if (!input.files || !input.files[0]) return
+            const file = input.files[0]
+            const formData = new FormData()
+            const isCompany = user?.role === 'company'
+            formData.append(isCompany ? 'logo' : 'avatar', file)
+
+            showToast('Uploading profile picture...', 'info')
+            try {
+                const res = await apiForm('/profiles/me/', formData, 'PATCH')
+                if (res && res.ok) {
+                    const data = await res.json()
+                    profileData = data
+                    renderViewMode()
+                    showToast('✓ Profile picture updated!')
+                } else {
+                    showToast('Failed to upload profile picture.', 'error')
+                }
+            } catch (err) {
+                showToast('Error uploading profile picture.', 'error')
+            }
+        }
+
         // ── Render View Mode (Clean Professional Profile) ───
         function renderViewMode() {
             if (!profileData) return
             const isCompany = user?.role === 'company'
             
+            // Avatar / Logo Image
+            const rawAvatar = profileData.avatar || profileData.logo
+            if (rawAvatar) {
+                let imgUrl = rawAvatar
+                if (!imgUrl.startsWith('/') && !imgUrl.startsWith('http')) imgUrl = '/media/' + imgUrl
+                document.getElementById('v-avatar-img').src = imgUrl
+                document.getElementById('v-avatar-img').style.display = 'block'
+                document.getElementById('v-avatar-initials').style.display = 'none'
+            } else {
+                const initials = (profileData.name || user?.email || '?')[0].toUpperCase()
+                document.getElementById('v-avatar-initials').textContent = initials
+                document.getElementById('v-avatar-img').style.display = 'none'
+                document.getElementById('v-avatar-initials').style.display = 'flex'
+            }
+
             // Name & Role
             const isVer = user?.is_verified || user?.face_verified
             const tickBadge = isVer ? `<span class="verified-tick-badge" title="Verified Member"><span class="tick-icon">✓</span> Verified</span>` : ''
@@ -763,6 +811,7 @@
             document.getElementById('v-role-badge').innerHTML = isCompany 
                 ? '<span class="role-badge badge-accent">🏢 Company</span>' 
                 : '<span class="role-badge badge-green">🧑‍💻 Freelancer</span>'
+
 
             // Location
             const loc = [profileData.city, profileData.country].filter(Boolean).join(', ')

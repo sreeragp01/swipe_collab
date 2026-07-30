@@ -178,7 +178,13 @@
             display: flex;
             gap: 2rem;
             align-items: center;
-            flex-wrap: wrap;
+        }
+
+        @media (max-width: 640px) {
+            .portfolio-wrapper { padding: 1.25rem 0.85rem; }
+            .p-hero { padding: 1.5rem 1.25rem; }
+            .p-hero-content { flex-direction: column; text-align: center; gap: 1rem; }
+            .p-grid { grid-template-columns: 1fr; }
         }
 
         .p-avatar {
