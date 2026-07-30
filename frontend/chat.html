@@ -451,11 +451,14 @@
                         <div class="msg-meta">${time}</div>
                     </div>`
             } else if (m.message_type === 'audio' || (m.file && (m.file.endsWith('.webm') || m.file.endsWith('.mp3') || m.file.endsWith('.wav') || m.file.endsWith('.ogg') || m.message_type === 'audio'))) {
-                const audioUrl = m.file || m.content
+                const audioUrl = (m.file && typeof m.file === 'string') 
+                    ? m.file 
+                    : ((m.content && typeof m.content === 'string' && (m.content.startsWith('/') || m.content.startsWith('http') || m.content.startsWith('blob:'))) ? m.content : '')
                 div.innerHTML = `
                     <div class="msg-bubble" style="padding:0.4rem 0.6rem;">
                         <div class="voice-msg-player">
                             <button class="voice-play-btn" id="play-btn-${m.id}" onclick="playVoiceNote('${m.id}', '${audioUrl}')">▶</button>
+
                             <div class="voice-wave-bar" onclick="seekVoiceNote(event, '${m.id}')">
                                 <div class="voice-wave-progress" id="wave-prog-${m.id}"></div>
                             </div>
@@ -623,6 +626,11 @@
 
         const currentAudios = {}
         function playVoiceNote(id, url) {
+            if (!url || typeof url !== 'string' || (!url.startsWith('http') && !url.startsWith('/') && !url.startsWith('blob:'))) {
+                showToast('Voice note file URL not available.', 'error')
+                return
+            }
+
             let audio = currentAudios[id]
             const playBtn = document.getElementById(`play-btn-${id}`)
             const prog = document.getElementById(`wave-prog-${id}`)
@@ -632,8 +640,16 @@
                 audio = new Audio(url)
                 currentAudios[id] = audio
 
+                audio.onloadedmetadata = () => {
+                    if (audio.duration && !isNaN(audio.duration) && isFinite(audio.duration)) {
+                        const m = String(Math.floor(audio.duration / 60)).padStart(2, '0')
+                        const s = String(Math.floor(audio.duration % 60)).padStart(2, '0')
+                        if (dur) dur.textContent = `${m}:${s}`
+                    }
+                }
+
                 audio.ontimeupdate = () => {
-                    if (audio.duration) {
+                    if (audio.duration && !isNaN(audio.duration)) {
                         const pct = (audio.currentTime / audio.duration) * 100
                         if (prog) prog.style.width = `${pct}%`
                         const m = String(Math.floor(audio.currentTime / 60)).padStart(2, '0')
@@ -641,22 +657,36 @@
                         if (dur) dur.textContent = `${m}:${s}`
                     }
                 }
+
                 audio.onended = () => {
                     if (playBtn) playBtn.textContent = '▶'
                     if (prog) prog.style.width = '0%'
+                }
+
+                audio.onerror = (e) => {
+                    console.error('Audio load error:', e, url)
+                    showToast('Failed to load voice note audio.', 'error')
+                    if (playBtn) playBtn.textContent = '▶'
                 }
             }
 
             if (audio.paused) {
                 Object.values(currentAudios).forEach(a => { if (a !== audio) a.pause() })
                 document.querySelectorAll('.voice-play-btn').forEach(b => b.textContent = '▶')
-                audio.play()
-                if (playBtn) playBtn.textContent = '⏸'
+                
+                audio.play().then(() => {
+                    if (playBtn) playBtn.textContent = '⏸'
+                }).catch(err => {
+                    console.error('Audio play error:', err)
+                    showToast('Could not play audio note.', 'error')
+                    if (playBtn) playBtn.textContent = '▶'
+                })
             } else {
                 audio.pause()
                 if (playBtn) playBtn.textContent = '▶'
             }
         }
+
 
         function seekVoiceNote(e, id) {
             const audio = currentAudios[id]
