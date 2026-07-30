@@ -457,17 +457,10 @@
                 if (audioUrl && !audioUrl.startsWith('/') && !audioUrl.startsWith('http') && !audioUrl.startsWith('blob:')) {
                     audioUrl = '/media/' + audioUrl
                 }
-                const safeAudioUrl = audioUrl.replace(/'/g, "\\'")
 
                 div.innerHTML = `
-                    <div class="msg-bubble" style="padding:0.6rem 0.85rem;min-width:240px;">
-                        <div class="voice-msg-player">
-                            <button class="voice-play-btn" id="play-btn-${m.id}" onclick="playVoiceNote('${m.id}', '${safeAudioUrl}')" title="Play Voice Note">▶</button>
-                            <div class="voice-wave-bar" onclick="seekVoiceNote(event, '${m.id}')">
-                                <div class="voice-wave-progress" id="wave-prog-${m.id}"></div>
-                            </div>
-                            <span class="voice-duration" id="voice-dur-${m.id}">00:00</span>
-                        </div>
+                    <div class="msg-bubble" style="padding:0.4rem 0.5rem;background:rgba(139,92,246,0.12);border:1px solid rgba(139,92,246,0.3);border-radius:16px;">
+                        <audio controls preload="auto" src="${audioUrl}" style="max-width:260px;height:38px;border-radius:18px;outline:none;display:block;"></audio>
                     </div>
                     <div style="display:flex;align-items:center;gap:0.5rem;margin-top:0.35rem;flex-wrap:wrap;">
                         <span style="font-size:0.75rem;color:var(--text3);font-weight:600;">🎤 Voice Note</span>
@@ -475,7 +468,8 @@
                         <div class="msg-meta" style="margin-left:auto;">${time} ${isMine ? `<span class="read-tick">${m.is_read ? '✓✓' : '✓'}</span>` : ''}</div>
                     </div>
                     <div class="reactions-row" id="reactions-${m.id}"></div>`
-            } else {
+            }
+ else {
                 const safeContent = escapeHtml(m.content || '')
                 div.innerHTML = `
                     <div class="msg-bubble" id="msg-text-${m.id}">${safeContent}</div>
