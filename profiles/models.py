@@ -35,6 +35,7 @@ class FreelancerProfile(models.Model):
     name = models.CharField(max_length=255)
     bio = models.TextField(blank=True)
     avatar = models.ImageField(upload_to="avatars/freelancers/", blank=True, null=True)
+    avatar_data = models.TextField(blank=True, default="")
     portfolio_url = models.URLField(blank=True, null=True)
     github_url = models.URLField(blank=True, null=True)
     linkedin_url = models.URLField(blank=True, null=True)
@@ -45,8 +46,6 @@ class FreelancerProfile(models.Model):
     city = models.CharField(max_length=100, blank=True)
     country = models.CharField(max_length=100, blank=True)
     skills = models.ManyToManyField(Skill, blank=True, related_name="freelancers")
-    portfolio_style = models.CharField(max_length=50, default="modern_glass", blank=True)
-    portfolio_custom_data = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -55,6 +54,16 @@ class FreelancerProfile(models.Model):
 
     def __str__(self):
         return f"Freelancer: {self.name} ({self.user.email})"
+
+    def get_avatar_url(self):
+        if self.avatar_data and self.avatar_data.strip():
+            return self.avatar_data
+        if self.avatar:
+            try:
+                return self.avatar.url
+            except Exception:
+                pass
+        return None
 
 
 class CompanyProfile(models.Model):
@@ -66,6 +75,7 @@ class CompanyProfile(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     logo = models.ImageField(upload_to="avatars/companies/", blank=True, null=True)
+    logo_data = models.TextField(blank=True, default="")
     website_url = models.URLField(blank=True, null=True)
     city = models.CharField(max_length=100, blank=True)
     country = models.CharField(max_length=100, blank=True)
@@ -78,6 +88,16 @@ class CompanyProfile(models.Model):
 
     def __str__(self):
         return f"Company: {self.name} ({self.user.email})"
+
+    def get_logo_url(self):
+        if self.logo_data and self.logo_data.strip():
+            return self.logo_data
+        if self.logo:
+            try:
+                return self.logo.url
+            except Exception:
+                pass
+        return None
 
 
 class PortfolioItem(models.Model):

@@ -331,3 +331,53 @@ class PortfolioItemCommentView(APIView):
 
         serializer = PortfolioItemCommentSerializer(comment)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+def process_image_to_base64(image_file):
+    import base64
+    import io
+    from PIL import Image
+    try:
+        img = Image.open(image_file)
+        if img.mode in ('RGBA', 'P'):
+            img = img.convert('RGB')
+        img.thumbnail((400, 400), Image.Resampling.LANCZOS)
+        buffer = io.BytesIO()
+        img.save(buffer, format='JPEG', quality=85)
+        encoded = base64.b64encode(buffer.getvalue()).decode('utf-8')
+        return f"data:image/jpeg;base64,{encoded}"
+    except Exception:
+        return None
+
+
+class UploadAvatarView(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+
+    def post(self, request):
+        user = request.user
+        avatar_file = request.FILES.get('avatar') or request.FILES.get('logo') or request.FILES.get('file')
+        avatar_data = request.data.get('avatar_data') or request.data.get('logo_data') or request.data.get('data')
+
+        b64_str = None
+        if avatar_file:
+            b64_str = process_image_to_base64(avatar_file)
+        elif avatar_data and str(avatar_data).startswith('data:image'):
+            b64_str = avatar_data
+
+        if user.is_freelancer:
+            profile, _ = FreelancerProfile.objects.get_or_create(user=user, defaults={'name': user.email.split('@')[0]})
+            if b64_str:
+                profile.avatar_data = b64_str
+            if avatar_file:
+                profile.avatar = avatar_file
+            profile.save()
+            return Response(FreelancerProfileSerializer(profile).data)
+        else:
+            profile, _ = CompanyProfile.objects.get_or_create(user=user, defaults={'name': user.email.split('@')[0]})
+            if b64_str:
+                profile.logo_data = b64_str
+            if avatar_file:
+                profile.logo = avatar_file
+            profile.save()
+            return Response(CompanyProfileSerializer(profile).data)

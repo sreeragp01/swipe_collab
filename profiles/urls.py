@@ -13,10 +13,12 @@ from .views import (
     PortfolioItemDetailView,
     PortfolioItemLikeToggleView,
     PortfolioItemCommentView,
+    UploadAvatarView,
 )
 
 urlpatterns = [
     path('skills/',                         SkillListView.as_view(),                name='skill-list'),
+    path('avatar/',                         UploadAvatarView.as_view(),             name='upload-avatar'),
 
     path('freelancer/me/',                  FreelancerProfileMeView.as_view(),      name='freelancer-me'),
     path('freelancer/',                     FreelancerProfileListView.as_view(),    name='freelancer-list'),

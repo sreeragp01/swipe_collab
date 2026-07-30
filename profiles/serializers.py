@@ -25,10 +25,10 @@ class PortfolioItemCommentSerializer(serializers.ModelSerializer):
         return obj.user.email
 
     def get_user_avatar(self, obj):
-        if hasattr(obj.user, 'freelancer_profile') and obj.user.freelancer_profile.avatar:
-            return obj.user.freelancer_profile.avatar.url
-        if hasattr(obj.user, 'company_profile') and obj.user.company_profile.logo:
-            return obj.user.company_profile.logo.url
+        if hasattr(obj.user, 'freelancer_profile'):
+            return obj.user.freelancer_profile.get_avatar_url()
+        if hasattr(obj.user, 'company_profile'):
+            return obj.user.company_profile.get_logo_url()
         return None
 
 
@@ -61,6 +61,7 @@ class PortfolioItemSerializer(serializers.ModelSerializer):
 
 
 class FreelancerProfileSerializer(serializers.ModelSerializer):
+    avatar = serializers.SerializerMethodField()
     portfolio_url = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     github_url = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     linkedin_url = serializers.CharField(required=False, allow_blank=True, allow_null=True)
@@ -82,7 +83,7 @@ class FreelancerProfileSerializer(serializers.ModelSerializer):
         model = FreelancerProfile
         fields = [
             'id', 'email', 'role',
-            'name', 'bio', 'avatar',
+            'name', 'bio', 'avatar', 'avatar_data',
             'portfolio_url', 'portfolio_style', 'portfolio_custom_data',
             'github_url', 'linkedin_url',
             'experience_years', 'availability',
@@ -93,8 +94,12 @@ class FreelancerProfileSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
 
+    def get_avatar(self, obj):
+        return obj.get_avatar_url()
+
 
 class FreelancerProfileCardSerializer(serializers.ModelSerializer):
+    avatar = serializers.SerializerMethodField()
     skills = SkillSerializer(many=True, read_only=True)
     portfolio_items = PortfolioItemSerializer(many=True, read_only=True)
     email = serializers.EmailField(source='user.email', read_only=True)
@@ -111,6 +116,9 @@ class FreelancerProfileCardSerializer(serializers.ModelSerializer):
             'city', 'country', 'skills', 'portfolio_items',
         ]
 
+    def get_avatar(self, obj):
+        return obj.get_avatar_url()
+
 
 class CompanyProjectCardSerializer(serializers.Serializer):
     id = serializers.IntegerField()
@@ -125,6 +133,7 @@ class CompanyProjectCardSerializer(serializers.Serializer):
 
 
 class CompanyProfileSerializer(serializers.ModelSerializer):
+    logo = serializers.SerializerMethodField()
     website_url = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     skills = SkillSerializer(many=True, read_only=True)
     skill_ids = serializers.PrimaryKeyRelatedField(
@@ -142,12 +151,15 @@ class CompanyProfileSerializer(serializers.ModelSerializer):
         model = CompanyProfile
         fields = [
             'id', 'email', 'role',
-            'name', 'description', 'logo',
+            'name', 'description', 'logo', 'logo_data',
             'website_url', 'city', 'country',
             'skills', 'skill_ids', 'open_projects',
             'created_at', 'updated_at',
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
+
+    def get_logo(self, obj):
+        return obj.get_logo_url()
 
     def get_open_projects(self, obj):
         projects = obj.projects.filter(status='open')
@@ -155,6 +167,7 @@ class CompanyProfileSerializer(serializers.ModelSerializer):
 
 
 class CompanyProfileCardSerializer(serializers.ModelSerializer):
+    logo = serializers.SerializerMethodField()
     skills = SkillSerializer(many=True, read_only=True)
     email = serializers.EmailField(source='user.email', read_only=True)
     user_id = serializers.UUIDField(source='user.id', read_only=True)
@@ -167,6 +180,9 @@ class CompanyProfileCardSerializer(serializers.ModelSerializer):
             'id', 'user_id', 'email', 'role', 'name', 'description',
             'logo', 'website_url', 'city', 'country', 'skills', 'open_projects',
         ]
+
+    def get_logo(self, obj):
+        return obj.get_logo_url()
 
     def get_open_projects(self, obj):
         projects = obj.projects.filter(status='open')
