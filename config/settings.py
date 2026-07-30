@@ -1,7 +1,14 @@
 import os
+import mimetypes
 from pathlib import Path
 from datetime import timedelta
 import dj_database_url
+
+mimetypes.add_type("audio/webm", ".webm")
+mimetypes.add_type("audio/ogg", ".ogg")
+mimetypes.add_type("audio/mp4", ".m4a")
+mimetypes.add_type("audio/wav", ".wav")
+
 
 try:
     from dotenv import load_dotenv

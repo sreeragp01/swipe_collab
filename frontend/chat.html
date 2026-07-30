@@ -525,7 +525,7 @@
         }
 
 
-        let mediaRecorder = null, audioChunks = [], recInterval = null, recSeconds = 0, isRecording = false
+        let mediaRecorder = null, audioChunks = [], recInterval = null, recSeconds = 0, isRecording = false, recordedMimeType = 'audio/webm'
 
         async function toggleVoiceRecording() {
             if (isRecording) {
@@ -538,12 +538,28 @@
         async function startVoiceRecording() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-                mediaRecorder = new MediaRecorder(stream)
+                
+                let options = {}
+                if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+                    options = { mimeType: 'audio/webm;codecs=opus' }
+                    recordedMimeType = 'audio/webm'
+                } else if (MediaRecorder.isTypeSupported('audio/webm')) {
+                    options = { mimeType: 'audio/webm' }
+                    recordedMimeType = 'audio/webm'
+                } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
+                    options = { mimeType: 'audio/mp4' }
+                    recordedMimeType = 'audio/mp4'
+                } else if (MediaRecorder.isTypeSupported('audio/ogg')) {
+                    options = { mimeType: 'audio/ogg' }
+                    recordedMimeType = 'audio/ogg'
+                }
+
+                mediaRecorder = new MediaRecorder(stream, options)
                 audioChunks = []
                 recSeconds = 0
 
                 mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data) }
-                mediaRecorder.start()
+                mediaRecorder.start(100)
                 isRecording = true
 
                 document.getElementById('btn-mic').classList.add('recording')
@@ -573,9 +589,10 @@
         function stopAndSendVoiceRecording() {
             if (!mediaRecorder || !isRecording) return
             mediaRecorder.onstop = async () => {
-                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' })
+                const ext = recordedMimeType.includes('mp4') ? 'mp4' : (recordedMimeType.includes('ogg') ? 'ogg' : 'webm')
+                const audioBlob = new Blob(audioChunks, { type: recordedMimeType })
                 if (audioBlob.size > 0) {
-                    await uploadAndSendAudio(audioBlob)
+                    await uploadAndSendAudio(audioBlob, ext)
                 }
                 resetVoiceUI()
             }
@@ -593,13 +610,13 @@
             document.getElementById('rec-timer').textContent = '00:00'
         }
 
-        async function uploadAndSendAudio(blob) {
+        async function uploadAndSendAudio(blob, ext = 'webm') {
             if (!activeRoomKey) {
                 showToast('Please select a chat room first.', 'error')
                 return
             }
             const formData = new FormData()
-            formData.append('file', blob, `voice_${Date.now()}.webm`)
+            formData.append('file', blob, `voice_${Date.now()}.${ext}`)
             formData.append('message_type', 'audio')
             formData.append('content', '🎤 Voice Note')
 
@@ -643,7 +660,10 @@
             const dur = document.getElementById(`voice-dur-${id}`)
 
             if (!audio) {
-                audio = new Audio(url)
+                audio = new Audio()
+                audio.crossOrigin = "anonymous"
+                audio.preload = "auto"
+                audio.src = url
                 currentAudios[id] = audio
 
                 audio.onloadedmetadata = () => {
@@ -670,7 +690,7 @@
                 }
 
                 audio.onerror = (e) => {
-                    console.error('Audio load error:', e, url)
+                    console.error('Audio load error:', e, audio.error, url)
                     showToast('Failed to load voice note audio.', 'error')
                     if (playBtn) playBtn.textContent = '▶'
                 }
@@ -680,18 +700,22 @@
                 Object.values(currentAudios).forEach(a => { if (a !== audio) a.pause() })
                 document.querySelectorAll('.voice-play-btn').forEach(b => b.textContent = '▶')
                 
-                audio.play().then(() => {
-                    if (playBtn) playBtn.textContent = '⏸'
-                }).catch(err => {
-                    console.error('Audio play error:', err)
-                    showToast('Could not play audio note.', 'error')
-                    if (playBtn) playBtn.textContent = '▶'
-                })
+                const playPromise = audio.play()
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        if (playBtn) playBtn.textContent = '⏸'
+                    }).catch(err => {
+                        console.error('Audio play error:', err)
+                        showToast('Could not play audio: ' + (err.name || 'Format error'), 'error')
+                        if (playBtn) playBtn.textContent = '▶'
+                    })
+                }
             } else {
                 audio.pause()
                 if (playBtn) playBtn.textContent = '▶'
             }
         }
+
 
 
         function seekVoiceNote(e, id) {
