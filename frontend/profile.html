@@ -697,92 +697,54 @@
 
         // ── Upload Avatar / Logo ────────────────────
         async function uploadAvatar(input) {
-            const file = input.files[0]
+            const file = input.files && input.files[0]
             if (!file) return
 
             const progress = document.getElementById('avatar-upload-progress')
-            progress.style.display = 'block'; progress.textContent = 'Uploading...'
+            if (progress) { progress.style.display = 'block'; progress.textContent = 'Optimizing photo...' }
 
-            const defaultName = (user?.first_name ? (user.first_name + ' ' + (user.last_name || '')).trim() : '') || user?.username || user?.email?.split('@')[0] || 'User'
-
-            const reader = new FileReader()
-            reader.onload = e => setAvatar(e.target.result, profileData?.name || defaultName)
-            reader.readAsDataURL(file)
-
-            const isCompany = user?.role === 'company'
-            const endpoint = isCompany ? '/profiles/company/me/' : '/profiles/freelancer/me/'
-
-            // Auto-create basic profile if it does not exist yet so avatar upload never fails!
-            if (!profileData) {
-                const nameVal = isCompany 
-                    ? (document.getElementById('c-name')?.value.trim() || defaultName)
-                    : (document.getElementById('f-name')?.value.trim() || defaultName)
-                try {
-                    const createRes = await api(endpoint, { method: 'POST', body: JSON.stringify({ name: nameVal }) })
-                    if (createRes && createRes.ok) {
-                        profileData = await createRes.json()
-                    }
-                } catch (err) {
-                    console.error('Auto-profile creation error:', err)
-                }
-            }
-
-            const form = new FormData()
-            form.append(isCompany ? 'logo' : 'avatar', file)
+            showToast('Optimizing & storing profile photo...', 'info')
 
             try {
-                const res = await apiForm(endpoint, form, 'PATCH')
+                const b64Data = await compressImageFile(file, 350, 350, 0.85)
+
+                setAvatar(b64Data, profileData?.name || user?.email)
+
+                const res = await api('/profiles/avatar/', {
+                    method: 'POST',
+                    body: JSON.stringify({ avatar_data: b64Data, logo_data: b64Data })
+                })
+
                 if (res && res.ok) {
                     profileData = await res.json()
-                    const newAvatarUrl = profileData.avatar || profileData.logo || null
-                    setAvatar(newAvatarUrl, profileData.name)
-                    
-                    const u = getUser()
-                    if (u) {
-                        u.avatar = newAvatarUrl
-                        saveUser(u)
-                    }
-
-                    progress.textContent = '✓ Image updated!'
-                    progress.style.color = 'var(--green)'
+                    showToast('✓ Profile photo permanently saved!', 'success')
+                    if (progress) { progress.textContent = '✓ Saved!'; progress.style.color = 'var(--green)' }
                     updateCompletionBar(profileData)
                     renderViewMode()
-                    setTimeout(() => { progress.style.display = 'none'; progress.style.color = 'var(--accent)' }, 2000)
-                    showToast('Photo updated successfully.')
-                } else {
-                    progress.textContent = 'Upload failed.'
-                    progress.style.color = 'var(--red)'
-                    setTimeout(() => { progress.style.display = 'none'; progress.style.color = 'var(--accent)' }, 2500)
+                    return
                 }
-            } catch {
-                progress.textContent = 'Upload error.'
-                progress.style.color = 'var(--red)'
-                setTimeout(() => { progress.style.display = 'none'; progress.style.color = 'var(--accent)' }, 2500)
-            }
-        }
 
-        async function uploadAvatarFile(input) {
-            if (!input.files || !input.files[0]) return
-            const file = input.files[0]
-            const formData = new FormData()
-            const isCompany = user?.role === 'company'
-            formData.append(isCompany ? 'logo' : 'avatar', file)
-
-            showToast('Uploading profile picture...', 'info')
-            try {
-                const res = await apiForm('/profiles/me/', formData, 'PATCH')
-                if (res && res.ok) {
-                    const data = await res.json()
-                    profileData = data
+                const isCompany = user?.role === 'company'
+                const ep = isCompany ? '/profiles/company/me/' : '/profiles/freelancer/me/'
+                const patchBody = isCompany ? { logo_data: b64Data } : { avatar_data: b64Data }
+                const patchRes = await api(ep, { method: 'PATCH', body: JSON.stringify(patchBody) })
+                if (patchRes && patchRes.ok) {
+                    profileData = await patchRes.json()
+                    showToast('✓ Profile photo saved!', 'success')
+                    if (progress) { progress.textContent = '✓ Saved!'; progress.style.color = 'var(--green)' }
+                    updateCompletionBar(profileData)
                     renderViewMode()
-                    showToast('✓ Profile picture updated!')
                 } else {
-                    showToast('Failed to upload profile picture.', 'error')
+                    showToast('Could not save photo.', 'error')
+                    if (progress) { progress.textContent = 'Failed.'; progress.style.color = 'var(--red)' }
                 }
             } catch (err) {
-                showToast('Error uploading profile picture.', 'error')
+                console.error(err)
+                showToast('Error uploading photo.', 'error')
             }
         }
+
+        window.uploadAvatarFile = uploadAvatar
 
         // ── Render View Mode (Clean Professional Profile) ───
         function renderViewMode() {
@@ -793,7 +755,9 @@
             const rawAvatar = profileData.avatar || profileData.logo
             if (rawAvatar) {
                 let imgUrl = rawAvatar
-                if (!imgUrl.startsWith('/') && !imgUrl.startsWith('http')) imgUrl = '/media/' + imgUrl
+                if (!imgUrl.startsWith('/') && !imgUrl.startsWith('http') && !imgUrl.startsWith('data:')) {
+                    imgUrl = '/media/' + imgUrl
+                }
                 document.getElementById('v-avatar-img').src = imgUrl
                 document.getElementById('v-avatar-img').style.display = 'block'
                 document.getElementById('v-avatar-initials').style.display = 'none'
