@@ -27,9 +27,24 @@ function getUser() {
     return u ? JSON.parse(u) : null
 }
 
+async function fetchCurrentUser() {
+    const token = getToken()
+    if (!token) return null
+    try {
+        const res = await api('/auth/me/')
+        if (res && res.ok) {
+            const data = await res.json()
+            saveUser(data)
+            return data
+        }
+    } catch (e) {}
+    return getUser()
+}
+
 function requireAuth() {
     if (!getToken()) window.location.href = '/login/'
 }
+
 
 async function api(endpoint, options = {}) {
     const headers = { 'Content-Type': 'application/json', ...options.headers }

@@ -307,16 +307,20 @@
 
     <script>
         requireAuth()
-        const user = getUser()
 
-        if (user) {
-            document.getElementById('nav-user-name').textContent = user.username || user.email
-            document.getElementById('nav-user-role').textContent = user.role === 'company' ? '🏢 Company' : '🧑‍💻 Freelancer'
-            document.getElementById('nav-avatar').textContent = (user.username || user.email || 'U')[0].toUpperCase()
+        async function initSettings() {
+            const user = await fetchCurrentUser()
+            if (user) {
+                document.getElementById('nav-user-name').textContent = user.username || user.email
+                document.getElementById('nav-user-role').textContent = user.role === 'company' ? '🏢 Company' : '🧑‍💻 Freelancer'
+                document.getElementById('nav-avatar').textContent = (user.username || user.email || 'U')[0].toUpperCase()
 
-            document.getElementById('email-status-sub').textContent = user.is_verified ? '✓ Email Verified' : '⚠️ Pending Verification'
-            document.getElementById('face-status-sub').textContent = user.face_verified ? '✓ Identity Verified (OpenCV)' : '⚠️ Face Verification Pending'
+                document.getElementById('email-status-sub').textContent = user.is_verified ? '✓ Email Verified' : '⚠️ Pending Verification'
+                document.getElementById('face-status-sub').textContent = user.face_verified ? '✓ Identity Verified (OpenCV)' : '⚠️ Face Verification Pending'
+            }
         }
+        initSettings()
+
 
         async function changePassword() {
             const oldPass = document.getElementById('old-pass').value

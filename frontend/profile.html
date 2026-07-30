@@ -566,11 +566,21 @@
 
     <script>
         requireAuth()
-        const user = getUser()
+        let user = getUser()
         let profileData = null
         let allSkills = []
         let profileSkillIds = []
         let currentMode = 'view' // 'view' or 'edit'
+
+        async function syncProfileUser() {
+            const u = await fetchCurrentUser()
+            if (u) {
+                user = u
+                if (currentMode === 'view') renderViewMode()
+            }
+        }
+        syncProfileUser()
+
 
         // ── Toggle View vs Edit Mode ───────────────
         function toggleMode(mode) {

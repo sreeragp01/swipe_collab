@@ -145,7 +145,17 @@
                 const data = await res.json()
                 if (res.ok) {
                     saveTokens(data.access, data.refresh)
-                    saveUser({ id: data.id, email: data.email, role: data.role, is_paid: data.is_paid, is_trial_active: data.is_trial_active, trial_ends_at: data.trial_ends_at })
+                    saveUser({
+                        id: data.id,
+                        email: data.email,
+                        role: data.role,
+                        is_verified: data.is_verified,
+                        face_verified: data.face_verified,
+                        is_paid: data.is_paid,
+                        is_trial_active: data.is_trial_active,
+                        trial_ends_at: data.trial_ends_at
+                    })
+
                     if (data.trial_expired) {
                         showToast('Trial expired. Please pay ₹49 to continue.', 'error')
                         setTimeout(() => window.location.href = '/payment/', 2000)
