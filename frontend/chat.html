@@ -432,16 +432,18 @@
             if (!m || !m.id) return
             if (document.getElementById(`msg-${m.id}`)) return // Guard against duplicate message elements
 
-            const isMine = m.sender_email === currentUser?.email
+            const userEmail = (currentUser?.email || '').toLowerCase()
+            const msgEmail = (m.sender_email || '').toLowerCase()
+            const isMine = (userEmail && msgEmail && userEmail === msgEmail) || (currentUser?.id && String(m.sender) === String(currentUser.id))
+
             const area = document.getElementById('messages-area')
             const time = new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             const div = document.createElement('div')
             div.className = `msg ${isMine ? 'mine' : 'theirs'}`
             div.id = `msg-${m.id}`
-            const safeContent = escapeHtml(m.content || '')
 
             const deleteBtn = isMine && !m.is_deleted && m.content !== '🚫 This message was deleted' 
-                ? `<button class="btn-translate" style="color:#f87171;border-color:rgba(248,113,113,0.3);" onclick="confirmDeleteMessage(${m.id})" title="Delete message">🗑️ Delete</button>` 
+                ? `<button class="btn-translate" style="color:#f87171;border-color:rgba(248,113,113,0.35);padding:0.25rem 0.55rem;" onclick="confirmDeleteMessage(${m.id})" title="Delete message for everyone">🗑️ Delete</button>` 
                 : ''
 
             if (m.is_deleted || m.content === '🚫 This message was deleted') {
@@ -451,33 +453,36 @@
                         <div class="msg-meta">${time}</div>
                     </div>`
             } else if (m.message_type === 'audio' || (m.file && (m.file.endsWith('.webm') || m.file.endsWith('.mp3') || m.file.endsWith('.wav') || m.file.endsWith('.ogg') || m.message_type === 'audio'))) {
-                const audioUrl = (m.file && typeof m.file === 'string') 
-                    ? m.file 
-                    : ((m.content && typeof m.content === 'string' && (m.content.startsWith('/') || m.content.startsWith('http') || m.content.startsWith('blob:'))) ? m.content : '')
-                div.innerHTML = `
-                    <div class="msg-bubble" style="padding:0.4rem 0.6rem;">
-                        <div class="voice-msg-player">
-                            <button class="voice-play-btn" id="play-btn-${m.id}" onclick="playVoiceNote('${m.id}', '${audioUrl}')">▶</button>
+                let audioUrl = m.file || m.content || ''
+                if (audioUrl && !audioUrl.startsWith('/') && !audioUrl.startsWith('http') && !audioUrl.startsWith('blob:')) {
+                    audioUrl = '/media/' + audioUrl
+                }
+                const safeAudioUrl = audioUrl.replace(/'/g, "\\'")
 
+                div.innerHTML = `
+                    <div class="msg-bubble" style="padding:0.6rem 0.85rem;min-width:240px;">
+                        <div class="voice-msg-player">
+                            <button class="voice-play-btn" id="play-btn-${m.id}" onclick="playVoiceNote('${m.id}', '${safeAudioUrl}')" title="Play Voice Note">▶</button>
                             <div class="voice-wave-bar" onclick="seekVoiceNote(event, '${m.id}')">
                                 <div class="voice-wave-progress" id="wave-prog-${m.id}"></div>
                             </div>
                             <span class="voice-duration" id="voice-dur-${m.id}">00:00</span>
                         </div>
                     </div>
-                    <div style="display:flex;align-items:center;gap:0.5rem;margin-top:0.25rem;">
-                        <span style="font-size:0.75rem;color:var(--text3);">🎤 Voice Note</span>
+                    <div style="display:flex;align-items:center;gap:0.5rem;margin-top:0.35rem;flex-wrap:wrap;">
+                        <span style="font-size:0.75rem;color:var(--text3);font-weight:600;">🎤 Voice Note</span>
                         ${deleteBtn}
-                        <div class="msg-meta">${time} ${isMine ? `<span class="read-tick">${m.is_read ? '✓✓' : '✓'}</span>` : ''}</div>
+                        <div class="msg-meta" style="margin-left:auto;">${time} ${isMine ? `<span class="read-tick">${m.is_read ? '✓✓' : '✓'}</span>` : ''}</div>
                     </div>
                     <div class="reactions-row" id="reactions-${m.id}"></div>`
             } else {
+                const safeContent = escapeHtml(m.content || '')
                 div.innerHTML = `
                     <div class="msg-bubble" id="msg-text-${m.id}">${safeContent}</div>
-                    <div style="display:flex;align-items:center;gap:0.5rem;">
+                    <div style="display:flex;align-items:center;gap:0.5rem;margin-top:0.35rem;flex-wrap:wrap;">
                         <button class="btn-translate" id="msg-tr-btn-${m.id}" onclick="handleTranslateMessage(${m.id}, '${safeContent.replace(/'/g, "\\'")}')">🌐 Translate</button>
                         ${deleteBtn}
-                        <div class="msg-meta">${time} ${isMine ? `<span class="read-tick">${m.is_read ? '✓✓' : '✓'}</span>` : ''}</div>
+                        <div class="msg-meta" style="margin-left:auto;">${time} ${isMine ? `<span class="read-tick">${m.is_read ? '✓✓' : '✓'}</span>` : ''}</div>
                     </div>
                     <div class="reactions-row" id="reactions-${m.id}"></div>`
             }
@@ -488,6 +493,7 @@
             }
             lastMsgId = m.id
         }
+
 
         async function confirmDeleteMessage(msgId) {
             if (!confirm('Delete this message for everyone?')) return
@@ -758,25 +764,8 @@
             } catch {}
         }
 
-        function appendMessage(m) {
-            const isMine = m.sender_email === currentUser?.email
-            const area = document.getElementById('messages-area')
-            const time = new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            const div = document.createElement('div')
-            div.className = `msg ${isMine ? 'mine' : 'theirs'}`
-            div.id = `msg-${m.id}`
-            div.innerHTML = `
-                <div class="msg-bubble">${escapeHtml(m.content)}</div>
-                <div class="msg-meta">${time} ${isMine ? `<span class="read-tick">${m.is_read ? '✓✓' : '✓'}</span>` : ''}</div>
-                <div class="reactions-row" id="reactions-${m.id}"></div>`
-            area.appendChild(div)
-            if (!isMine && !m.is_read && ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({ type: 'read_receipt', message_id: m.id }))
-            }
-            lastMsgId = m.id
-        }
-
         function connectWS(roomKey) {
+
             const token = getToken()
             if (!token) {
                 showToast('Please log in to use chat.', 'error')
