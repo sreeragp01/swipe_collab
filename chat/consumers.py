@@ -89,6 +89,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 })
             return
 
+        if event_type == 'audio_sent':
+            message_data = data.get('message', {})
+            await self.channel_layer.group_send(self.group_name, {
+                'type':         'broadcast_audio',
+                'sender_id':    str(user.id),
+                'message_data': message_data,
+            })
+            return
+
+
         # Default — text message
         content      = data.get('content', '').strip()
         message_type = data.get('message_type', 'text')
@@ -134,6 +144,24 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'is_read':         event['is_read'],
             'created_at':      event['created_at'],
         }))
+
+    async def broadcast_audio(self, event):
+        user = self.scope['user']
+        if str(user.id) != event['sender_id']:
+            m = event['message_data']
+            await self.send(text_data=json.dumps({
+                'type':            'message',
+                'message_id':      m.get('id'),
+                'sender_id':       event['sender_id'],
+                'sender_email':    m.get('sender_email', ''),
+                'sender_username': m.get('sender_username', ''),
+                'content':         m.get('content', '🎤 Voice Note'),
+                'message_type':    'audio',
+                'file':            m.get('file'),
+                'is_read':         False,
+                'created_at':      m.get('created_at'),
+            }))
+
 
 
     async def typing_indicator(self, event):

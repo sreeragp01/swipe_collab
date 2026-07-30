@@ -429,6 +429,9 @@
         }
 
         function appendMessage(m) {
+            if (!m || !m.id) return
+            if (document.getElementById(`msg-${m.id}`)) return // Guard against duplicate message elements
+
             const isMine = m.sender_email === currentUser?.email
             const area = document.getElementById('messages-area')
             const time = new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -436,6 +439,7 @@
             div.className = `msg ${isMine ? 'mine' : 'theirs'}`
             div.id = `msg-${m.id}`
             const safeContent = escapeHtml(m.content || '')
+
 
             if (m.message_type === 'audio' || (m.file && (m.file.endsWith('.webm') || m.file.endsWith('.mp3') || m.file.endsWith('.wav') || m.file.endsWith('.ogg') || m.message_type === 'audio'))) {
                 const audioUrl = m.file || m.content
