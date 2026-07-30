@@ -1661,27 +1661,32 @@
                 showToast('Storing profile photo in persistent database...', 'info')
 
                 try {
-                    const form = new FormData()
-                    form.append('avatar', file)
-                    form.append('avatar_data', b64Data)
-
-                    const res = await apiForm('/profiles/avatar/', form)
+                    // Try JSON endpoint first with Base64 payload
+                    const res = await api('/profiles/avatar/', {
+                        method: 'POST',
+                        body: JSON.stringify({ avatar_data: b64Data, logo_data: b64Data })
+                    })
                     if (res && res.ok) {
                         profileData = await res.json()
                         showToast('✓ Profile photo permanently saved!', 'success')
                         updateCompletionBar(profileData)
+                        return
+                    }
+
+                    // Fallback to me patch
+                    const isCompany = user?.role === 'company'
+                    const ep = isCompany ? '/profiles/company/me/' : '/profiles/freelancer/me/'
+                    const patchBody = isCompany ? { logo_data: b64Data } : { avatar_data: b64Data }
+                    const patchRes = await api(ep, { method: 'PATCH', body: JSON.stringify(patchBody) })
+                    if (patchRes && patchRes.ok) {
+                        profileData = await patchRes.json()
+                        showToast('✓ Profile photo saved in persistent database!', 'success')
+                        updateCompletionBar(profileData)
                     } else {
-                        const isCompany = user?.role === 'company'
-                        const ep = isCompany ? '/profiles/company/me/' : '/profiles/freelancer/me/'
-                        const patchBody = isCompany ? { logo_data: b64Data } : { avatar_data: b64Data }
-                        const patchRes = await api(ep, { method: 'PATCH', body: JSON.stringify(patchBody) })
-                        if (patchRes && patchRes.ok) {
-                            profileData = await patchRes.json()
-                            showToast('✓ Profile photo saved in persistent database!', 'success')
-                        }
+                        showToast('Could not save photo. Try selecting a smaller image file.', 'error')
                     }
                 } catch {
-                    showToast('Photo upload complete.', 'info')
+                    showToast('✓ Photo preview updated.', 'info')
                 }
             }
             reader.readAsDataURL(file)

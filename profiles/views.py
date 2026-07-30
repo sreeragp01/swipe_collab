@@ -362,15 +362,21 @@ class UploadAvatarView(APIView):
         b64_str = None
         if avatar_file:
             b64_str = process_image_to_base64(avatar_file)
-        elif avatar_data and str(avatar_data).startswith('data:image'):
+        if not b64_str and avatar_data and str(avatar_data).startswith('data:image'):
             b64_str = avatar_data
+
+        if not b64_str and not avatar_file:
+            return Response({'detail': 'No image file or Base64 data provided.'}, status=status.HTTP_400_BAD_REQUEST)
 
         if user.is_freelancer:
             profile, _ = FreelancerProfile.objects.get_or_create(user=user, defaults={'name': user.email.split('@')[0]})
             if b64_str:
                 profile.avatar_data = b64_str
             if avatar_file:
-                profile.avatar = avatar_file
+                try:
+                    profile.avatar = avatar_file
+                except Exception:
+                    pass
             profile.save()
             return Response(FreelancerProfileSerializer(profile).data)
         else:
@@ -378,6 +384,9 @@ class UploadAvatarView(APIView):
             if b64_str:
                 profile.logo_data = b64_str
             if avatar_file:
-                profile.logo = avatar_file
+                try:
+                    profile.logo = avatar_file
+                except Exception:
+                    pass
             profile.save()
             return Response(CompanyProfileSerializer(profile).data)
