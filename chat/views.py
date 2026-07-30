@@ -85,3 +85,26 @@ class MessageListView(APIView):
                 pass
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class MessageDeleteView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, message_id):
+        try:
+            msg = Message.objects.get(id=message_id)
+            if msg.sender != request.user:
+                return Response({'detail': 'You can only delete your own messages.'}, status=status.HTTP_403_FORBIDDEN)
+            
+            msg.is_deleted = True
+            msg.content = "🚫 This message was deleted"
+            if msg.file:
+                try:
+                    msg.file.delete(save=False)
+                except Exception:
+                    pass
+                msg.file = None
+            msg.save(update_fields=['is_deleted', 'content', 'file'])
+            return Response({'message': 'Message deleted successfully.', 'id': msg.id})
+        except Message.DoesNotExist:
+            return Response({'detail': 'Message not found.'}, status=status.HTTP_404_NOT_FOUND)

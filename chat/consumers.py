@@ -98,6 +98,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
             })
             return
 
+        if event_type == 'delete_message':
+            message_id = data.get('message_id')
+            if message_id:
+                await self.channel_layer.group_send(self.group_name, {
+                    'type':       'message_deleted_event',
+                    'message_id': message_id,
+                })
+            return
+
+
 
         # Default — text message
         content      = data.get('content', '').strip()
@@ -161,6 +171,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 'is_read':         False,
                 'created_at':      m.get('created_at'),
             }))
+
+    async def message_deleted_event(self, event):
+        await self.send(text_data=json.dumps({
+            'type':       'message_deleted',
+            'message_id': event['message_id'],
+        }))
+
 
 
 

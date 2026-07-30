@@ -51,7 +51,9 @@ class Message(models.Model):
     file = models.FileField(upload_to="chat/files/", blank=True, null=True)
     is_read = models.BooleanField(default=False)
     read_at = models.DateTimeField(null=True, blank=True)
+    is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+
 
     class Meta:
         db_table = "chat_message"

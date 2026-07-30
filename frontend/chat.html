@@ -440,8 +440,17 @@
             div.id = `msg-${m.id}`
             const safeContent = escapeHtml(m.content || '')
 
+            const deleteBtn = isMine && !m.is_deleted && m.content !== '🚫 This message was deleted' 
+                ? `<button class="btn-translate" style="color:#f87171;border-color:rgba(248,113,113,0.3);" onclick="confirmDeleteMessage(${m.id})" title="Delete message">🗑️ Delete</button>` 
+                : ''
 
-            if (m.message_type === 'audio' || (m.file && (m.file.endsWith('.webm') || m.file.endsWith('.mp3') || m.file.endsWith('.wav') || m.file.endsWith('.ogg') || m.message_type === 'audio'))) {
+            if (m.is_deleted || m.content === '🚫 This message was deleted') {
+                div.innerHTML = `
+                    <div class="msg-bubble" style="font-style:italic;color:var(--text3);opacity:0.75;">🚫 This message was deleted</div>
+                    <div style="display:flex;align-items:center;gap:0.5rem;margin-top:0.25rem;">
+                        <div class="msg-meta">${time}</div>
+                    </div>`
+            } else if (m.message_type === 'audio' || (m.file && (m.file.endsWith('.webm') || m.file.endsWith('.mp3') || m.file.endsWith('.wav') || m.file.endsWith('.ogg') || m.message_type === 'audio'))) {
                 const audioUrl = m.file || m.content
                 div.innerHTML = `
                     <div class="msg-bubble" style="padding:0.4rem 0.6rem;">
@@ -455,6 +464,7 @@
                     </div>
                     <div style="display:flex;align-items:center;gap:0.5rem;margin-top:0.25rem;">
                         <span style="font-size:0.75rem;color:var(--text3);">🎤 Voice Note</span>
+                        ${deleteBtn}
                         <div class="msg-meta">${time} ${isMine ? `<span class="read-tick">${m.is_read ? '✓✓' : '✓'}</span>` : ''}</div>
                     </div>
                     <div class="reactions-row" id="reactions-${m.id}"></div>`
@@ -463,6 +473,7 @@
                     <div class="msg-bubble" id="msg-text-${m.id}">${safeContent}</div>
                     <div style="display:flex;align-items:center;gap:0.5rem;">
                         <button class="btn-translate" id="msg-tr-btn-${m.id}" onclick="handleTranslateMessage(${m.id}, '${safeContent.replace(/'/g, "\\'")}')">🌐 Translate</button>
+                        ${deleteBtn}
                         <div class="msg-meta">${time} ${isMine ? `<span class="read-tick">${m.is_read ? '✓✓' : '✓'}</span>` : ''}</div>
                     </div>
                     <div class="reactions-row" id="reactions-${m.id}"></div>`
@@ -474,6 +485,36 @@
             }
             lastMsgId = m.id
         }
+
+        async function confirmDeleteMessage(msgId) {
+            if (!confirm('Delete this message for everyone?')) return
+            try {
+                const res = await api(`/chat/messages/${msgId}/delete/`, { method: 'DELETE' })
+                if (res && res.ok) {
+                    markMessageDeletedLocally(msgId)
+                    if (ws && ws.readyState === WebSocket.OPEN) {
+                        ws.send(JSON.stringify({ type: 'delete_message', message_id: msgId }))
+                    }
+                    showToast('✓ Message deleted.')
+                } else {
+                    showToast('Failed to delete message.', 'error')
+                }
+            } catch (err) {
+                showToast('Error deleting message.', 'error')
+            }
+        }
+
+        function markMessageDeletedLocally(msgId) {
+            const el = document.getElementById(`msg-${msgId}`)
+            if (el) {
+                el.innerHTML = `
+                    <div class="msg-bubble" style="font-style:italic;color:var(--text3);opacity:0.75;">🚫 This message was deleted</div>
+                    <div style="display:flex;align-items:center;gap:0.5rem;margin-top:0.25rem;">
+                        <div class="msg-meta">Deleted</div>
+                    </div>`
+            }
+        }
+
 
         let mediaRecorder = null, audioChunks = [], recInterval = null, recSeconds = 0, isRecording = false
 
@@ -735,7 +776,8 @@
 
             ws.onmessage = (event) => {
                 const data = JSON.parse(event.data)
-                if (data.type === 'message') { appendMessage({ id: data.message_id, sender_email: data.sender_email, content: data.content, message_type: data.message_type, is_read: false, created_at: data.created_at }); scrollToBottom(); loadRooms() }
+                if (data.type === 'message') { appendMessage({ id: data.message_id, sender_email: data.sender_email, content: data.content, message_type: data.message_type, file: data.file, is_read: false, created_at: data.created_at }); scrollToBottom(); loadRooms() }
+                if (data.type === 'message_deleted') { markMessageDeletedLocally(data.message_id) }
                 if (data.type === 'typing') {
                     const typingName = data.sender_username || (data.sender_email ? data.sender_email.split('@')[0] : 'User')
                     document.getElementById('typing-indicator').textContent = data.is_typing ? `${typingName} is typing...` : ''
@@ -743,6 +785,7 @@
                 if (data.type === 'read_receipt') { const el = document.getElementById(`msg-${data.message_id}`); if (el) { const tick = el.querySelector('.read-tick'); if (tick) tick.textContent = '✓✓' } }
                 if (data.type === 'reaction') { const row = document.getElementById(`reactions-${data.message_id}`); if (row) { const b = document.createElement('span'); b.className = 'reaction-badge'; b.textContent = data.emoji; row.appendChild(b) } }
             }
+
         }
 
         function sendMessage() {
