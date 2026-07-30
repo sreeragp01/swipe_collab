@@ -343,9 +343,20 @@
                     <button class="emoji-btn" onclick="sendReaction('🎉')">🎉</button>
                 </div>
                 <div class="chat-input-area">
-                    <textarea id="msg-input" placeholder="Type a message..." rows="1" onkeydown="handleKey(event)" oninput="onTyping()"></textarea>
-                    <button class="send-btn" onclick="sendMessage()">➤</button>
+                    <button class="btn-mic" id="btn-mic" onclick="toggleVoiceRecording()" title="Record Voice Note">🎤</button>
+                    <textarea id="msg-input" placeholder="Type a message..." data-i18n-placeholder="chat_placeholder" rows="1" onkeydown="handleKey(event)" oninput="onTyping()"></textarea>
+                    
+                    <div class="voice-rec-bar" id="voice-rec-bar">
+                        <div class="rec-dot"></div>
+                        <span class="rec-timer" id="rec-timer">00:00</span>
+                        <span style="font-size:0.82rem;color:var(--text2);">Recording Voice Note...</span>
+                        <button type="button" class="btn btn-ghost" style="padding:0.3rem 0.6rem;font-size:0.8rem;margin-left:auto;color:#f87171;" onclick="cancelVoiceRecording()">✕ Cancel</button>
+                        <button type="button" class="btn btn-primary" style="padding:0.35rem 0.85rem;font-size:0.8rem;" onclick="stopAndSendVoiceRecording()">➤ Send Voice</button>
+                    </div>
+
+                    <button class="send-btn" id="send-btn" onclick="sendMessage()">➤</button>
                 </div>
+
             </div>
         </div>
     </div>
@@ -424,20 +435,186 @@
             const div = document.createElement('div')
             div.className = `msg ${isMine ? 'mine' : 'theirs'}`
             div.id = `msg-${m.id}`
-            const safeContent = escapeHtml(m.content)
-            div.innerHTML = `
-                <div class="msg-bubble" id="msg-text-${m.id}">${safeContent}</div>
-                <div style="display:flex;align-items:center;gap:0.5rem;">
-                    <button class="btn-translate" id="msg-tr-btn-${m.id}" onclick="handleTranslateMessage(${m.id}, '${safeContent.replace(/'/g, "\\'")}')">🌐 Translate</button>
-                    <div class="msg-meta">${time} ${isMine ? `<span class="read-tick">${m.is_read ? '✓✓' : '✓'}</span>` : ''}</div>
-                </div>
-                <div class="reactions-row" id="reactions-${m.id}"></div>`
+            const safeContent = escapeHtml(m.content || '')
+
+            if (m.message_type === 'audio' || (m.file && (m.file.endsWith('.webm') || m.file.endsWith('.mp3') || m.file.endsWith('.wav') || m.file.endsWith('.ogg') || m.message_type === 'audio'))) {
+                const audioUrl = m.file || m.content
+                div.innerHTML = `
+                    <div class="msg-bubble" style="padding:0.4rem 0.6rem;">
+                        <div class="voice-msg-player">
+                            <button class="voice-play-btn" id="play-btn-${m.id}" onclick="playVoiceNote('${m.id}', '${audioUrl}')">▶</button>
+                            <div class="voice-wave-bar" onclick="seekVoiceNote(event, '${m.id}')">
+                                <div class="voice-wave-progress" id="wave-prog-${m.id}"></div>
+                            </div>
+                            <span class="voice-duration" id="voice-dur-${m.id}">00:00</span>
+                        </div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:0.5rem;margin-top:0.25rem;">
+                        <span style="font-size:0.75rem;color:var(--text3);">🎤 Voice Note</span>
+                        <div class="msg-meta">${time} ${isMine ? `<span class="read-tick">${m.is_read ? '✓✓' : '✓'}</span>` : ''}</div>
+                    </div>
+                    <div class="reactions-row" id="reactions-${m.id}"></div>`
+            } else {
+                div.innerHTML = `
+                    <div class="msg-bubble" id="msg-text-${m.id}">${safeContent}</div>
+                    <div style="display:flex;align-items:center;gap:0.5rem;">
+                        <button class="btn-translate" id="msg-tr-btn-${m.id}" onclick="handleTranslateMessage(${m.id}, '${safeContent.replace(/'/g, "\\'")}')">🌐 Translate</button>
+                        <div class="msg-meta">${time} ${isMine ? `<span class="read-tick">${m.is_read ? '✓✓' : '✓'}</span>` : ''}</div>
+                    </div>
+                    <div class="reactions-row" id="reactions-${m.id}"></div>`
+            }
+
             area.appendChild(div)
             if (!isMine && !m.is_read && ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({ type: 'read_receipt', message_id: m.id }))
             }
             lastMsgId = m.id
         }
+
+        let mediaRecorder = null, audioChunks = [], recInterval = null, recSeconds = 0, isRecording = false
+
+        async function toggleVoiceRecording() {
+            if (isRecording) {
+                stopAndSendVoiceRecording()
+                return
+            }
+            startVoiceRecording()
+        }
+
+        async function startVoiceRecording() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+                mediaRecorder = new MediaRecorder(stream)
+                audioChunks = []
+                recSeconds = 0
+
+                mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data) }
+                mediaRecorder.start()
+                isRecording = true
+
+                document.getElementById('btn-mic').classList.add('recording')
+                document.getElementById('msg-input').style.display = 'none'
+                document.getElementById('send-btn').style.display = 'none'
+                document.getElementById('voice-rec-bar').style.display = 'flex'
+
+                recInterval = setInterval(() => {
+                    recSeconds++
+                    const m = String(Math.floor(recSeconds / 60)).padStart(2, '0')
+                    const s = String(recSeconds % 60).padStart(2, '0')
+                    document.getElementById('rec-timer').textContent = `${m}:${s}`
+                }, 1000)
+            } catch (err) {
+                showToast('Microphone access denied or not available.', 'error')
+            }
+        }
+
+        function cancelVoiceRecording() {
+            if (mediaRecorder && isRecording) {
+                mediaRecorder.stop()
+                mediaRecorder.stream.getTracks().forEach(t => t.stop())
+            }
+            resetVoiceUI()
+        }
+
+        function stopAndSendVoiceRecording() {
+            if (!mediaRecorder || !isRecording) return
+            mediaRecorder.onstop = async () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' })
+                if (audioBlob.size > 0) {
+                    await uploadAndSendAudio(audioBlob)
+                }
+                resetVoiceUI()
+            }
+            mediaRecorder.stop()
+            mediaRecorder.stream.getTracks().forEach(t => t.stop())
+        }
+
+        function resetVoiceUI() {
+            isRecording = false
+            clearInterval(recInterval)
+            document.getElementById('btn-mic').classList.remove('recording')
+            document.getElementById('msg-input').style.display = 'block'
+            document.getElementById('send-btn').style.display = 'block'
+            document.getElementById('voice-rec-bar').style.display = 'none'
+            document.getElementById('rec-timer').textContent = '00:00'
+        }
+
+        async function uploadAndSendAudio(blob) {
+            if (!activeRoomKey) return
+            const formData = new FormData()
+            formData.append('file', blob, `voice_${Date.now()}.webm`)
+            formData.append('message_type', 'audio')
+            formData.append('content', '🎤 Voice Note')
+
+            try {
+                showToast('Sending voice note...', 'info')
+                const res = await apiForm(`/chat/rooms/${activeRoomKey}/messages/`, formData, 'POST')
+                if (res && res.ok) {
+                    const data = await res.json()
+                    appendMessage(data)
+                    scrollToBottom()
+                    if (ws && ws.readyState === WebSocket.OPEN) {
+                        ws.send(JSON.stringify({
+                            type: 'message',
+                            message_type: 'audio',
+                            content: '🎤 Voice Note',
+                            file: data.file
+                        }))
+                    }
+                    showToast('✓ Voice note sent!')
+                } else {
+                    showToast('Failed to send voice note.', 'error')
+                }
+            } catch (err) {
+                showToast('Error uploading voice note.', 'error')
+            }
+        }
+
+        const currentAudios = {}
+        function playVoiceNote(id, url) {
+            let audio = currentAudios[id]
+            const playBtn = document.getElementById(`play-btn-${id}`)
+            const prog = document.getElementById(`wave-prog-${id}`)
+            const dur = document.getElementById(`voice-dur-${id}`)
+
+            if (!audio) {
+                audio = new Audio(url)
+                currentAudios[id] = audio
+
+                audio.ontimeupdate = () => {
+                    if (audio.duration) {
+                        const pct = (audio.currentTime / audio.duration) * 100
+                        if (prog) prog.style.width = `${pct}%`
+                        const m = String(Math.floor(audio.currentTime / 60)).padStart(2, '0')
+                        const s = String(Math.floor(audio.currentTime % 60)).padStart(2, '0')
+                        if (dur) dur.textContent = `${m}:${s}`
+                    }
+                }
+                audio.onended = () => {
+                    if (playBtn) playBtn.textContent = '▶'
+                    if (prog) prog.style.width = '0%'
+                }
+            }
+
+            if (audio.paused) {
+                Object.values(currentAudios).forEach(a => { if (a !== audio) a.pause() })
+                document.querySelectorAll('.voice-play-btn').forEach(b => b.textContent = '▶')
+                audio.play()
+                if (playBtn) playBtn.textContent = '⏸'
+            } else {
+                audio.pause()
+                if (playBtn) playBtn.textContent = '▶'
+            }
+        }
+
+        function seekVoiceNote(e, id) {
+            const audio = currentAudios[id]
+            if (!audio || !audio.duration) return
+            const rect = e.currentTarget.getBoundingClientRect()
+            const pct = (e.clientX - rect.left) / rect.width
+            audio.currentTime = pct * audio.duration
+        }
+
 
 
         async function loadRooms() {

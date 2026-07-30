@@ -30,12 +30,15 @@ class Message(models.Model):
     MESSAGE_TYPE_TEXT = "text"
     MESSAGE_TYPE_FILE = "file"
     MESSAGE_TYPE_IMAGE = "image"
+    MESSAGE_TYPE_AUDIO = "audio"
 
     MESSAGE_TYPE_CHOICES = [
         (MESSAGE_TYPE_TEXT, "Text"),
         (MESSAGE_TYPE_FILE, "File"),
         (MESSAGE_TYPE_IMAGE, "Image"),
+        (MESSAGE_TYPE_AUDIO, "Audio"),
     ]
+
 
     room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE, related_name="messages")
     sender = models.ForeignKey(

@@ -92,12 +92,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
         # Default — text message
         content      = data.get('content', '').strip()
         message_type = data.get('message_type', 'text')
+        file_url     = data.get('file', None)
 
-        if not content:
+        if not content and not file_url:
             return
 
         try:
-            saved = await self.save_message(user, self.room_key, content, message_type)
+            saved = await self.save_message(user, self.room_key, content, message_type, file_url)
         except Exception as e:
             await self.send(text_data=json.dumps({
                 'type':   'error',
@@ -113,6 +114,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'sender_username': user.username or user.email.split('@')[0],
             'content':         content,
             'message_type':    message_type,
+            'file':            saved.get('file'),
             'is_read':         False,
             'created_at':      saved['created_at'],
         })
@@ -128,9 +130,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'sender_username': event.get('sender_username', ''),
             'content':         event['content'],
             'message_type':    event['message_type'],
+            'file':            event.get('file'),
             'is_read':         event['is_read'],
             'created_at':      event['created_at'],
         }))
+
 
     async def typing_indicator(self, event):
         user = self.scope['user']
@@ -174,7 +178,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             return False
 
     @database_sync_to_async
-    def save_message(self, user, room_key, content, message_type):
+    def save_message(self, user, room_key, content, message_type, file_url=None):
         from chat.models import ChatRoom, Message
         room = ChatRoom.objects.get(room_key=room_key)
 
@@ -186,11 +190,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
             sender       = user,
             content      = content,
             message_type = message_type,
+            file         = file_url if file_url else None
         )
         return {
             'id':         msg.id,
+            'file':       msg.file.url if msg.file else file_url,
             'created_at': str(msg.created_at),
         }
+
 
     @database_sync_to_async
     def mark_message_read(self, message_id, user):
