@@ -65,6 +65,7 @@ class FreelancerProfileSerializer(serializers.ModelSerializer):
     portfolio_url = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     github_url = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     linkedin_url = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    video_intro_url = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     skills = SkillSerializer(many=True, read_only=True)
     skill_ids = serializers.PrimaryKeyRelatedField(
         queryset=Skill.objects.all(),
@@ -76,26 +77,33 @@ class FreelancerProfileSerializer(serializers.ModelSerializer):
     portfolio_items = PortfolioItemSerializer(many=True, read_only=True)
     email = serializers.EmailField(source='user.email', read_only=True)
     role = serializers.CharField(source='user.role', read_only=True)
+    is_verified = serializers.BooleanField(source='user.is_verified', read_only=True)
+    face_verified = serializers.BooleanField(source='user.face_verified', read_only=True)
     is_trial_active = serializers.BooleanField(source='user.is_trial_active', read_only=True)
     trial_ends_at = serializers.DateTimeField(source='user.trial_ends_at', read_only=True)
+    completeness = serializers.SerializerMethodField()
 
     class Meta:
         model = FreelancerProfile
         fields = [
-            'id', 'email', 'role',
-            'name', 'bio', 'avatar', 'avatar_data',
+            'id', 'email', 'role', 'is_verified', 'face_verified',
+            'name', 'title', 'bio', 'avatar', 'avatar_data',
             'portfolio_url', 'portfolio_style', 'portfolio_custom_data',
-            'github_url', 'linkedin_url',
-            'experience_years', 'availability',
+            'github_url', 'linkedin_url', 'video_intro_url',
+            'experience_years', 'hourly_rate', 'hours_per_week', 'english_fluency',
+            'education', 'certifications', 'availability',
             'city', 'country',
             'skills', 'skill_ids', 'portfolio_items',
-            'is_trial_active', 'trial_ends_at',
+            'is_trial_active', 'trial_ends_at', 'completeness',
             'created_at', 'updated_at',
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
 
     def get_avatar(self, obj):
         return obj.get_avatar_url()
+
+    def get_completeness(self, obj):
+        return obj.get_completeness_score()
 
 
 class FreelancerProfileCardSerializer(serializers.ModelSerializer):
@@ -105,19 +113,27 @@ class FreelancerProfileCardSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(source='user.email', read_only=True)
     user_id = serializers.UUIDField(source='user.id', read_only=True)
     role = serializers.CharField(source='user.role', read_only=True)
+    is_verified = serializers.BooleanField(source='user.is_verified', read_only=True)
+    face_verified = serializers.BooleanField(source='user.face_verified', read_only=True)
+    completeness = serializers.SerializerMethodField()
 
     class Meta:
         model = FreelancerProfile
         fields = [
-            'id', 'user_id', 'email', 'role', 'name', 'bio', 'avatar',
+            'id', 'user_id', 'email', 'role', 'is_verified', 'face_verified',
+            'name', 'title', 'bio', 'avatar',
             'portfolio_url', 'portfolio_style', 'portfolio_custom_data',
-            'github_url', 'linkedin_url',
-            'experience_years', 'availability',
-            'city', 'country', 'skills', 'portfolio_items',
+            'github_url', 'linkedin_url', 'video_intro_url',
+            'experience_years', 'hourly_rate', 'hours_per_week', 'english_fluency',
+            'education', 'certifications', 'availability',
+            'city', 'country', 'skills', 'portfolio_items', 'completeness',
         ]
 
     def get_avatar(self, obj):
         return obj.get_avatar_url()
+
+    def get_completeness(self, obj):
+        return obj.get_completeness_score()
 
 
 class CompanyProjectCardSerializer(serializers.Serializer):

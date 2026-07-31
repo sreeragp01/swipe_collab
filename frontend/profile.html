@@ -255,9 +255,10 @@
             <!-- Freelancer Form -->
             <div id="freelancer-form-section" style="display:none;">
                 <div class="tabs">
-                    <button class="tab active" onclick="switchTab('f-basic', this)">🧑‍💻 Personal Info</button>
-                    <button class="tab" onclick="switchTab('f-skills', this)">🛠️ Skills & Expertise</button>
-                    <button class="tab" onclick="switchTab('f-links', this)">🌐 Portfolio & Socials</button>
+                    <button class="tab active" onclick="switchTab('f-basic', this)">🧑‍💻 Personal & Rates</button>
+                    <button class="tab" onclick="switchTab('f-skills', this)">🛠️ Skills & Capacity</button>
+                    <button class="tab" onclick="switchTab('f-edu', this)">🎓 Education & Credentials</button>
+                    <button class="tab" onclick="switchTab('f-links', this)">🌐 Links & Video Intro</button>
                     <button class="tab" onclick="switchTab('f-verify', this)">🛡️ Verification</button>
                 </div>
 
@@ -268,23 +269,22 @@
                             <input type="text" id="f-name" placeholder="e.g. Alex Johnson">
                         </div>
                         <div class="form-group">
-                            <label>Professional Bio / Summary</label>
-                            <textarea id="f-bio" rows="3" placeholder="Brief intro about yourself shown on your freelancer card..."></textarea>
+                            <label>Professional Title / Headline *</label>
+                            <input type="text" id="f-title" placeholder="e.g. Senior Full-Stack Engineer | Python, React & Cloud Architect">
                         </div>
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
                             <div class="form-group">
-                                <label>Years of Experience</label>
-                                <input type="number" id="f-experience" min="0" max="50" placeholder="e.g. 4">
+                                <label>Hourly Rate ($ USD / hr)</label>
+                                <input type="number" id="f-hourly-rate" min="0" step="0.50" placeholder="e.g. 45.00">
                             </div>
                             <div class="form-group">
-                                <label>Availability Status</label>
-                                <select id="f-availability">
-                                    <option value="full_time">Full Time</option>
-                                    <option value="part_time">Part Time</option>
-                                    <option value="contract">Contract / Freelance</option>
-                                    <option value="not_available">Not Available</option>
-                                </select>
+                                <label>Years of Experience</label>
+                                <input type="number" id="f-experience" min="0" max="50" placeholder="e.g. 5">
                             </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Professional Overview / Bio *</label>
+                            <textarea id="f-bio" rows="4" placeholder="Detail your background, key technical achievements, and what makes you a top candidate..."></textarea>
                         </div>
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
                             <div class="form-group"><label>City</label><input type="text" id="f-city" placeholder="Bangalore"></div>
@@ -296,9 +296,28 @@
 
                 <div id="tab-f-skills" class="tab-panel">
                     <div class="card">
-                        <h3 style="font-size:1rem;margin-bottom:0.5rem;">Manage Freelancer Skills</h3>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:1rem;">
+                            <div class="form-group">
+                                <label>Hours Available Per Week</label>
+                                <select id="f-hours-per-week">
+                                    <option value="more_than_30">More than 30 hrs/week</option>
+                                    <option value="less_than_30">Less than 30 hrs/week</option>
+                                    <option value="as_needed">As needed / Contract</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>English Fluency Level</label>
+                                <select id="f-english-fluency">
+                                    <option value="native">Native / Bilingual</option>
+                                    <option value="fluent">Fluent</option>
+                                    <option value="conversational">Conversational</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <h3 style="font-size:1rem;margin-bottom:0.5rem;">Manage Active Technical Skills</h3>
                         <p style="color:var(--text2);font-size:0.875rem;margin-bottom:1.25rem;">
-                            Add skills that reflect your expertise. Higher skill matches boost recommendations!
+                            Add skills that reflect your core technical stack. Higher skill matches boost candidate recommendations!
                         </p>
                         <div class="skills-section-label">Your Active Skills</div>
                         <div class="skills-wrap" id="f-skills-display">
@@ -327,9 +346,50 @@
                     </div>
                 </div>
 
+                <div id="tab-f-edu" class="tab-panel">
+                    <div class="card" style="margin-bottom:1.25rem;">
+                        <h3 style="font-size:1rem;margin-bottom:0.5rem;">🎓 Education History</h3>
+                        <div id="education-list" style="margin-bottom:1rem;display:flex;flex-direction:column;gap:0.75rem;">
+                            <div style="color:var(--text3);font-size:0.85rem;font-style:italic;">No education added yet.</div>
+                        </div>
+                        
+                        <div style="background:#f8fafc;border:1px solid var(--border);border-radius:12px;padding:1.1rem;">
+                            <h4 style="font-size:0.9rem;margin-bottom:0.75rem;color:#0f172a;">+ Add School / Degree</h4>
+                            <div class="form-group"><label>School / University Name</label><input type="text" id="edu-school" placeholder="e.g. Stanford University"></div>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+                                <div class="form-group"><label>Degree</label><input type="text" id="edu-degree" placeholder="e.g. Bachelor of Science"></div>
+                                <div class="form-group"><label>Field of Study / Major</label><input type="text" id="edu-field" placeholder="e.g. Computer Science"></div>
+                            </div>
+                            <button class="btn btn-ghost" style="border:1px solid var(--border);font-size:0.85rem;" onclick="addEducationItem()">+ Save Education Item</button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3 style="font-size:1rem;margin-bottom:0.5rem;">🏆 Certifications & Credentials</h3>
+                        <div id="certifications-list" style="margin-bottom:1rem;display:flex;flex-direction:column;gap:0.75rem;">
+                            <div style="color:var(--text3);font-size:0.85rem;font-style:italic;">No certifications added yet.</div>
+                        </div>
+
+                        <div style="background:#f8fafc;border:1px solid var(--border);border-radius:12px;padding:1.1rem;">
+                            <h4 style="font-size:0.9rem;margin-bottom:0.75rem;color:#0f172a;">+ Add Professional Certification</h4>
+                            <div class="form-group"><label>Certification Name</label><input type="text" id="cert-name" placeholder="e.g. AWS Certified Solutions Architect"></div>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+                                <div class="form-group"><label>Issuer / Organization</label><input type="text" id="cert-issuer" placeholder="e.g. Amazon Web Services"></div>
+                                <div class="form-group"><label>Year Issued</label><input type="text" id="cert-year" placeholder="e.g. 2025"></div>
+                            </div>
+                            <button class="btn btn-ghost" style="border:1px solid var(--border);font-size:0.85rem;" onclick="addCertificationItem()">+ Save Certification Item</button>
+                        </div>
+                    </div>
+                </div>
+
                 <div id="tab-f-links" class="tab-panel">
                     <div class="card">
-                        <h3 style="font-size:1rem;margin-bottom:1rem;">Portfolio & Social Links</h3>
+                        <h3 style="font-size:1rem;margin-bottom:1rem;">Portfolio, Social Links & Video Intro</h3>
+                        <div class="form-group">
+                            <label>🎥 Video Introduction URL (Loom or YouTube)</label>
+                            <input type="url" id="f-video-intro" placeholder="https://www.loom.com/share/your-video-id or YouTube link">
+                            <small style="color:var(--text3);font-size:0.78rem;">A 1-minute video intro increases match responses by 3x!</small>
+                        </div>
                         <div class="form-group">
                             <label>Portfolio URL</label>
                             <input type="url" id="f-portfolio" placeholder="https://yourportfolio.com">
@@ -771,7 +831,8 @@
             // Name & Role
             const isVer = user?.is_verified || user?.face_verified
             const tickBadge = isVer ? `<span class="verified-tick-badge" title="Verified Member"><span class="tick-icon">✓</span> Verified</span>` : ''
-            document.getElementById('v-name').innerHTML = (profileData.name || (isCompany ? 'Company Name Not Set' : 'Name Not Set')) + tickBadge
+            const headlineTitle = (!isCompany && profileData.title) ? `<div style="font-size:1.05rem;font-weight:700;color:#108a00;margin-top:0.2rem;">${profileData.title}</div>` : ''
+            document.getElementById('v-name').innerHTML = (profileData.name || (isCompany ? 'Company Name Not Set' : 'Name Not Set')) + tickBadge + headlineTitle
             document.getElementById('v-role-badge').innerHTML = isCompany 
                 ? '<span class="role-badge badge-accent">🏢 Company</span>' 
                 : '<span class="role-badge badge-green">🧑‍💻 Freelancer</span>'
@@ -790,8 +851,21 @@
             pillsContainer.innerHTML = ''
 
             if (!isCompany) {
+                // Hourly Rate
+                if (profileData.hourly_rate) {
+                    pillsContainer.innerHTML += `<div class="info-pill" style="font-weight:800;color:#108a00;background:rgba(16,138,0,0.1);border-color:rgba(16,138,0,0.3);">💰 $${parseFloat(profileData.hourly_rate).toFixed(2)} / hr</div>`
+                }
                 // Experience
                 pillsContainer.innerHTML += `<div class="info-pill">⏱️ ${profileData.experience_years || 0} Years Experience</div>`
+                // Hours per week
+                if (profileData.hours_per_week) {
+                    const hrsMap = { more_than_30: '⚡ > 30 hrs/wk', less_than_30: '⏳ < 30 hrs/wk', as_needed: '📅 As needed' }
+                    pillsContainer.innerHTML += `<div class="info-pill">${hrsMap[profileData.hours_per_week] || profileData.hours_per_week}</div>`
+                }
+                // English Fluency
+                if (profileData.english_fluency) {
+                    pillsContainer.innerHTML += `<div class="info-pill">🗣️ English (${profileData.english_fluency})</div>`
+                }
                 // Availability
                 const availMap = { full_time: '🟢 Full Time', part_time: '🟡 Part Time', contract: '🔵 Contract', not_available: '🔴 Not Available' }
                 pillsContainer.innerHTML += `<div class="info-pill">${availMap[profileData.availability] || 'Full Time'}</div>`
@@ -1129,19 +1203,131 @@
                 document.getElementById('c-country').value = p?.country || ''
             } else {
                 document.getElementById('f-name').value = p?.name || defaultName
+                document.getElementById('f-title').value = p?.title || ''
                 document.getElementById('f-bio').value = p?.bio || ''
+                document.getElementById('f-hourly-rate').value = p?.hourly_rate || ''
                 document.getElementById('f-experience').value = p?.experience_years || 0
-                document.getElementById('f-availability').value = p?.availability || 'full_time'
+                document.getElementById('f-hours-per-week').value = p?.hours_per_week || 'more_than_30'
+                document.getElementById('f-english-fluency').value = p?.english_fluency || 'fluent'
                 document.getElementById('f-city').value = p?.city || ''
                 document.getElementById('f-country').value = p?.country || ''
+                document.getElementById('f-video-intro').value = p?.video_intro_url || ''
                 document.getElementById('f-portfolio').value = p?.portfolio_url || ''
                 document.getElementById('f-github').value = p?.github_url || ''
                 document.getElementById('f-linkedin').value = p?.linkedin_url || ''
+
+                freelancerEducation = p?.education || []
+                freelancerCertifications = p?.certifications || []
+                renderEducationList()
+                renderCertificationsList()
             }
 
             profileSkillIds = (p?.skills || []).map(s => s.id)
             renderSkills(p?.skills || [])
             if (p) updateCompletionBar(p)
+        }
+
+        // ── Education & Certifications Handlers ────
+        function renderEducationList() {
+            const listEl = document.getElementById('education-list')
+            if (!listEl) return
+            if (freelancerEducation.length === 0) {
+                listEl.innerHTML = '<div style="color:var(--text3);font-size:0.85rem;font-style:italic;">No education items added yet.</div>'
+                return
+            }
+            listEl.innerHTML = freelancerEducation.map((item, idx) => `
+                <div style="background:#ffffff;border:1px solid var(--border);border-radius:10px;padding:0.85rem;display:flex;justify-content:space-between;align-items:center;">
+                    <div>
+                        <strong style="color:#0f172a;font-size:0.92rem;">🎓 ${item.school}</strong>
+                        <div style="color:var(--text2);font-size:0.82rem;">${item.degree} — ${item.field}</div>
+                    </div>
+                    <button type="button" onclick="removeEducationItem(${idx})" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:0.9rem;">🗑️</button>
+                </div>
+            `).join('')
+        }
+
+        async function addEducationItem() {
+            const school = document.getElementById('edu-school').value.trim()
+            const degree = document.getElementById('edu-degree').value.trim()
+            const field = document.getElementById('edu-field').value.trim()
+            if (!school || !degree) return showToast('School name and degree are required.', 'error')
+
+            freelancerEducation.push({ school, degree, field })
+            document.getElementById('edu-school').value = ''
+            document.getElementById('edu-degree').value = ''
+            document.getElementById('edu-field').value = ''
+            renderEducationList()
+
+            if (profileData) {
+                await api('/profiles/freelancer/me/', {
+                    method: 'PATCH',
+                    body: JSON.stringify({ education: freelancerEducation })
+                })
+                showToast('✓ Education saved!')
+            }
+        }
+
+        async function removeEducationItem(idx) {
+            freelancerEducation.splice(idx, 1)
+            renderEducationList()
+            if (profileData) {
+                await api('/profiles/freelancer/me/', {
+                    method: 'PATCH',
+                    body: JSON.stringify({ education: freelancerEducation })
+                })
+                showToast('Education removed.')
+            }
+        }
+
+        function renderCertificationsList() {
+            const listEl = document.getElementById('certifications-list')
+            if (!listEl) return
+            if (freelancerCertifications.length === 0) {
+                listEl.innerHTML = '<div style="color:var(--text3);font-size:0.85rem;font-style:italic;">No certifications added yet.</div>'
+                return
+            }
+            listEl.innerHTML = freelancerCertifications.map((item, idx) => `
+                <div style="background:#ffffff;border:1px solid var(--border);border-radius:10px;padding:0.85rem;display:flex;justify-content:space-between;align-items:center;">
+                    <div>
+                        <strong style="color:#0f172a;font-size:0.92rem;">🏆 ${item.name}</strong>
+                        <div style="color:var(--text2);font-size:0.82rem;">${item.issuer} ${item.year ? `(${item.year})` : ''}</div>
+                    </div>
+                    <button type="button" onclick="removeCertificationItem(${idx})" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:0.9rem;">🗑️</button>
+                </div>
+            `).join('')
+        }
+
+        async function addCertificationItem() {
+            const name = document.getElementById('cert-name').value.trim()
+            const issuer = document.getElementById('cert-issuer').value.trim()
+            const year = document.getElementById('cert-year').value.trim()
+            if (!name) return showToast('Certification name is required.', 'error')
+
+            freelancerCertifications.push({ name, issuer, year })
+            document.getElementById('cert-name').value = ''
+            document.getElementById('cert-issuer').value = ''
+            document.getElementById('cert-year').value = ''
+            renderCertificationsList()
+
+            if (profileData) {
+                await api('/profiles/freelancer/me/', {
+                    method: 'PATCH',
+                    body: JSON.stringify({ certifications: freelancerCertifications })
+                })
+                showToast('✓ Certification saved!')
+            }
+        }
+
+        async function removeCertificationItem(idx) {
+            freelancerCertifications.splice(idx, 1)
+            renderCertificationsList()
+            if (profileData) {
+                await api('/profiles/freelancer/me/', {
+                    method: 'PATCH',
+                    body: JSON.stringify({ certifications: freelancerCertifications })
+                })
+                showToast('Certification removed.')
+            }
         }
 
         // ── Load Skills Dropdown ───────────────────
@@ -1295,13 +1481,20 @@
             const nameVal = document.getElementById('f-name').value.trim()
             if (!nameVal) return showToast('Name is required.', 'error')
 
+            const rateVal = parseFloat(document.getElementById('f-hourly-rate').value)
             const body = {
                 name: nameVal,
+                title: document.getElementById('f-title').value.trim(),
                 bio: document.getElementById('f-bio').value.trim(),
+                hourly_rate: isNaN(rateVal) ? null : rateVal,
                 experience_years: parseInt(document.getElementById('f-experience').value) || 0,
-                availability: document.getElementById('f-availability').value,
+                hours_per_week: document.getElementById('f-hours-per-week').value,
+                english_fluency: document.getElementById('f-english-fluency').value,
                 city: document.getElementById('f-city').value.trim(),
                 country: document.getElementById('f-country').value.trim(),
+                education: freelancerEducation,
+                certifications: freelancerCertifications,
+                video_intro_url: document.getElementById('f-video-intro').value.trim() || null,
                 portfolio_url: document.getElementById('f-portfolio').value.trim() || null,
                 github_url: document.getElementById('f-github').value.trim() || null,
                 linkedin_url: document.getElementById('f-linkedin').value.trim() || null,
@@ -1320,7 +1513,7 @@
                     profileData = await res.json()
                     populateEditForm(profileData)
                     updateCompletionBar(profileData)
-                    showToast('Freelancer profile saved successfully!')
+                    showToast('✓ Freelancer profile saved successfully!')
                     toggleMode('view') // Switch to Professional View Mode!
                 } else {
                     const d = await res.json()
@@ -1335,6 +1528,7 @@
         async function saveFreelancerLinks() {
             if (!profileData) return showToast('Save your basic freelancer info first.', 'error')
             const body = {
+                video_intro_url: document.getElementById('f-video-intro').value.trim() || null,
                 portfolio_url: document.getElementById('f-portfolio').value.trim() || null,
                 github_url: document.getElementById('f-github').value.trim() || null,
                 linkedin_url: document.getElementById('f-linkedin').value.trim() || null,

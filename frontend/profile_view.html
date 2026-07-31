@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="/static/css/style.css">
     <style>
         .pv-hero {
-            background: var(--bg2);
+            background: #ffffff;
             border: 1px solid var(--border);
             border-radius: var(--radius-lg);
             padding: 2.2rem;
@@ -16,29 +16,27 @@
             gap: 2rem;
             align-items: flex-start;
             flex-wrap: wrap;
-            backdrop-filter: var(--glass-blur);
-            -webkit-backdrop-filter: var(--glass-blur);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), var(--shadow-glow);
+            box-shadow: 0 10px 35px rgba(15, 23, 42, 0.08);
         }
         .pv-avatar { width: 100px; height: 100px; font-size: 2.5rem; flex-shrink: 0; }
         .pv-avatar img { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent); }
         .pv-info { flex: 1; min-width: 200px; }
-        .pv-name { font-family: var(--font-head); font-size: 1.8rem; font-weight: 800; color: #fff; margin-bottom: 0.35rem; letter-spacing: -0.02em; }
+        .pv-name { font-family: var(--font-head); font-size: 1.8rem; font-weight: 800; color: #0f172a; margin-bottom: 0.35rem; letter-spacing: -0.02em; }
         .pv-role { color: var(--text2); font-size: 0.92rem; margin-bottom: 0.85rem; display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; font-weight: 500; }
         .pv-bio { color: var(--text2); font-size: 0.98rem; line-height: 1.65; margin-bottom: 1.1rem; }
         .pv-meta { display: flex; gap: 1.1rem; flex-wrap: wrap; }
         .pv-meta-item { color: var(--text2); font-size: 0.85rem; display: flex; align-items: center; gap: 0.4rem; font-weight: 500; }
         .pv-actions { display: flex; gap: 0.85rem; margin-top: 1.35rem; flex-wrap: wrap; }
-        .pv-section { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.25rem; backdrop-filter: var(--glass-blur); box-shadow: var(--shadow); }
-        .pv-section-title { font-family: var(--font-head); font-size: 0.92rem; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 1rem; }
+        .pv-section { background: #ffffff; border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.25rem; box-shadow: var(--shadow); }
+        .pv-section-title { font-family: var(--font-head); font-size: 0.92rem; font-weight: 700; color: #0f172a; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 1rem; }
         .pv-skills { display: flex; flex-wrap: wrap; gap: 0.6rem; }
         .pv-links { display: flex; flex-direction: column; gap: 0.7rem; }
-        .pv-link { display: flex; align-items: center; gap: 0.6rem; color: #a78bfa; font-size: 0.9rem; text-decoration: none; font-weight: 600; }
-        .pv-link:hover { opacity: 0.85; text-shadow: 0 0 10px rgba(139, 92, 246, 0.4); }
-        .match-score-badge { background: rgba(139, 92, 246, 0.18); border: 1px solid rgba(139, 92, 246, 0.35); border-radius: 999px; color: #a78bfa; font-size: 0.85rem; font-weight: 700; padding: 0.35rem 0.95rem; box-shadow: 0 0 15px rgba(139, 92, 246, 0.2); }
-        .verified-badge { background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 999px; color: #34d399; font-size: 0.82rem; font-weight: 700; padding: 0.25rem 0.75rem; }
+        .pv-link { display: flex; align-items: center; gap: 0.6rem; color: var(--accent); font-size: 0.9rem; text-decoration: none; font-weight: 600; }
+        .pv-link:hover { opacity: 0.85; }
+        .match-score-badge { background: rgba(16, 138, 0, 0.1); border: 1px solid rgba(16, 138, 0, 0.3); border-radius: 999px; color: #108a00; font-size: 0.85rem; font-weight: 700; padding: 0.35rem 0.95rem; }
+        .verified-badge { background: rgba(16, 138, 0, 0.1); border: 1px solid rgba(16, 138, 0, 0.3); border-radius: 999px; color: #108a00; font-size: 0.82rem; font-weight: 700; padding: 0.25rem 0.75rem; }
         .back-btn { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--text2); font-size: 0.9rem; font-weight: 600; margin-bottom: 1.35rem; cursor: pointer; text-decoration: none; transition: var(--transition); }
-        .back-btn:hover { color: #fff; }
+        .back-btn:hover { color: #0f172a; }
         .rating-row { display: flex; align-items: center; gap: 0.5rem; }
         .stars { color: var(--yellow); font-size: 1.1rem; filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.4)); }
         .loading-state { display: flex; align-items: center; justify-content: center; min-height: 300px; }
