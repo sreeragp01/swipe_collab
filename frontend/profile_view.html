@@ -119,8 +119,26 @@
 
             <!-- Skills -->
             <div class="pv-section" id="skills-section" style="display:none;">
-                <div class="pv-section-title">Skills</div>
+                <div class="pv-section-title">Skills & Expertise</div>
                 <div class="pv-skills" id="pv-skills"></div>
+            </div>
+
+            <!-- Education (freelancer only) -->
+            <div class="pv-section" id="education-section" style="display:none;">
+                <div class="pv-section-title">🎓 Education History</div>
+                <div id="pv-education" style="display:flex;flex-direction:column;gap:0.75rem;"></div>
+            </div>
+
+            <!-- Certifications (freelancer only) -->
+            <div class="pv-section" id="certs-section" style="display:none;">
+                <div class="pv-section-title">🏆 Certifications & Credentials</div>
+                <div id="pv-certs" style="display:flex;flex-wrap:wrap;gap:0.75rem;"></div>
+            </div>
+
+            <!-- Video Introduction (freelancer only) -->
+            <div class="pv-section" id="video-section" style="display:none;">
+                <div class="pv-section-title">🎥 Video Introduction</div>
+                <div id="pv-video-container"></div>
             </div>
 
             <!-- Rating -->
@@ -135,7 +153,7 @@
 
             <!-- Links (freelancer only) -->
             <div class="pv-section" id="links-section" style="display:none;">
-                <div class="pv-section-title">Links</div>
+                <div class="pv-section-title">Links & Profiles</div>
                 <div class="pv-links" id="pv-links"></div>
             </div>
 
@@ -275,13 +293,17 @@
                     </div>`
             }
 
-            // Name
-            document.getElementById('pv-name').textContent = p.name || 'Unknown'
+            // Name & Title
+            const titleHeadline = (!isCompany && p.title) ? `<div style="font-size:1.05rem;font-weight:700;color:#108a00;margin-top:0.25rem;">${p.title}</div>` : ''
+            document.getElementById('pv-name').innerHTML = (p.name || 'Unknown') + titleHeadline
 
             // Role badges
             const roleEl = document.getElementById('pv-role')
             let roleBadges = `<span class="badge ${isCompany ? 'badge-accent' : 'badge-green'}">${isCompany ? '🏢 Company' : '🧑‍💻 Freelancer'}</span>`
-            if (p.email_verified || p.face_verified) {
+            if (!isCompany && p.hourly_rate) {
+                roleBadges += `<span class="badge badge-accent" style="font-weight:800;color:#108a00;background:rgba(16,138,0,0.1);border:1px solid rgba(16,138,0,0.3);">💰 $${parseFloat(p.hourly_rate).toFixed(2)} / hr</span>`
+            }
+            if (p.email_verified || p.face_verified || p.is_verified) {
                 roleBadges += `<span class="verified-badge">✓ Verified</span>`
             }
             if (!isCompany && p.availability) {
@@ -313,9 +335,51 @@
             if (skills.length > 0) {
                 const skillsEl = document.getElementById('pv-skills')
                 skillsEl.innerHTML = skills.map(s =>
-                    `<span class="skill-tag">${s.name}</span>`
+                    `<span class="badge badge-accent" style="font-size:0.8rem;padding:0.3rem 0.75rem;">${s.name}</span>`
                 ).join('')
                 document.getElementById('skills-section').style.display = 'block'
+            }
+
+            // Education (freelancer only)
+            if (!isCompany && p.education && p.education.length > 0) {
+                const eduEl = document.getElementById('pv-education')
+                eduEl.innerHTML = p.education.map(item => `
+                    <div style="background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:0.85rem;">
+                        <strong style="color:#0f172a;font-size:0.95rem;">🎓 ${item.school}</strong>
+                        <div style="color:var(--text2);font-size:0.85rem;margin-top:0.25rem;">${item.degree} ${item.field ? `— ${item.field}` : ''}</div>
+                    </div>
+                `).join('')
+                document.getElementById('education-section').style.display = 'block'
+            }
+
+            // Certifications (freelancer only)
+            if (!isCompany && p.certifications && p.certifications.length > 0) {
+                const certsEl = document.getElementById('pv-certs')
+                certsEl.innerHTML = p.certifications.map(item => `
+                    <div style="background:rgba(16,138,0,0.06);border:1px solid rgba(16,138,0,0.2);border-radius:8px;padding:0.6rem 0.85rem;">
+                        <strong style="color:#108a00;font-size:0.88rem;">🏆 ${item.name}</strong>
+                        <div style="color:var(--text2);font-size:0.8rem;margin-top:0.15rem;">${item.issuer} ${item.year ? `(${item.year})` : ''}</div>
+                    </div>
+                `).join('')
+                document.getElementById('certs-section').style.display = 'block'
+            }
+
+            // Video Introduction (freelancer only)
+            if (!isCompany && p.video_intro_url) {
+                const vidEl = document.getElementById('pv-video-container')
+                let vUrl = p.video_intro_url
+                if (vUrl.includes('loom.com/share/')) {
+                    const loomId = vUrl.split('loom.com/share/')[1]?.split('?')[0]
+                    vidEl.innerHTML = `<iframe src="https://www.loom.com/embed/${loomId}" frameborder="0" allowfullscreen style="width:100%;height:280px;border-radius:12px;border:none;"></iframe>`
+                } else if (vUrl.includes('youtube.com/watch?v=') || vUrl.includes('youtu.be/')) {
+                    let ytId = ''
+                    if (vUrl.includes('youtu.be/')) ytId = vUrl.split('youtu.be/')[1]?.split('?')[0]
+                    else try { ytId = new URL(vUrl).searchParams.get('v') } catch { ytId = '' }
+                    vidEl.innerHTML = `<iframe src="https://www.youtube.com/embed/${ytId}" frameborder="0" allowfullscreen style="width:100%;height:280px;border-radius:12px;border:none;"></iframe>`
+                } else {
+                    vidEl.innerHTML = `<a href="${vUrl}" target="_blank" class="btn btn-primary" style="font-size:0.85rem;">▶️ Watch Video Intro ↗</a>`
+                }
+                document.getElementById('video-section').style.display = 'block'
             }
 
             // External Live Portfolio Display (if URL provided)

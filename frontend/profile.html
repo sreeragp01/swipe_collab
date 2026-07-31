@@ -150,6 +150,24 @@
                     </div>
                 </div>
 
+                <!-- Education Section -->
+                <div id="v-education-wrap" style="border-top:1px solid var(--border);padding-top:1rem;margin-top:1.25rem;display:none;">
+                    <strong style="font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text3);display:block;margin-bottom:0.6rem;">🎓 Education History</strong>
+                    <div id="v-education-display" style="display:flex;flex-direction:column;gap:0.6rem;"></div>
+                </div>
+
+                <!-- Certifications Section -->
+                <div id="v-certifications-wrap" style="border-top:1px solid var(--border);padding-top:1rem;margin-top:1.25rem;display:none;">
+                    <strong style="font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text3);display:block;margin-bottom:0.6rem;">🏆 Certifications & Credentials</strong>
+                    <div id="v-certifications-display" style="display:flex;flex-wrap:wrap;gap:0.6rem;"></div>
+                </div>
+
+                <!-- Video Intro Section -->
+                <div id="v-video-intro-wrap" style="border-top:1px solid var(--border);padding-top:1rem;margin-top:1.25rem;display:none;">
+                    <strong style="font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text3);display:block;margin-bottom:0.6rem;">🎥 Video Introduction</strong>
+                    <div id="v-video-player-container"></div>
+                </div>
+
                 <!-- Verification Badges -->
                 <div style="border-top:1px solid var(--border);padding-top:1rem;margin-top:1.25rem;display:flex;gap:1.5rem;flex-wrap:wrap;align-items:center;">
                     <div>
@@ -886,6 +904,57 @@
                 })
             } else {
                 skillsContainer.innerHTML = '<span style="color:var(--text3);font-size:0.85rem;font-style:italic;">No skills listed.</span>'
+            }
+
+            // Render Education History in View Mode
+            const eduWrap = document.getElementById('v-education-wrap')
+            const eduDisplay = document.getElementById('v-education-display')
+            if (!isCompany && profileData.education && profileData.education.length > 0) {
+                eduWrap.style.display = 'block'
+                eduDisplay.innerHTML = profileData.education.map(item => `
+                    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:0.75rem 0.9rem;">
+                        <strong style="font-size:0.92rem;color:#0f172a;">🎓 ${item.school}</strong>
+                        <div style="font-size:0.82rem;color:#64748b;margin-top:0.15rem;">${item.degree} ${item.field ? `— ${item.field}` : ''}</div>
+                    </div>
+                `).join('')
+            } else {
+                if (eduWrap) eduWrap.style.display = 'none'
+            }
+
+            // Render Certifications in View Mode
+            const certWrap = document.getElementById('v-certifications-wrap')
+            const certDisplay = document.getElementById('v-certifications-display')
+            if (!isCompany && profileData.certifications && profileData.certifications.length > 0) {
+                certWrap.style.display = 'block'
+                certDisplay.innerHTML = profileData.certifications.map(item => `
+                    <div style="background:rgba(16,138,0,0.06);border:1px solid rgba(16,138,0,0.2);border-radius:8px;padding:0.5rem 0.75rem;">
+                        <strong style="font-size:0.85rem;color:#108a00;">🏆 ${item.name}</strong>
+                        <div style="font-size:0.78rem;color:#64748b;">${item.issuer} ${item.year ? `(${item.year})` : ''}</div>
+                    </div>
+                `).join('')
+            } else {
+                if (certWrap) certWrap.style.display = 'none'
+            }
+
+            // Render Video Intro in View Mode
+            const videoWrap = document.getElementById('v-video-intro-wrap')
+            const videoContainer = document.getElementById('v-video-player-container')
+            if (!isCompany && profileData.video_intro_url) {
+                videoWrap.style.display = 'block'
+                let vUrl = profileData.video_intro_url
+                if (vUrl.includes('loom.com/share/')) {
+                    const loomId = vUrl.split('loom.com/share/')[1]?.split('?')[0]
+                    videoContainer.innerHTML = `<iframe src="https://www.loom.com/embed/${loomId}" frameborder="0" allowfullscreen style="width:100%;height:280px;border-radius:12px;border:none;"></iframe>`
+                } else if (vUrl.includes('youtube.com/watch?v=') || vUrl.includes('youtu.be/')) {
+                    let ytId = ''
+                    if (vUrl.includes('youtu.be/')) ytId = vUrl.split('youtu.be/')[1]?.split('?')[0]
+                    else try { ytId = new URL(vUrl).searchParams.get('v') } catch { ytId = '' }
+                    videoContainer.innerHTML = `<iframe src="https://www.youtube.com/embed/${ytId}" frameborder="0" allowfullscreen style="width:100%;height:280px;border-radius:12px;border:none;"></iframe>`
+                } else {
+                    videoContainer.innerHTML = `<a href="${vUrl}" target="_blank" class="btn btn-primary" style="font-size:0.85rem;">▶️ Watch Video Intro ↗</a>`
+                }
+            } else {
+                if (videoWrap) videoWrap.style.display = 'none'
             }
 
             // Verification Badges
