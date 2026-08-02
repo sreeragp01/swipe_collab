@@ -7,290 +7,1057 @@
     <meta name="description" content="Create a free SwipeCollab account. Sign up as a freelancer to discover company projects or as a company to match top technical talent.">
     <meta name="keywords" content="register freelancer, hire developers, company sign up, PixelForge, SwipeCollab">
     <meta name="robots" content="index, follow">
-    <meta name="theme-color" content="#ffffff">
-    <link rel="stylesheet" href="/static/css/style.css">
+    <meta name="theme-color" content="#0a0f1e">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap">
     <style>
+        :root {
+            --accent: #108a00;
+            --accent-hover: #0d7400;
+            --accent-glow: rgba(16,138,0,0.35);
+            --accent-soft: rgba(16,138,0,0.12);
+            --blue: #2563eb;
+            --text: #0f172a;
+            --text2: #475569;
+            --border: #e2e8f0;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { font-size: 16px; scroll-behavior: smooth; }
+
         body {
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            font-family: 'Inter', sans-serif;
             min-height: 100vh;
-            padding: 2rem 1.5rem;
+            background: #0a0f1e;
+            -webkit-font-smoothing: antialiased;
+            overflow: hidden;
         }
 
-        .auth-wrap {
-            width: 100%;
-            max-width: 480px;
-            margin: 0 auto;
+        #particle-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
         }
 
-        .auth-logo {
-            font-family: var(--font-head);
-            font-size: 1.8rem;
+        /* ── Split Layout ── */
+        .auth-container {
+            display: flex;
+            min-height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ── Right Form Panel (now first for visual flow) ── */
+        .form-panel {
+            width: 520px;
+            min-width: 520px;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            padding: 2.5rem 3.5rem;
+            position: relative;
+            overflow-y: auto;
+            animation: slideInLeft 0.9s cubic-bezier(0.16,1,0.3,1) both;
+            max-height: 100vh;
+        }
+        @keyframes slideInLeft {
+            from { transform: translateX(-60px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .form-panel::after {
+            content: '';
+            position: absolute;
+            top: 0; right: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(180deg, #108a00, #22d3ee, #108a00);
+            background-size: 100% 200%;
+            animation: borderFlow 4s ease-in-out infinite;
+        }
+        @keyframes borderFlow {
+            0%, 100% { background-position: 0% 0%; }
+            50% { background-position: 0% 100%; }
+        }
+
+        /* ── Brand / Right Panel ── */
+        .brand-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 4rem;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, #0a0f1e 0%, #0d1a0d 40%, #0a1a0a 100%);
+            animation: slideInRight 0.9s cubic-bezier(0.16,1,0.3,1) both;
+        }
+        @keyframes slideInRight {
+            from { transform: translateX(60px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .brand-panel::before {
+            content: '';
+            position: absolute;
+            width: 600px; height: 600px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(16,138,0,0.18) 0%, transparent 70%);
+            top: -100px; right: -100px;
+            animation: pulseOrb 6s ease-in-out infinite;
+        }
+        .brand-panel::after {
+            content: '';
+            position: absolute;
+            width: 400px; height: 400px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(37,99,235,0.12) 0%, transparent 70%);
+            bottom: -80px; left: -60px;
+            animation: pulseOrb 8s ease-in-out infinite reverse;
+        }
+        @keyframes pulseOrb {
+            0%, 100% { transform: scale(1) translate(0,0); opacity: 0.7; }
+            50% { transform: scale(1.15) translate(15px,-15px); opacity: 1; }
+        }
+
+        /* ── Brand content ── */
+        .brand-logo {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 2rem;
+            font-weight: 900;
+            color: #fff;
+            text-decoration: none;
+            letter-spacing: -0.04em;
+            margin-bottom: 3rem;
+            position: relative;
+            z-index: 2;
+        }
+        .brand-logo span { color: #4ade80; }
+
+        .brand-headline {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: clamp(2rem, 3.5vw, 3.2rem);
             font-weight: 800;
-            color: #0f172a;
-            margin-bottom: 2rem;
-            text-align: center;
+            line-height: 1.1;
+            color: #fff;
             letter-spacing: -0.03em;
+            margin-bottom: 1.5rem;
+            position: relative;
+            z-index: 2;
+        }
+        .brand-headline .highlight {
+            background: linear-gradient(90deg, #4ade80, #22d3ee, #4ade80);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: shimmerText 3s linear infinite;
+        }
+        @keyframes shimmerText {
+            from { background-position: 0% center; }
+            to { background-position: 200% center; }
+        }
+
+        .brand-sub {
+            font-size: 1rem;
+            color: rgba(255,255,255,0.5);
+            line-height: 1.7;
+            max-width: 380px;
+            margin-bottom: 3rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Benefit list */
+        .benefit-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            position: relative;
+            z-index: 2;
+        }
+        .benefit-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            animation: fadeUp 0.6s ease both;
+        }
+        .benefit-list li:nth-child(1) { animation-delay: 0.3s; }
+        .benefit-list li:nth-child(2) { animation-delay: 0.45s; }
+        .benefit-list li:nth-child(3) { animation-delay: 0.6s; }
+        .benefit-list li:nth-child(4) { animation-delay: 0.75s; }
+
+        .benefit-icon {
+            width: 32px; height: 32px;
+            border-radius: 8px;
+            background: rgba(16,138,0,0.2);
+            border: 1px solid rgba(16,138,0,0.3);
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0.5rem;
-        }
-
-        .auth-logo span {
-            color: var(--accent);
-        }
-
-        .auth-card {
-            background: #ffffff;
-            border: 1px solid var(--border);
-            border-radius: var(--radius-lg);
-            padding: 2.5rem 2rem;
-            box-shadow: 0 10px 35px rgba(15, 23, 42, 0.08);
-        }
-
-        .auth-title {
-            font-size: 1.8rem;
-            font-weight: 800;
-            margin-bottom: 0.4rem;
-            color: #0f172a;
-            letter-spacing: -0.02em;
-        }
-
-        .auth-sub {
-            color: var(--text2);
-            font-size: 0.95rem;
-            margin-bottom: 1.8rem;
-        }
-
-        .auth-footer {
-            color: var(--text2);
             font-size: 0.9rem;
-            margin-top: 1.8rem;
-            text-align: center;
+            flex-shrink: 0;
+        }
+        .benefit-text strong {
+            display: block;
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 0.1rem;
+        }
+        .benefit-text span {
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.4);
         }
 
-        .role-picker {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0.85rem;
-            margin-bottom: 1.25rem;
+        /* Testimonial card */
+        .testimonial-card {
+            position: absolute;
+            bottom: 2.5rem;
+            right: 2.5rem;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 1.25rem 1.4rem;
+            backdrop-filter: blur(12px);
+            z-index: 2;
+            max-width: 280px;
+            animation: floatCard 5s ease-in-out infinite;
         }
-
-        @media (max-width: 480px) {
-            body { padding: 1rem 0.85rem; }
-            .auth-card { padding: 1.5rem 1.25rem; }
-            .role-picker { grid-template-columns: 1fr; }
+        @keyframes floatCard {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
         }
-
-        .role-card {
-            border: 2px solid var(--border);
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            padding: 1.1rem 0.85rem;
-            text-align: center;
-            transition: var(--transition);
-            background: rgba(255, 255, 255, 0.02);
+        .testimonial-text {
+            font-size: 0.82rem;
+            color: rgba(255,255,255,0.75);
+            line-height: 1.5;
+            font-style: italic;
+            margin-bottom: 0.75rem;
         }
-
-        .role-card:hover {
-            border-color: var(--accent);
-            background: rgba(139, 92, 246, 0.1);
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
         }
-
-        .role-card.selected {
-            border-color: var(--accent);
-            background: rgba(139, 92, 246, 0.18);
-            box-shadow: 0 0 20px rgba(139, 92, 246, 0.25);
+        .author-avatar {
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4ade80, #22d3ee);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #0a0f1e;
         }
-
-        .role-card-icon {
-            font-size: 2rem;
-            margin-bottom: 0.4rem;
-        }
-
-        .role-card-label {
-            font-family: var(--font-head);
-            font-size: 0.95rem;
+        .author-info strong {
+            display: block;
+            font-size: 0.78rem;
             font-weight: 700;
             color: #fff;
         }
+        .author-info span {
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.4);
+        }
+        .stars { color: #f59e0b; font-size: 0.7rem; }
 
-        .role-card-sub {
+        /* ── Form styles ── */
+        .form-logo {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: var(--text);
+            text-decoration: none;
+            letter-spacing: -0.04em;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            margin-bottom: 1.5rem;
+        }
+        .form-logo span { color: var(--accent); }
+
+        .form-eyebrow {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .form-eyebrow::before {
+            content: '';
+            width: 20px; height: 2px;
+            background: var(--accent);
+            display: inline-block;
+        }
+        .form-title {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 1.9rem;
+            font-weight: 800;
+            color: var(--text);
+            letter-spacing: -0.03em;
+            line-height: 1.15;
+            margin-bottom: 0.35rem;
+        }
+        .form-subtitle {
+            font-size: 0.88rem;
             color: var(--text2);
-            font-size: 0.76rem;
-            margin-top: 0.25rem;
+            margin-bottom: 1.5rem;
         }
 
-        .trial-note {
-            background: rgba(16, 185, 129, 0.12);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            border-radius: var(--radius-sm);
-            color: #34d399;
-            font-size: 0.85rem;
-            font-weight: 600;
-            padding: 0.75rem 1rem;
-            margin-bottom: 1.35rem;
+        /* ── Role picker ── */
+        .role-picker {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+        }
+        .role-card {
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            cursor: pointer;
+            padding: 1rem 0.85rem;
+            text-align: center;
+            transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+            background: #f8fafc;
+            position: relative;
+            overflow: hidden;
+        }
+        .role-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(16,138,0,0.05), rgba(16,138,0,0.02));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .role-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+        .role-card:hover::before { opacity: 1; }
+        .role-card.selected {
+            border-color: var(--accent);
+            background: rgba(16,138,0,0.06);
+            box-shadow: 0 0 0 3px rgba(16,138,0,0.12), 0 4px 16px rgba(16,138,0,0.15);
+            transform: translateY(-2px);
+        }
+        .role-card.selected::before { opacity: 1; }
+        .role-card-icon { font-size: 1.8rem; margin-bottom: 0.35rem; }
+        .role-card-label {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .role-card-sub { color: var(--text2); font-size: 0.72rem; margin-top: 0.2rem; }
+        .role-check {
+            position: absolute;
+            top: 8px; right: 8px;
+            width: 18px; height: 18px;
+            background: var(--accent);
+            border-radius: 50%;
             display: none;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 0.6rem;
+        }
+        .role-card.selected .role-check { display: flex; }
+
+        /* Trial badge */
+        .trial-badge {
+            background: rgba(16,185,129,0.1);
+            border: 1px solid rgba(16,185,129,0.3);
+            border-radius: 8px;
+            color: #059669;
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 0.6rem 0.85rem;
+            margin-bottom: 1.1rem;
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            animation: fadeUp 0.3s ease both;
+        }
+        .trial-badge.visible { display: flex; }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Form groups */
+        .form-group {
+            margin-bottom: 0.9rem;
+        }
+        .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 0.4rem;
+        }
+        .input-wrapper { position: relative; }
+        .input-icon {
+            position: absolute;
+            left: 0.85rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.95rem;
+            color: #94a3b8;
+            pointer-events: none;
+            transition: color 0.25s;
+        }
+        .input-wrapper:focus-within .input-icon { color: var(--accent); }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.88rem;
+            color: var(--text);
+            background: #f8fafc;
+            outline: none;
+            transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+        }
+        .form-group input::placeholder { color: #94a3b8; font-size: 0.85rem; }
+        .form-group input:focus {
+            border-color: var(--accent);
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(16,138,0,0.1);
+        }
+
+        /* Password strength bar */
+        .pw-strength {
+            display: flex;
+            gap: 3px;
+            margin-top: 0.5rem;
+        }
+        .pw-strength-bar {
+            height: 3px;
+            flex: 1;
+            border-radius: 2px;
+            background: var(--border);
+            transition: background 0.3s;
+        }
+        .pw-strength-bar.weak { background: #dc2626; }
+        .pw-strength-bar.medium { background: #f59e0b; }
+        .pw-strength-bar.strong { background: #108a00; }
+        .pw-strength-label {
+            font-size: 0.72rem;
+            color: var(--text2);
+            margin-top: 0.3rem;
         }
 
         .row2 {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 0.85rem;
+            gap: 0.75rem;
         }
+
+        .sc-error {
+            font-size: 0.75rem;
+            color: #dc2626;
+            margin-top: 0.3rem;
+            min-height: 0.9rem;
+        }
+
+        /* Terms */
+        .terms-check-label {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.6rem;
+            font-size: 0.8rem;
+            color: var(--text2);
+            cursor: pointer;
+            line-height: 1.45;
+        }
+        .terms-check-label input[type="checkbox"] {
+            margin-top: 0.15rem;
+            accent-color: var(--accent);
+            width: 15px; height: 15px;
+            flex-shrink: 0;
+        }
+        .terms-link { color: var(--accent); font-weight: 600; text-decoration: underline; cursor: pointer; }
+
+        /* Buttons */
+        .btn-submit {
+            width: 100%;
+            padding: 0.9rem;
+            background: linear-gradient(135deg, #108a00, #15803d);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+            position: relative;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+        .btn-submit::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+            transition: left 0.5s ease;
+        }
+        .btn-submit:hover::before { left: 100%; }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(16,138,0,0.4); }
+        .btn-submit:active { transform: translateY(0); }
+        .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+        .btn-spinner {
+            display: inline-block;
+            width: 15px; height: 15px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .auth-footer {
+            margin-top: 1.25rem;
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text2);
+        }
+        .auth-footer a { color: var(--accent); font-weight: 700; text-decoration: none; }
+        .auth-footer a:hover { text-decoration: underline; }
+
+        /* Progress steps */
+        .form-steps {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1.25rem;
+        }
+        .step-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--border);
+            transition: all 0.4s;
+        }
+        .step-dot.active { background: var(--accent); transform: scale(1.3); }
+        .step-dot.done { background: var(--accent); opacity: 0.5; }
+        .step-line {
+            flex: 1;
+            height: 2px;
+            background: var(--border);
+            border-radius: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+        .step-line-fill {
+            position: absolute;
+            top: 0; left: 0;
+            height: 100%;
+            background: var(--accent);
+            border-radius: 1px;
+            transition: width 0.5s ease;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 980px) {
+            .brand-panel { display: none; }
+            .form-panel {
+                width: 100%;
+                min-width: unset;
+                padding: 2rem 1.5rem;
+                max-height: unset;
+                overflow-y: visible;
+            }
+            body { background: #fff; overflow: auto; }
+            #particle-canvas { display: none; }
+        }
+
+        /* ── Terms Modal ── */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            padding: 1.5rem;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal-box {
+            background: #fff;
+            border-radius: 20px;
+            max-width: 520px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 2rem;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.4);
+            animation: modalIn 0.35s cubic-bezier(0.16,1,0.3,1) both;
+        }
+        @keyframes modalIn {
+            from { transform: scale(0.92) translateY(20px); opacity: 0; }
+            to { transform: scale(1) translateY(0); opacity: 1; }
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem;
+            padding-bottom: 0.85rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .modal-title { font-size: 1.1rem; font-weight: 700; color: var(--text); }
+        .modal-close {
+            background: none; border: none;
+            color: var(--text2); font-size: 1.5rem;
+            cursor: pointer; line-height: 1;
+            transition: color 0.2s;
+        }
+        .modal-close:hover { color: var(--text); }
+        .modal-body { font-size: 0.86rem; color: var(--text2); line-height: 1.7; }
+        .modal-body h4 { color: var(--text); font-size: 0.9rem; margin: 1rem 0 0.35rem; }
+        .modal-footer { margin-top: 1.5rem; text-align: right; }
+        .btn-accept {
+            padding: 0.7rem 1.5rem;
+            background: linear-gradient(135deg, #108a00, #15803d);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 0.88rem;
+            transition: all 0.25s;
+        }
+        .btn-accept:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(16,138,0,0.4); }
+
+        /* ── Toast ── */
+        .sc-toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            padding: 0.85rem 1.25rem;
+            border-radius: 12px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: #fff;
+            z-index: 9999;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.16,1,0.3,1);
+            max-width: 320px;
+        }
+        .sc-toast.show { transform: translateY(0); opacity: 1; }
+        .sc-toast.success { background: #108a00; }
+        .sc-toast.error { background: #dc2626; }
     </style>
 </head>
 <body>
-    <div class="auth-wrap">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
-            <a href="/" class="auth-logo" style="text-decoration:none;margin-bottom:0;">Swipe<span>Collab</span></a>
-            <div class="sc-lang-switcher-container"></div>
+
+<canvas id="particle-canvas"></canvas>
+
+<div class="auth-container">
+
+    <!-- Left Form Panel -->
+    <div class="form-panel">
+        <a href="/" class="form-logo">Swipe<span>Collab</span></a>
+
+        <!-- Progress indicator -->
+        <div class="form-steps">
+            <div class="step-dot active" id="step-dot-1"></div>
+            <div class="step-line"><div class="step-line-fill" id="step-line-1" style="width:0%"></div></div>
+            <div class="step-dot" id="step-dot-2"></div>
+            <div class="step-line"><div class="step-line-fill" id="step-line-2" style="width:0%"></div></div>
+            <div class="step-dot" id="step-dot-3"></div>
         </div>
-        <div class="auth-card">
-            <h1 class="auth-title" data-i18n="nav_signup">Create account</h1>
-            <p class="auth-sub" data-i18n="hero_subtitle">Join SwipeCollab and start matching with talent</p>
 
+        <div class="form-eyebrow">Get Started</div>
+        <h1 class="form-title">Create your account</h1>
+        <p class="form-subtitle">Join thousands of professionals on SwipeCollab.</p>
 
-            <div class="form-group">
-                <label>I am registering as a</label>
-                <div class="role-picker">
-                    <div class="role-card selected" id="role-freelancer" onclick="selectRole('freelancer')">
-                        <div class="role-card-icon">🧑‍💻</div>
-                        <div class="role-card-label">Freelancer</div>
-                        <div class="role-card-sub">Find projects & collabs</div>
-                    </div>
-                    <div class="role-card" id="role-company" onclick="selectRole('company')">
-                        <div class="role-card-icon">🏢</div>
-                        <div class="role-card-label">Company</div>
-                        <div class="role-card-sub">Hire talent & post projects</div>
-                    </div>
+        <!-- Role picker -->
+        <div class="form-group">
+            <label>I'm joining as a</label>
+            <div class="role-picker">
+                <div class="role-card selected" id="role-freelancer" onclick="selectRole('freelancer')">
+                    <div class="role-check">✓</div>
+                    <div class="role-card-icon">🧑‍💻</div>
+                    <div class="role-card-label">Freelancer</div>
+                    <div class="role-card-sub">Find projects & collabs</div>
+                </div>
+                <div class="role-card" id="role-company" onclick="selectRole('company')">
+                    <div class="role-check">✓</div>
+                    <div class="role-card-icon">🏢</div>
+                    <div class="role-card-label">Company</div>
+                    <div class="role-card-sub">Hire talent & post projects</div>
                 </div>
             </div>
-
-            <div class="trial-note" id="trial-note">🎉 Freelancers get 1 month free trial — no card required!</div>
-
-            <div class="row2">
-                <div class="form-group"><label>First Name</label><input type="text" id="first_name" placeholder="John"></div>
-                <div class="form-group"><label>Last Name</label><input type="text" id="last_name" placeholder="Doe"></div>
-            </div>
-            <div class="form-group"><label>Username</label><input type="text" id="username" placeholder="johndoe"><div class="sc-error" id="err-username"></div></div>
-            <div class="form-group"><label>Email Address</label><input type="email" id="email" placeholder="you@company.com"><div class="sc-error" id="err-email"></div></div>
-            <div class="form-group"><label>Password</label><input type="password" id="password" placeholder="Min 8 characters"><div class="sc-error" id="err-password"></div></div>
-            <div class="form-group"><label>Confirm Password</label><input type="password" id="password2" placeholder="Repeat password"><div class="sc-error" id="err-password2"></div></div>
-            
-            <!-- Terms & Conditions Checkbox -->
-            <div class="form-group" style="margin-top:1.2rem;margin-bottom:1.2rem;">
-                <label style="display:flex;align-items:flex-start;gap:0.6rem;font-size:0.85rem;color:var(--text2);cursor:pointer;font-weight:400;line-height:1.45;">
-                    <input type="checkbox" id="terms-check" style="margin-top:0.2rem;accent-color:var(--accent);width:16px;height:16px;">
-                    <span>
-                        I agree to the <a href="javascript:void(0)" onclick="openTermsModal()" style="color:var(--accent);font-weight:600;text-decoration:underline;">Terms of Service & Privacy Policy</a> provided and copyrighted by <strong>PixelForge Software Development Company</strong>.
-                    </span>
-                </label>
-                <div class="sc-error" id="err-terms"></div>
-            </div>
-
-            <div class="sc-error" id="err-general" style="margin-bottom:1rem;"></div>
-            <button class="btn btn-primary btn-full" id="register-btn" onclick="register()">Create account ↗</button>
         </div>
-        <div class="auth-footer">Already have an account? <a href="/login/" style="font-weight:600;">Log in</a></div>
-    </div>
 
-    <!-- Terms of Service & Privacy Policy Modal -->
-    <div style="position:fixed;inset:0;background:rgba(0,0,0,0.85);display:none;align-items:center;justify-content:center;z-index:9999;padding:1.5rem;backdrop-filter:blur(8px);" id="terms-modal">
-        <div style="background:var(--bg-solid);border:1px solid var(--border);border-radius:var(--radius);max-width:540px;width:100%;max-height:85vh;overflow-y:auto;padding:2rem;box-shadow:0 25px 60px rgba(0,0,0,0.8);">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;border-bottom:1px solid var(--border);padding-bottom:0.85rem;">
-                <h3 style="font-size:1.2rem;font-weight:700;color:#fff;">Terms of Service & Privacy Policy</h3>
-                <button style="background:none;border:none;color:var(--text2);font-size:1.4rem;cursor:pointer;" onclick="closeTermsModal()">×</button>
+        <div class="trial-badge visible" id="trial-note">
+            🎉 <span>Freelancers get <strong>1 month free trial</strong> — no card required!</span>
+        </div>
+
+        <div class="row2">
+            <div class="form-group">
+                <label for="first_name">First Name</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">👤</span>
+                    <input type="text" id="first_name" placeholder="John">
+                </div>
             </div>
-            
-            <div style="font-size:0.88rem;color:var(--text2);line-height:1.65;display:flex;flex-direction:column;gap:1rem;">
-                <p><strong style="color:#fff;">1. Ownership & Copyright</strong><br>
-                SwipeCollab software platform and all intellectual property rights are designed, developed, copyrighted, and maintained by <strong>PixelForge Software Development Company</strong>.</p>
-
-                <p><strong style="color:#fff;">2. User Conduct & Fair Usage</strong><br>
-                Users agree to provide accurate profile information, maintain professional communication, and respect client/freelancer match agreements.</p>
-
-                <p><strong style="color:#fff;">3. Identity & Security</strong><br>
-                SwipeCollab utilizes automated email verification and OpenCV facial scanning for platform security. Users are responsible for safeguarding account credentials.</p>
-
-                <p><strong style="color:#fff;">4. Privacy & Data Handling</strong><br>
-                We do not sell user data. Personal details are only disclosed to matched collaborators for facilitating work partnerships.</p>
-            </div>
-
-            <div style="margin-top:1.8rem;text-align:right;">
-                <button class="btn btn-primary" onclick="closeTermsModal(); document.getElementById('terms-check').checked = true;">Accept & Agree</button>
+            <div class="form-group">
+                <label for="last_name">Last Name</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">👤</span>
+                    <input type="text" id="last_name" placeholder="Doe">
+                </div>
             </div>
         </div>
+
+        <div class="form-group">
+            <label for="username">Username</label>
+            <div class="input-wrapper">
+                <span class="input-icon">@</span>
+                <input type="text" id="username" placeholder="johndoe" autocomplete="username">
+            </div>
+            <div class="sc-error" id="err-username"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="email">Email Address</label>
+            <div class="input-wrapper">
+                <span class="input-icon">✉</span>
+                <input type="email" id="email" placeholder="you@company.com" autocomplete="email">
+            </div>
+            <div class="sc-error" id="err-email"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="password">Password</label>
+            <div class="input-wrapper">
+                <span class="input-icon">🔒</span>
+                <input type="password" id="password" placeholder="Min 8 characters" autocomplete="new-password" style="padding-right: 2.8rem;" oninput="checkStrength(this.value)">
+                <button type="button" class="pw-toggle" onclick="togglePw('password','toggle-pw1')" id="toggle-pw1" title="Show/Hide" style="position:absolute;right:.75rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#94a3b8;font-size:1rem;transition:color 0.2s;">👁</button>
+            </div>
+            <div class="pw-strength">
+                <div class="pw-strength-bar" id="sb1"></div>
+                <div class="pw-strength-bar" id="sb2"></div>
+                <div class="pw-strength-bar" id="sb3"></div>
+                <div class="pw-strength-bar" id="sb4"></div>
+            </div>
+            <div class="pw-strength-label" id="pw-label"></div>
+            <div class="sc-error" id="err-password"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="password2">Confirm Password</label>
+            <div class="input-wrapper">
+                <span class="input-icon">🔒</span>
+                <input type="password" id="password2" placeholder="Repeat password" autocomplete="new-password" style="padding-right: 2.8rem;">
+                <button type="button" class="pw-toggle" onclick="togglePw('password2','toggle-pw2')" id="toggle-pw2" title="Show/Hide" style="position:absolute;right:.75rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#94a3b8;font-size:1rem;transition:color 0.2s;">👁</button>
+            </div>
+            <div class="sc-error" id="err-password2"></div>
+        </div>
+
+        <!-- Terms -->
+        <div class="form-group" style="margin-top: 0.5rem;">
+            <label class="terms-check-label">
+                <input type="checkbox" id="terms-check">
+                <span>
+                    I agree to the <span class="terms-link" onclick="openTermsModal()">Terms of Service & Privacy Policy</span> by <strong>PixelForge Software Development Company</strong>.
+                </span>
+            </label>
+            <div class="sc-error" id="err-terms"></div>
+        </div>
+
+        <div class="sc-error" id="err-general" style="font-size: 0.82rem;"></div>
+
+        <button class="btn-submit" id="register-btn" onclick="register()">
+            Create my account →
+        </button>
+
+        <div class="auth-footer">
+            Already have an account? <a href="/login/">Sign in →</a>
+        </div>
     </div>
 
-    <script src="/static/js/api.js"></script>
-    <script src="/static/js/i18n.js"></script>
+    <!-- Right Brand Panel -->
+    <div class="brand-panel">
+        <a href="/" class="brand-logo">Swipe<span>Collab</span></a>
 
-    <script>
-        if (getToken()) window.location.href = '/dashboard/'
-        let selectedRole = 'freelancer'
+        <h2 class="brand-headline">
+            Your career,<br>
+            <span class="highlight">reimagined.</span>
+        </h2>
+        <p class="brand-sub">
+            Join a thriving community where the right connection changes everything. Swipe on skill-matched profiles and start collaborating today.
+        </p>
 
-        function selectRole(role) {
-            selectedRole = role
-            document.getElementById('role-freelancer').classList.toggle('selected', role === 'freelancer')
-            document.getElementById('role-company').classList.toggle('selected', role === 'company')
-            document.getElementById('trial-note').style.display = role === 'freelancer' ? 'block' : 'none'
+        <ul class="benefit-list">
+            <li>
+                <div class="benefit-icon">🎯</div>
+                <div class="benefit-text">
+                    <strong>Smart Skill Matching</strong>
+                    <span>AI-powered match based on your expertise & goals</span>
+                </div>
+            </li>
+            <li>
+                <div class="benefit-icon">💬</div>
+                <div class="benefit-text">
+                    <strong>Instant Collaboration</strong>
+                    <span>Real-time chat, calls & project workspaces</span>
+                </div>
+            </li>
+            <li>
+                <div class="benefit-icon">🔒</div>
+                <div class="benefit-text">
+                    <strong>Verified Profiles</strong>
+                    <span>Identity verified via email & facial scan</span>
+                </div>
+            </li>
+            <li>
+                <div class="benefit-icon">🚀</div>
+                <div class="benefit-text">
+                    <strong>Free Trial for Freelancers</strong>
+                    <span>1 month free — no credit card required</span>
+                </div>
+            </li>
+        </ul>
+
+        <!-- Testimonial -->
+        <div class="testimonial-card">
+            <div class="stars">★★★★★</div>
+            <p class="testimonial-text">"Found my dream project within 48 hours of signing up. SwipeCollab completely changed how I find work."</p>
+            <div class="testimonial-author">
+                <div class="author-avatar">AK</div>
+                <div class="author-info">
+                    <strong>Arjun K.</strong>
+                    <span>Full-Stack Developer · Bangalore</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Terms Modal -->
+<div class="modal-overlay" id="terms-modal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <span class="modal-title">Terms of Service & Privacy Policy</span>
+            <button class="modal-close" onclick="closeTermsModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <h4>1. Ownership & Copyright</h4>
+            <p>SwipeCollab software platform and all intellectual property rights are designed, developed, copyrighted, and maintained by <strong>PixelForge Software Development Company</strong>.</p>
+
+            <h4>2. User Conduct & Fair Usage</h4>
+            <p>Users agree to provide accurate profile information, maintain professional communication, and respect client/freelancer match agreements.</p>
+
+            <h4>3. Identity & Security</h4>
+            <p>SwipeCollab utilizes automated email verification and OpenCV facial scanning for platform security. Users are responsible for safeguarding account credentials.</p>
+
+            <h4>4. Privacy & Data Handling</h4>
+            <p>We do not sell user data. Personal details are only disclosed to matched collaborators for facilitating work partnerships.</p>
+
+            <h4>5. Trial & Payments</h4>
+            <p>Freelancers receive a 1-month free trial. After the trial period, continued access requires a one-time payment of ₹49. Companies are subject to separate subscription terms.</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-accept" onclick="acceptTerms()">Accept & Agree ✓</button>
+        </div>
+    </div>
+</div>
+
+<div class="sc-toast" id="sc-toast"></div>
+
+<script src="/static/js/api.js"></script>
+<script src="/static/js/i18n.js"></script>
+<script>
+    if (typeof getToken !== 'undefined' && getToken()) window.location.href = '/dashboard/'
+    let selectedRole = 'freelancer'
+
+    // ── Particle canvas ──
+    ;(function () {
+        const canvas = document.getElementById('particle-canvas')
+        const ctx = canvas.getContext('2d')
+        let W, H, particles = [], mouse = { x: -999, y: -999 }
+        function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight }
+        resize()
+        window.addEventListener('resize', resize)
+        window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY })
+        const COLORS = ['rgba(16,138,0,', 'rgba(74,222,128,', 'rgba(37,99,235,', 'rgba(34,211,238,']
+        for (let i = 0; i < 80; i++) {
+            particles.push({
+                x: Math.random() * window.innerWidth, y: Math.random() * window.innerHeight,
+                r: Math.random() * 2.5 + 0.5, dx: (Math.random() - 0.5) * 0.6, dy: (Math.random() - 0.5) * 0.6,
+                col: COLORS[Math.floor(Math.random() * COLORS.length)], alpha: Math.random() * 0.5 + 0.15
+            })
         }
-        selectRole('freelancer')
-
-        function openTermsModal() {
-            document.getElementById('terms-modal').style.display = 'flex'
-        }
-        function closeTermsModal() {
-            document.getElementById('terms-modal').style.display = 'none'
-        }
-
-        async function register() {
-            clearErrors()
-            const email = document.getElementById('email').value.trim()
-            const username = document.getElementById('username').value.trim()
-            const password = document.getElementById('password').value
-            const password2 = document.getElementById('password2').value
-            const termsChecked = document.getElementById('terms-check').checked
-
-            if (!username) return showError('err-username', 'Username is required.')
-            if (!email) return showError('err-email', 'Email is required.')
-            if (!password) return showError('err-password', 'Password is required.')
-            if (password !== password2) return showError('err-password2', 'Passwords do not match.')
-            if (!termsChecked) return showError('err-terms', 'You must agree to the Terms of Service by PixelForge to create an account.')
-
-            const btn = document.getElementById('register-btn')
-            btn.disabled = true
-            btn.textContent = 'Creating account...'
-
-            try {
-                const res = await fetch(`${BASE_URL}/auth/register/`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, username, password, password2, role: selectedRole })
-                })
-                const data = await res.json()
-                if (res.ok) {
-                    saveTokens(data.tokens.access, data.tokens.refresh)
-                    saveUser(data.user)
-                    showToast(data.message || 'Account created!', 'success')
-                    setTimeout(() => window.location.href = '/profile/?mode=edit', 1000)
-                } else {
-                    if (data.email) showError('err-email', data.email[0])
-                    else if (data.username) showError('err-username', data.username[0])
-                    else if (data.password) showError('err-password', data.password[0])
-                    else showError('err-general', data.detail || 'Registration failed.')
-                    btn.disabled = false
-                    btn.textContent = 'Create account ↗'
+        function draw() {
+            ctx.clearRect(0, 0, W, H)
+            particles.forEach(p => {
+                p.x += p.dx; p.y += p.dy
+                if (p.x < 0) p.x = W; if (p.x > W) p.x = 0
+                if (p.y < 0) p.y = H; if (p.y > H) p.y = 0
+                const dx = p.x - mouse.x, dy = p.y - mouse.y, dist = Math.sqrt(dx*dx+dy*dy)
+                if (dist < 100) { p.x += (dx/dist)*1.5; p.y += (dy/dist)*1.5 }
+                ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2)
+                ctx.fillStyle = p.col + p.alpha + ')'; ctx.fill()
+            })
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i+1; j < particles.length; j++) {
+                    const dx = particles[i].x-particles[j].x, dy = particles[i].y-particles[j].y
+                    const d = Math.sqrt(dx*dx+dy*dy)
+                    if (d < 90) {
+                        ctx.beginPath(); ctx.moveTo(particles[i].x, particles[i].y)
+                        ctx.lineTo(particles[j].x, particles[j].y)
+                        ctx.strokeStyle = 'rgba(16,138,0,'+(0.08*(1-d/90))+')'
+                        ctx.lineWidth = 0.8; ctx.stroke()
+                    }
                 }
-            } catch {
-                showError('err-general', 'Cannot connect to server.')
-                btn.disabled = false
-                btn.textContent = 'Create account ↗'
             }
+            requestAnimationFrame(draw)
         }
-    </script>
+        draw()
+    })()
+
+    // ── Role selection ──
+    function selectRole(role) {
+        selectedRole = role
+        document.getElementById('role-freelancer').classList.toggle('selected', role === 'freelancer')
+        document.getElementById('role-company').classList.toggle('selected', role === 'company')
+        const badge = document.getElementById('trial-note')
+        badge.classList.toggle('visible', role === 'freelancer')
+        updateProgress()
+    }
+    selectRole('freelancer')
+
+    // ── Password strength ──
+    function checkStrength(val) {
+        const bars = [document.getElementById('sb1'), document.getElementById('sb2'), document.getElementById('sb3'), document.getElementById('sb4')]
+        const label = document.getElementById('pw-label')
+        bars.forEach(b => b.className = 'pw-strength-bar')
+        if (!val) { label.textContent = ''; return }
+        let score = 0
+        if (val.length >= 8) score++
+        if (/[A-Z]/.test(val)) score++
+        if (/[0-9]/.test(val)) score++
+        if (/[^A-Za-z0-9]/.test(val)) score++
+        const cls = score <= 1 ? 'weak' : score <= 2 ? 'medium' : 'strong'
+        const labels = ['', 'Weak', 'Fair', 'Good', 'Strong']
+        for (let i = 0; i < score; i++) bars[i].classList.add(cls)
+        label.textContent = labels[score] || ''
+        label.style.color = cls === 'weak' ? '#dc2626' : cls === 'medium' ? '#f59e0b' : '#108a00'
+        updateProgress()
+    }
+
+    // ── Progress dots ──
+    function updateProgress() {
+        const email = document.getElementById('email').value
+        const pw = document.getElementById('password').value
+        const terms = document.getElementById('terms-check').checked
+
+        // Step 1: role
+        document.getElementById('step-dot-1').classList.add('done')
+        document.getElementById('step-line-1').style.width = email ? '100%' : '0%'
+        document.getElementById('step-dot-2').classList.toggle('active', !!email)
+        document.getElementById('step-line-2').style.width = (pw && terms) ? '100%' : '0%'
+        document.getElementById('step-dot-3').classList.toggle('active', pw && terms)
+    }
+    document.addEventListener('input', updateProgress)
+    document.getElementById('terms-check').addEventListener('change', updateProgress)
+
+    // ── Password toggle ──
+    function togglePw(inputId, btnId) {
+        const inp = document.getElementById(inputId)
+        const btn = document.getElementById(btnId)
+        inp.type = inp.type === 'password' ? 'text' : 'password'
+        btn.textContent = inp.type === 'password' ? '👁' : '🙈'
+    }
+
+    // ── Helpers ──
+    function clearErrors() { document.querySelectorAll('.sc-error').forEach(e => e.textContent = '') }
+    function showError(id, msg) { const el = document.getElementById(id); if (el) el.textContent = msg }
+    function showToast(msg, type = 'success') {
+        const t = document.getElementById('sc-toast')
+        if (!t) return
+        t.textContent = msg; t.className = 'sc-toast ' + type + ' show'
+        setTimeout(() => t.classList.remove('show'), 3500)
+    }
+
+    // ── Terms modal ──
+    function openTermsModal() { document.getElementById('terms-modal').classList.add('open') }
+    function closeTermsModal() { document.getElementById('terms-modal').classList.remove('open') }
+    function acceptTerms() {
+        closeTermsModal()
+        document.getElementById('terms-check').checked = true
+        updateProgress()
+    }
+    document.getElementById('terms-modal').addEventListener('click', function(e) {
+        if (e.target === this) closeTermsModal()
+    })
+
+    // ── Register ──
+    async function register() {
+        clearErrors()
+        const email = document.getElementById('email').value.trim()
+        const username = document.getElementById('username').value.trim()
+        const password = document.getElementById('password').value
+        const password2 = document.getElementById('password2').value
+        const termsChecked = document.getElementById('terms-check').checked
+
+        if (!username) return showError('err-username', 'Username is required.')
+        if (!email) return showError('err-email', 'Email is required.')
+        if (!password) return showError('err-password', 'Password is required.')
+        if (password !== password2) return showError('err-password2', 'Passwords do not match.')
+        if (!termsChecked) return showError('err-terms', 'You must agree to the Terms of Service by PixelForge.')
+
+        const btn = document.getElementById('register-btn')
+        btn.disabled = true
+        btn.innerHTML = '<span class="btn-spinner"></span> Creating account…'
+
+        try {
+            const res = await fetch(`${BASE_URL}/auth/register/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, username, password, password2, role: selectedRole })
+            })
+            const data = await res.json()
+            if (res.ok) {
+                saveTokens(data.tokens.access, data.tokens.refresh)
+                saveUser(data.user)
+                showToast(data.message || 'Account created! Welcome 🎉', 'success')
+                setTimeout(() => window.location.href = '/profile/?mode=edit', 1200)
+            } else {
+                if (data.email) showError('err-email', data.email[0])
+                else if (data.username) showError('err-username', data.username[0])
+                else if (data.password) showError('err-password', data.password[0])
+                else showError('err-general', data.detail || 'Registration failed.')
+                btn.disabled = false
+                btn.innerHTML = 'Create my account →'
+            }
+        } catch {
+            showError('err-general', 'Cannot connect to server.')
+            btn.disabled = false
+            btn.innerHTML = 'Create my account →'
+        }
+    }
+</script>
 </body>
 </html>
