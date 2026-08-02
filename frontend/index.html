@@ -246,8 +246,11 @@
 <body>
     <nav class="nav">
         <a href="/" class="nav-logo">Swipe<span>Collab</span></a>
-        <div class="nav-links" style="display:flex;align-items:center;gap:1rem;">
+        <div class="nav-right-actions">
             <div class="sc-lang-switcher-container"></div>
+            <button class="nav-toggle-btn" id="nav-toggle" onclick="toggleNav()" aria-label="Menu" style="display:none;">☰</button>
+        </div>
+        <div class="nav-links" id="nav-links">
             <a href="/login/" class="nav-link" data-i18n="nav_login">Log in</a>
             <a href="/register/" class="btn btn-primary" style="padding:0.55rem 1.25rem;font-size:0.88rem;" data-i18n="nav_signup">Sign up free</a>
         </div>
@@ -540,6 +543,22 @@
 
             startAutoSlide();
         })();
+
+        // ── Mobile nav toggle ──
+        function toggleNav() {
+            const links = document.getElementById('nav-links');
+            const btn   = document.getElementById('nav-toggle');
+            const open  = links.classList.toggle('open');
+            btn.textContent = open ? '✕' : '☰';
+        }
+        document.addEventListener('click', function(e) {
+            const links = document.getElementById('nav-links');
+            const btn   = document.getElementById('nav-toggle');
+            if (links && btn && !links.contains(e.target) && !btn.contains(e.target)) {
+                links.classList.remove('open');
+                btn.textContent = '☰';
+            }
+        });
     </script>
 </body>
 </html>

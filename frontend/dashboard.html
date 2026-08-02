@@ -384,7 +384,10 @@
 <body>
     <nav class="nav">
         <a href="/" class="nav-logo">Swipe<span>Collab</span></a>
-        <div class="nav-links" style="display:flex;align-items:center;gap:0.75rem;">
+        <div class="nav-right-actions">
+            <button class="nav-toggle-btn" style="display:none;" id="nav-toggle" onclick="toggleMobileSidebar()" aria-label="Menu">☰</button>
+        </div>
+        <div class="nav-links" id="nav-links">
             <div class="sc-lang-switcher-container"></div>
             <a href="/swipe/" class="nav-link" data-i18n="nav_swipe">Swipe</a>
             <a href="/matches/" class="nav-link" data-i18n="nav_matches">Matches</a>
@@ -596,10 +599,32 @@
 
         function toggleMobileSidebar() {
             const sb = document.querySelector('.sidebar')
-            if (sb) sb.classList.toggle('mobile-show')
+            const btn = document.getElementById('nav-toggle')
+            if (sb) {
+                const open = sb.classList.toggle('mobile-show')
+                if (btn) btn.textContent = open ? '✕' : '☰'
+            }
         }
+        // Close sidebar on outside click
+        document.addEventListener('click', function(e) {
+            const sb = document.querySelector('.sidebar')
+            const btn = document.getElementById('nav-toggle')
+            if (sb && btn && !sb.contains(e.target) && !btn.contains(e.target)) {
+                sb.classList.remove('mobile-show')
+                btn.textContent = '☰'
+            }
+        })
 
         loadDashboard()
     </script>
+
+    <!-- Mobile bottom tab bar -->
+    <nav class="mobile-tab-bar">
+        <a href="/dashboard/" class="tab-item active"><span class="tab-icon">🏠</span>Home</a>
+        <a href="/swipe/" class="tab-item"><span class="tab-icon">🃏</span>Swipe</a>
+        <a href="/matches/" class="tab-item"><span class="tab-icon">🤝</span>Matches</a>
+        <a href="/chat/" class="tab-item"><span class="tab-icon">💬</span>Chat</a>
+        <a href="/profile/" class="tab-item"><span class="tab-icon">👤</span>Profile</a>
+    </nav>
 </body>
-</html>
+</html>

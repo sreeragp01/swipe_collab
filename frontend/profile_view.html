@@ -79,8 +79,11 @@
 <body>
     <nav class="nav">
         <a href="/" class="nav-logo">Swipe<span style="color:var(--accent)">Collab</span></a>
-        <div class="nav-links" style="display:flex;align-items:center;gap:0.75rem;">
+        <div class="nav-right-actions">
             <div class="sc-lang-switcher-container"></div>
+            <button class="nav-toggle-btn" id="nav-toggle" onclick="toggleNav()" aria-label="Menu">☰</button>
+        </div>
+        <div class="nav-links" id="nav-links">
             <a href="/dashboard/" class="nav-link" data-i18n="nav_home">Home</a>
             <a href="/swipe/" class="nav-link" data-i18n="nav_swipe">Swipe</a>
             <a href="/matches/" class="nav-link" data-i18n="nav_matches">Matches</a>
@@ -658,5 +661,30 @@
 
         loadProfile()
     </script>
+    <script>
+        // Mobile nav toggle
+        function toggleNav() {
+            const links = document.getElementById('nav-links');
+            const btn   = document.getElementById('nav-toggle');
+            const open  = links.classList.toggle('open');
+            btn.textContent = open ? '✕' : '☰';
+        }
+        document.addEventListener('click', function(e) {
+            const links = document.getElementById('nav-links');
+            const btn   = document.getElementById('nav-toggle');
+            if (links && btn && !links.contains(e.target) && !btn.contains(e.target)) {
+                links.classList.remove('open');
+                btn.textContent = '☰';
+            }
+        });
+    </script>
+    <!-- Mobile bottom tab bar -->
+    <nav class="mobile-tab-bar">
+        <a href="/dashboard/" class="tab-item"><span class="tab-icon">🏠</span>Home</a>
+        <a href="/swipe/" class="tab-item"><span class="tab-icon">🃏</span>Swipe</a>
+        <a href="/matches/" class="tab-item"><span class="tab-icon">🤝</span>Matches</a>
+        <a href="/chat/" class="tab-item"><span class="tab-icon">💬</span>Chat</a>
+        <a href="/profile/" class="tab-item active"><span class="tab-icon">👤</span>Profile</a>
+    </nav>
 </body>
-</html>
+</html>
