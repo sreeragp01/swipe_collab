@@ -528,6 +528,31 @@ class Command(BaseCommand):
         except FreelancerProfile.DoesNotExist:
             pass
 
+        # ── Super Admin Account ───────────────────────
+        admin_user, admin_created = User.objects.get_or_create(
+            email='mrtuf2204@gmail.com',
+            defaults={
+                'username': 'sreerag_admin',
+                'role': User.ROLE_FREELANCER,
+                'is_staff': True,
+                'is_superuser': True,
+                'is_verified': True,
+                'face_verified': True,
+                'is_paid': True,
+                'is_active': True,
+            }
+        )
+        admin_user.is_staff = True
+        admin_user.is_superuser = True
+        admin_user.is_verified = True
+        admin_user.face_verified = True
+        admin_user.is_paid = True
+        admin_user.is_active = True
+        if admin_created:
+            admin_user.set_password('Admin@12345')
+        admin_user.save()
+        self.stdout.write(self.style.SUCCESS(f"  [OK] Super Admin Account Configured: {admin_user.email}"))
+
         self.stdout.write('')
         self.stdout.write(self.style.SUCCESS(
             f'Done! Test users and projects created/updated.'
