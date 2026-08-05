@@ -249,19 +249,42 @@ async function markAllNotificationsRead() {
 function initMobileNav() {
     const nav = document.querySelector('.nav')
     const navLinks = document.querySelector('.nav-links')
-    if (!nav || !navLinks || document.getElementById('nav-toggle-btn')) return
+    if (!nav || !navLinks) return
 
-    const toggleBtn = document.createElement('button')
-    toggleBtn.className = 'nav-toggle-btn'
-    toggleBtn.id = 'nav-toggle-btn'
-    toggleBtn.setAttribute('aria-label', 'Toggle menu')
-    toggleBtn.innerHTML = '☰'
-    
-    toggleBtn.addEventListener('click', (e) => {
+    // Remove any duplicate toggle buttons in nav if they exist
+    const existingBtns = nav.querySelectorAll('.nav-toggle-btn')
+    if (existingBtns.length > 1) {
+        for (let i = 1; i < existingBtns.length; i++) {
+            existingBtns[i].remove()
+        }
+    }
+
+    let toggleBtn = document.getElementById('nav-toggle-btn') || document.getElementById('nav-toggle') || nav.querySelector('.nav-toggle-btn')
+
+    if (!toggleBtn) {
+        toggleBtn = document.createElement('button')
+        toggleBtn.className = 'nav-toggle-btn'
+        toggleBtn.id = 'nav-toggle-btn'
+        toggleBtn.setAttribute('aria-label', 'Toggle menu')
+        toggleBtn.innerHTML = '☰'
+        
+        const rightActions = nav.querySelector('.nav-right-actions')
+        if (rightActions) {
+            rightActions.appendChild(toggleBtn)
+        } else {
+            nav.appendChild(toggleBtn)
+        }
+    }
+
+    toggleBtn.onclick = (e) => {
         e.stopPropagation()
         const isOpen = navLinks.classList.toggle('open')
         toggleBtn.innerHTML = isOpen ? '✕' : '☰'
-    })
+        
+        // Close sidebar if open
+        const sb = document.querySelector('.sidebar')
+        if (sb && isOpen) sb.classList.remove('mobile-show')
+    }
 
     document.addEventListener('click', (e) => {
         if (navLinks.classList.contains('open') && !nav.contains(e.target)) {
@@ -276,8 +299,6 @@ function initMobileNav() {
             toggleBtn.innerHTML = '☰'
         })
     })
-
-    nav.appendChild(toggleBtn)
 }
 
 async function checkSuperAdminNav() {
