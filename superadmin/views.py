@@ -202,7 +202,7 @@ class SuperAdminProjectListView(APIView):
                 Q(title__icontains=search) |
                 Q(description__icontains=search) |
                 Q(company__user__email__icontains=search) |
-                Q(company__company_name__icontains=search)
+                Q(company__name__icontains=search)
             )
 
         status_filter = request.query_params.get('status', '').strip()
@@ -211,14 +211,21 @@ class SuperAdminProjectListView(APIView):
 
         projects_data = []
         for p in qs[:100]:
+            if p.budget_min and p.budget_max:
+                budget_str = f"{p.budget_min} - {p.budget_max}"
+            elif p.budget_min:
+                budget_str = f"{p.budget_min}"
+            else:
+                budget_str = "0"
+
             projects_data.append({
                 'id': str(p.id),
                 'title': p.title,
-                'category': p.category,
+                'category': p.get_duration_display() if hasattr(p, 'get_duration_display') else (p.duration or 'General'),
                 'status': p.status,
-                'budget': str(p.budget),
+                'budget': budget_str,
                 'company_email': p.company.user.email if p.company and p.company.user else 'Unknown',
-                'company_name': p.company.company_name if p.company else 'Company',
+                'company_name': p.company.name if p.company else 'Company',
                 'applications_count': p.applications.count(),
                 'created_at': p.created_at,
             })

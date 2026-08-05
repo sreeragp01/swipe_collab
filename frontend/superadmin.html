@@ -688,6 +688,8 @@
                             </td>
                         </tr>
                     `).join('')
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2rem;color:#ef4444;">Failed to load users.</td></tr>`
                 }
             } catch (e) {
                 tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2rem;color:#ef4444;">Failed to load users.</td></tr>`
@@ -816,6 +818,8 @@
                             </td>
                         </tr>
                     `).join('')
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;color:#ef4444;">Failed to load projects.</td></tr>`
                 }
             } catch (e) {
                 tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;color:#ef4444;">Failed to load projects.</td></tr>`
@@ -878,6 +882,8 @@
                             </td>
                         </tr>
                     `).join('')
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;color:#ef4444;">Failed to load reports.</td></tr>`
                 }
             } catch (e) {
                 tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;color:#ef4444;">Failed to load reports.</td></tr>`
@@ -921,6 +927,8 @@
                             <td style="color:var(--text3);font-size:0.78rem;">${new Date(p.created_at).toLocaleString()}</td>
                         </tr>
                     `).join('')
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2rem;color:#ef4444;">Failed to load payments.</td></tr>`
                 }
             } catch (e) {
                 tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2rem;color:#ef4444;">Failed to load payments.</td></tr>`

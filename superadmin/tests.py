@@ -31,6 +31,20 @@ class SuperAdminAPITests(APITestCase):
             is_superuser=True,
         )
 
+        from profiles.models import CompanyProfile
+        self.company_profile = CompanyProfile.objects.create(
+            user=self.admin,
+            name="Test Company",
+        )
+        self.project = Project.objects.create(
+            company=self.company_profile,
+            title="Sample Project",
+            description="Sample project description",
+            budget_min=100,
+            budget_max=500,
+            status=Project.STATUS_OPEN,
+        )
+
     def test_unauthorized_access(self):
         self.client.force_authenticate(user=self.user)
         response = self.client.get('/api/v1/superadmin/overview/')
@@ -73,3 +87,22 @@ class SuperAdminAPITests(APITestCase):
         self.assertEqual(patch_res.status_code, status.HTTP_200_OK)
         self.user.refresh_from_db()
         self.assertFalse(self.user.is_active)
+
+    def test_project_list_api(self):
+        self.client.force_authenticate(user=self.admin)
+        response = self.client.get('/api/v1/superadmin/projects/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 1)
+        project_data = response.data['projects'][0]
+        self.assertEqual(project_data['title'], "Sample Project")
+        self.assertEqual(project_data['company_name'], "Test Company")
+        self.assertEqual(project_data['budget'], "100.00 - 500.00")
+
+    def test_update_project_status(self):
+        self.client.force_authenticate(user=self.admin)
+        patch_res = self.client.patch(f'/api/v1/superadmin/projects/{self.project.id}/', {
+            'status': 'in_progress',
+        }, format='json')
+        self.assertEqual(patch_res.status_code, status.HTTP_200_OK)
+        self.project.refresh_from_db()
+        self.assertEqual(self.project.status, 'in_progress')
