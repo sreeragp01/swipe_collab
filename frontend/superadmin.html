@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Admin Dashboard — SwipeCollab</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        :root {
+            --admin-red: #ef4444;
+            --admin-purple: #8b5cf6;
+            --admin-green: #10b981;
+            --admin-yellow: #f59e0b;
+        }
+        .admin-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .admin-title-badge {
+            background: rgba(239, 68, 68, 0.15);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            padding: 0.25rem 0.75rem;
+            border-radius: var(--radius-full);
+            font-size: 0.8rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+        .kpi-card {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.25rem 1.5rem;
+            backdrop-filter: var(--glass-blur);
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+        .kpi-card:hover {
+            border-color: var(--border-hover);
+            transform: translateY(-2px);
+        }
+        .kpi-label {
+            color: var(--text2);
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 0.35rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .kpi-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            font-family: var(--font-head);
+            color: #fff;
+        }
+        .kpi-sub {
+            color: var(--text3);
+            font-size: 0.78rem;
+            margin-top: 0.35rem;
+        }
+        .tabs-bar {
+            display: flex;
+            gap: 0.5rem;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 1.5rem;
+            overflow-x: auto;
+            padding-bottom: 0.25rem;
+        }
+        .tab-btn {
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--text2);
+            font-family: var(--font-head);
+            font-size: 0.95rem;
+            font-weight: 700;
+            padding: 0.65rem 1.25rem;
+            cursor: pointer;
+            transition: var(--transition);
+            white-space: nowrap;
+            border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+        }
+        .tab-btn:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .tab-btn.active {
+            color: var(--admin-red);
+            border-bottom-color: var(--admin-red);
+            background: rgba(239, 68, 68, 0.1);
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .filter-row {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .filter-row input, .filter-row select {
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: #fff;
+            padding: 0.5rem 0.85rem;
+            font-size: 0.85rem;
+        }
+        .filter-row input { flex: 1; min-width: 200px; }
+
+        .admin-table-wrap {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow-x: auto;
+            box-shadow: var(--shadow);
+        }
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.85rem;
+        }
+        .admin-table th {
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text2);
+            font-weight: 700;
+            padding: 0.85rem 1rem;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+        .admin-table td {
+            padding: 0.85rem 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--text1);
+            vertical-align: middle;
+        }
+        .admin-table tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+        .badge-banned {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.4);
+        }
+        .badge-active {
+            background: rgba(16, 185, 129, 0.2);
+            color: #6ee7b7;
+            border: 1px solid rgba(16, 185, 129, 0.4);
+        }
+        .badge-staff {
+            background: rgba(139, 92, 246, 0.2);
+            color: #c4b5fd;
+            border: 1px solid rgba(139, 92, 246, 0.4);
+        }
+        .badge-trial {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fcd34d;
+            border: 1px solid rgba(245, 158, 11, 0.4);
+        }
+
+        .user-cell {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .user-cell-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--bg3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+            border: 1px solid var(--border);
+        }
+
+        .modal-bg {
+            background: rgba(9, 10, 15, 0.88);
+            backdrop-filter: blur(12px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            padding: 1rem;
+        }
+        .modal-box {
+            background: var(--bg-solid);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            max-width: 520px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 1.75rem;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem;
+        }
+        .modal-header h3 { font-size: 1.15rem; font-family: var(--font-head); color: #fff; }
+        .close-btn { background: none; border: none; color: var(--text2); cursor: pointer; font-size: 1.4rem; }
+
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.65rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .toggle-row label {
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--text1);
+        }
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+        }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background-color: var(--bg3);
+            border: 1px solid var(--border);
+            transition: .3s;
+            border-radius: 24px;
+        }
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+        input:checked + .toggle-slider {
+            background-color: var(--admin-red);
+            border-color: var(--admin-red);
+        }
+        input:checked + .toggle-slider:before {
+            transform: translateX(20px);
+        }
+
+        /* Mobile & Tablet Responsiveness */
+        @media (max-width: 768px) {
+            .admin-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.75rem;
+            }
+            .kpi-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.85rem;
+            }
+            .filter-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .filter-row input, .filter-row select {
+                width: 100%;
+                min-width: 0;
+            }
+            .tabs-bar {
+                padding-bottom: 0.5rem;
+                -webkit-overflow-scrolling: touch;
+            }
+            .tab-btn {
+                padding: 0.55rem 0.9rem;
+                font-size: 0.85rem;
+            }
+            .modal-box {
+                padding: 1.25rem;
+                max-width: 95%;
+            }
+            .admin-table-wrap {
+                -webkit-overflow-scrolling: touch;
+            }
+        }
+        @media (max-width: 480px) {
+            .kpi-grid {
+                grid-template-columns: 1fr;
+            }
+            .kpi-value {
+                font-size: 1.5rem;
+            }
+            .admin-title-badge {
+                font-size: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="/" class="nav-logo">Swipe<span style="color:var(--accent)">Collab</span></a>
+        <div class="nav-links">
+            <a href="/dashboard/" class="nav-link">Home</a>
+            <a href="/swipe/" class="nav-link">Swipe</a>
+            <a href="/matches/" class="nav-link">Matches</a>
+            <a href="/projects/" class="nav-link">Projects</a>
+            <a href="/profile/" class="nav-link">Profile</a>
+            <button class="btn btn-ghost" style="padding:0.4rem 0.85rem;font-size:0.8rem;" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <div class="page" style="max-width:1100px;">
+        <div class="admin-header">
+            <div>
+                <span class="admin-title-badge">🛡️ Super Admin Control Center</span>
+                <h1 style="font-size:1.6rem;margin-top:0.35rem;">Platform Administration</h1>
+            </div>
+            <button class="btn btn-ghost" onclick="loadOverview(); loadTabContent(); showToast('Data refreshed!')">🔄 Refresh Data</button>
+        </div>
+
+        <!-- Overview KPIs -->
+        <div class="kpi-grid" id="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-label"><span>Total Users</span><span>👥</span></div>
+                <div class="kpi-value" id="kpi-users-total">...</div>
+                <div class="kpi-sub" id="kpi-users-split">Loading...</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label"><span>Revenue & Paid</span><span>💳</span></div>
+                <div class="kpi-value" id="kpi-revenue">₹0</div>
+                <div class="kpi-sub" id="kpi-paid-sub">Loading...</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label"><span>Platform Activity</span><span>⚡</span></div>
+                <div class="kpi-value" id="kpi-swipes">0</div>
+                <div class="kpi-sub" id="kpi-matches-sub">Loading...</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label"><span>Safety & Moderation</span><span>🚨</span></div>
+                <div class="kpi-value" id="kpi-pending-reports">0</div>
+                <div class="kpi-sub" id="kpi-banned-sub">Loading...</div>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="tabs-bar">
+            <button class="tab-btn active" onclick="switchTab('users', this)">👥 Users</button>
+            <button class="tab-btn" onclick="switchTab('projects', this)">📁 Projects</button>
+            <button class="tab-btn" onclick="switchTab('reports', this)">🛡️ Moderation</button>
+            <button class="tab-btn" onclick="switchTab('payments', this)">💳 Payments</button>
+        </div>
+
+        <!-- TAB 1: USERS MANAGEMENT -->
+        <div id="tab-users" class="tab-content active">
+            <div class="filter-row">
+                <input type="text" id="user-search" placeholder="Search by email or name..." oninput="debounce(loadUsers, 300)()">
+                <select id="user-role-filter" onchange="loadUsers()">
+                    <option value="">All Roles</option>
+                    <option value="freelancer">Freelancer</option>
+                    <option value="company">Company</option>
+                </select>
+                <select id="user-verified-filter" onchange="loadUsers()">
+                    <option value="">All Verification</option>
+                    <option value="true">Email Verified</option>
+                    <option value="false">Unverified</option>
+                </select>
+                <select id="user-paid-filter" onchange="loadUsers()">
+                    <option value="">All Subscriptions</option>
+                    <option value="true">Paid Only</option>
+                    <option value="false">Free/Trial</option>
+                </select>
+                <select id="user-active-filter" onchange="loadUsers()">
+                    <option value="">All Status</option>
+                    <option value="true">Active Users</option>
+                    <option value="false">Banned Users</option>
+                </select>
+            </div>
+
+            <div class="admin-table-wrap">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Role</th>
+                            <th>Verification</th>
+                            <th>Access State</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-tbody">
+                        <tr><td colspan="6" style="text-align:center;padding:2rem;">Loading user directory...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB 2: PROJECTS MANAGEMENT -->
+        <div id="tab-projects" class="tab-content">
+            <div class="filter-row">
+                <input type="text" id="project-search" placeholder="Search project title or owner..." oninput="debounce(loadProjects, 300)()">
+                <select id="project-status-filter" onchange="loadProjects()">
+                    <option value="">All Statuses</option>
+                    <option value="open">Open</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="completed">Completed</option>
+                    <option value="draft">Draft</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+            </div>
+
+            <div class="admin-table-wrap">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Project</th>
+                            <th>Company Owner</th>
+                            <th>Category</th>
+                            <th>Budget</th>
+                            <th>Applications</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="projects-tbody">
+                        <tr><td colspan="7" style="text-align:center;padding:2rem;">Loading projects...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB 3: MODERATION & REPORTS -->
+        <div id="tab-reports" class="tab-content">
+            <div class="filter-row">
+                <select id="report-status-filter" onchange="loadReports()">
+                    <option value="">All Report Statuses</option>
+                    <option value="pending" selected>Pending Review</option>
+                    <option value="actioned">Actioned</option>
+                    <option value="dismissed">Dismissed</option>
+                </select>
+            </div>
+
+            <div class="admin-table-wrap">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Reporter</th>
+                            <th>Reported User</th>
+                            <th>Category</th>
+                            <th>Reason</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reports-tbody">
+                        <tr><td colspan="7" style="text-align:center;padding:2rem;">Loading reports...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB 4: PAYMENTS LOG -->
+        <div id="tab-payments" class="tab-content">
+            <div class="filter-row">
+                <input type="text" id="payment-search" placeholder="Search user email or order ID..." oninput="debounce(loadPayments, 300)()">
+                <select id="payment-status-filter" onchange="loadPayments()">
+                    <option value="">All Statuses</option>
+                    <option value="created">Created</option>
+                    <option value="success">Success</option>
+                    <option value="failed">Failed</option>
+                </select>
+            </div>
+
+            <div class="admin-table-wrap">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>User Email</th>
+                            <th>Order ID</th>
+                            <th>Payment ID</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="payments-tbody">
+                        <tr><td colspan="6" style="text-align:center;padding:2rem;">Loading payments...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- USER MANAGEMENT MODAL -->
+    <div class="modal-bg" id="user-modal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 id="modal-user-email">Manage User</h3>
+                <button class="close-btn" onclick="closeUserModal()">×</button>
+            </div>
+            
+            <div style="font-size:0.82rem;color:var(--text2);margin-bottom:1rem;" id="modal-user-meta">
+                ID: <span id="modal-user-id"></span>
+            </div>
+
+            <div class="toggle-row">
+                <label for="toggle-verified">Email Verified (`is_verified`)</label>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="toggle-verified">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div class="toggle-row">
+                <label for="toggle-face">Face Verified (`face_verified`)</label>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="toggle-face">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div class="toggle-row">
+                <label for="toggle-paid">Paid Subscription (`is_paid`)</label>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="toggle-paid">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div class="toggle-row">
+                <label for="toggle-trial">Active Trial (`is_trial_active`)</label>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="toggle-trial">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div class="toggle-row">
+                <label for="toggle-active">Account Active (`is_active`)</label>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="toggle-active">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div class="toggle-row">
+                <label for="toggle-staff">Staff / Admin Access (`is_staff`)</label>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="toggle-staff">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div class="toggle-row">
+                <label for="toggle-superuser">Superuser (`is_superuser`)</label>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="toggle-superuser">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+
+            <div style="display:flex;gap:0.5rem;margin-top:1.25rem;flex-wrap:wrap;">
+                <button class="btn btn-ghost" style="font-size:0.8rem;" onclick="triggerUserAction('start_trial')">🎁 Grant 30-Day Trial</button>
+                <button class="btn btn-ghost" style="font-size:0.8rem;color:#f87171;" onclick="triggerUserAction('issue_strike')">⚠️ Issue Strike</button>
+                <button class="btn btn-ghost" style="font-size:0.8rem;" onclick="triggerUserAction('reset_strikes')">🧹 Reset Strikes</button>
+            </div>
+
+            <div style="margin-top:1.5rem;">
+                <button class="btn btn-primary btn-full" onclick="saveUserChanges()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/api.js"></script>
+    <script>
+        let selectedUserId = null
+        let currentTab = 'users'
+
+        function debounce(func, wait) {
+            let timeout
+            return function(...args) {
+                clearTimeout(timeout)
+                timeout = setTimeout(() => func.apply(this, args), wait)
+            }
+        }
+
+        function switchTab(tab, el) {
+            currentTab = tab
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'))
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'))
+            document.getElementById(`tab-${tab}`).classList.add('active')
+            el.classList.add('active')
+            loadTabContent()
+        }
+
+        function loadTabContent() {
+            if (currentTab === 'users') loadUsers()
+            if (currentTab === 'projects') loadProjects()
+            if (currentTab === 'reports') loadReports()
+            if (currentTab === 'payments') loadPayments()
+        }
+
+        async function loadOverview() {
+            try {
+                const res = await api('/superadmin/overview/')
+                if (res && res.ok) {
+                    const d = await res.json()
+                    document.getElementById('kpi-users-total').textContent = d.users.total
+                    document.getElementById('kpi-users-split').textContent = `${d.users.freelancers} Freelancers · ${d.users.companies} Companies`
+                    
+                    document.getElementById('kpi-revenue').textContent = `₹${d.payments.total_revenue_inr}`
+                    document.getElementById('kpi-paid-sub').textContent = `${d.users.paid} Paid Users · ${d.users.trial} In Trial`
+                    
+                    document.getElementById('kpi-swipes').textContent = d.engagement.swipes
+                    document.getElementById('kpi-matches-sub').textContent = `${d.engagement.matches} Matches · ${d.projects.total} Projects`
+
+                    document.getElementById('kpi-pending-reports').textContent = d.moderation.pending_reports
+                    document.getElementById('kpi-banned-sub').textContent = `${d.users.banned} Banned Users · ${d.moderation.total_reports} Total Reports`
+                }
+            } catch (e) {
+                console.error(e)
+            }
+        }
+
+        async function loadUsers() {
+            const search = document.getElementById('user-search').value.trim()
+            const role = document.getElementById('user-role-filter').value
+            const is_verified = document.getElementById('user-verified-filter').value
+            const is_paid = document.getElementById('user-paid-filter').value
+            const is_active = document.getElementById('user-active-filter').value
+
+            let url = `/superadmin/users/?search=${encodeURIComponent(search)}&role=${role}&is_verified=${is_verified}&is_paid=${is_paid}&is_active=${is_active}`
+            
+            const tbody = document.getElementById('users-tbody')
+            try {
+                const res = await api(url)
+                if (res && res.ok) {
+                    const data = await res.json()
+                    if (!data.users.length) {
+                        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text3);">No users matching criteria.</td></tr>`
+                        return
+                    }
+                    tbody.innerHTML = data.users.map(u => `
+                        <tr>
+                            <td>
+                                <div class="user-cell">
+                                    <div class="user-cell-avatar">${(u.email || 'U')[0].toUpperCase()}</div>
+                                    <div>
+                                        <strong>${u.full_name || u.username}</strong>
+                                        <div style="color:var(--text3);font-size:0.75rem;">${u.email}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="badge ${u.role === 'company' ? 'badge-yellow' : 'badge-blue'}">${u.role}</span></td>
+                            <td>
+                                ${u.is_verified ? '<span class="badge badge-green">Email ✓</span>' : '<span class="badge badge-red">Unverified</span>'}
+                                ${u.face_verified ? '<span class="badge badge-green" style="margin-left:0.25rem;">Face ✓</span>' : ''}
+                            </td>
+                            <td>
+                                ${u.is_paid ? '<span class="badge badge-green">Paid</span>' : u.is_trial_active ? '<span class="badge badge-trial">Trial Active</span>' : '<span class="badge badge-yellow">Free</span>'}
+                                ${u.is_staff ? '<span class="badge badge-staff" style="margin-left:0.25rem;">Admin</span>' : ''}
+                            </td>
+                            <td>
+                                ${u.is_active ? '<span class="badge badge-active">Active</span>' : '<span class="badge badge-banned">Banned</span>'}
+                                ${u.strikes > 0 ? `<span class="badge badge-red" style="margin-left:0.25rem;">${u.strikes} ⚠️</span>` : ''}
+                            </td>
+                            <td>
+                                <button class="btn btn-ghost" style="padding:0.25rem 0.5rem;font-size:0.75rem;" onclick="openUserModal('${u.id}')">⚙️ Manage</button>
+                                <button class="btn btn-ghost" style="padding:0.25rem 0.5rem;font-size:0.75rem;color:${u.is_active ? '#ef4444' : '#10b981'};" onclick="quickToggleBan('${u.id}', ${u.is_active})">
+                                    ${u.is_active ? 'Ban' : 'Unban'}
+                                </button>
+                            </td>
+                        </tr>
+                    `).join('')
+                }
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2rem;color:#ef4444;">Failed to load users.</td></tr>`
+            }
+        }
+
+        async function openUserModal(userId) {
+            selectedUserId = userId
+            try {
+                const res = await api(`/superadmin/users/${userId}/`)
+                if (res && res.ok) {
+                    const u = await res.json()
+                    document.getElementById('modal-user-email').textContent = u.email
+                    document.getElementById('modal-user-id').textContent = u.id
+
+                    document.getElementById('toggle-verified').checked = u.is_verified
+                    document.getElementById('toggle-face').checked = u.face_verified
+                    document.getElementById('toggle-paid').checked = u.is_paid
+                    document.getElementById('toggle-trial').checked = u.is_trial_active
+                    document.getElementById('toggle-active').checked = u.is_active
+                    document.getElementById('toggle-staff').checked = u.is_staff
+                    document.getElementById('toggle-superuser').checked = u.is_superuser
+
+                    document.getElementById('user-modal').style.display = 'flex'
+                }
+            } catch (e) {
+                showToast('Failed to fetch user details.', 'error')
+            }
+        }
+
+        function closeUserModal() {
+            document.getElementById('user-modal').style.display = 'none'
+            selectedUserId = null
+        }
+
+        async function saveUserChanges() {
+            if (!selectedUserId) return
+            const payload = {
+                is_verified: document.getElementById('toggle-verified').checked,
+                face_verified: document.getElementById('toggle-face').checked,
+                is_paid: document.getElementById('toggle-paid').checked,
+                is_trial_active: document.getElementById('toggle-trial').checked,
+                is_active: document.getElementById('toggle-active').checked,
+                is_staff: document.getElementById('toggle-staff').checked,
+                is_superuser: document.getElementById('toggle-superuser').checked,
+            }
+
+            const res = await api(`/superadmin/users/${selectedUserId}/`, {
+                method: 'PATCH',
+                body: JSON.stringify(payload)
+            })
+
+            if (res && res.ok) {
+                showToast('User attributes updated!')
+                closeUserModal()
+                loadUsers()
+                loadOverview()
+            } else {
+                showToast('Failed to update user.', 'error')
+            }
+        }
+
+        async function triggerUserAction(action) {
+            if (!selectedUserId) return
+            const res = await api(`/superadmin/users/${selectedUserId}/`, {
+                method: 'PATCH',
+                body: JSON.stringify({ action })
+            })
+            if (res && res.ok) {
+                showToast(`Action "${action}" executed.`)
+                openUserModal(selectedUserId)
+                loadUsers()
+            } else {
+                showToast('Action failed.', 'error')
+            }
+        }
+
+        async function quickToggleBan(userId, currentActive) {
+            const verb = currentActive ? 'ban' : 'unban'
+            if (!confirm(`Are you sure you want to ${verb} this account?`)) return
+
+            const res = await api(`/superadmin/users/${userId}/`, {
+                method: 'PATCH',
+                body: JSON.stringify({ is_active: !currentActive })
+            })
+
+            if (res && res.ok) {
+                showToast(`User ${verb}ned.`)
+                loadUsers()
+                loadOverview()
+            } else {
+                showToast(`Failed to ${verb} user.`, 'error')
+            }
+        }
+
+        async function loadProjects() {
+            const search = document.getElementById('project-search').value.trim()
+            const status = document.getElementById('project-status-filter').value
+
+            const tbody = document.getElementById('projects-tbody')
+            try {
+                const res = await api(`/superadmin/projects/?search=${encodeURIComponent(search)}&status=${status}`)
+                if (res && res.ok) {
+                    const data = await res.json()
+                    if (!data.projects.length) {
+                        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text3);">No projects found.</td></tr>`
+                        return
+                    }
+                    tbody.innerHTML = data.projects.map(p => `
+                        <tr>
+                            <td><strong>${p.title}</strong></td>
+                            <td>${p.company_email}</td>
+                            <td>${p.category || 'General'}</td>
+                            <td>₹${p.budget}</td>
+                            <td>${p.applications_count} apps</td>
+                            <td><span class="badge ${p.status === 'open' ? 'badge-green' : p.status === 'in_progress' ? 'badge-blue' : 'badge-yellow'}">${p.status}</span></td>
+                            <td>
+                                <select onchange="updateProjectStatus('${p.id}', this.value)" style="font-size:0.75rem;padding:0.2rem 0.4rem;background:var(--bg3);color:#fff;border:1px solid var(--border);border-radius:4px;">
+                                    <option value="open" ${p.status === 'open' ? 'selected' : ''}>Open</option>
+                                    <option value="in_progress" ${p.status === 'in_progress' ? 'selected' : ''}>In Progress</option>
+                                    <option value="completed" ${p.status === 'completed' ? 'selected' : ''}>Completed</option>
+                                    <option value="draft" ${p.status === 'draft' ? 'selected' : ''}>Draft</option>
+                                    <option value="cancelled" ${p.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+                                </select>
+                                <button class="btn btn-ghost" style="padding:0.2rem 0.4rem;font-size:0.75rem;color:#ef4444;" onclick="deleteProject('${p.id}')">🗑️ Delete</button>
+                            </td>
+                        </tr>
+                    `).join('')
+                }
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;color:#ef4444;">Failed to load projects.</td></tr>`
+            }
+        }
+
+        async function updateProjectStatus(id, newStatus) {
+            const res = await api(`/superadmin/projects/${id}/`, {
+                method: 'PATCH',
+                body: JSON.stringify({ status: newStatus })
+            })
+            if (res && res.ok) showToast('Project status updated!')
+            else showToast('Failed to update project status.', 'error')
+        }
+
+        async function deleteProject(id) {
+            if (!confirm('Are you sure you want to permanently delete this project?')) return
+            const res = await api(`/superadmin/projects/${id}/`, { method: 'DELETE' })
+            if (res && res.ok) {
+                showToast('Project deleted.')
+                loadProjects()
+                loadOverview()
+            } else {
+                showToast('Failed to delete project.', 'error')
+            }
+        }
+
+        async function loadReports() {
+            const status = document.getElementById('report-status-filter').value
+            const tbody = document.getElementById('reports-tbody')
+
+            try {
+                const res = await api(`/superadmin/reports/?status=${status}`)
+                if (res && res.ok) {
+                    const data = await res.json()
+                    if (!data.reports.length) {
+                        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text3);">No reports matching criteria.</td></tr>`
+                        return
+                    }
+                    tbody.innerHTML = data.reports.map(r => `
+                        <tr>
+                            <td>#${r.id}</td>
+                            <td>${r.reporter_email}</td>
+                            <td>
+                                <strong>${r.reported_user_email}</strong>
+                                ${r.reported_user_banned ? '<span class="badge badge-banned" style="margin-left:0.25rem;">Banned</span>' : ''}
+                            </td>
+                            <td><span class="badge badge-yellow">${r.category}</span></td>
+                            <td style="max-width:220px;white-space:normal;font-size:0.8rem;">
+                                ${r.reason}
+                                ${r.evidence_url ? `<br><a href="${r.evidence_url}" target="_blank" style="color:var(--accent);font-size:0.75rem;">View Evidence 🔗</a>` : ''}
+                            </td>
+                            <td><span class="badge ${r.status === 'actioned' ? 'badge-green' : r.status === 'dismissed' ? 'badge-red' : 'badge-yellow'}">${r.status}</span></td>
+                            <td>
+                                ${r.status === 'pending' ? `
+                                    <button class="btn btn-primary" style="padding:0.2rem 0.5rem;font-size:0.75rem;" onclick="actionReport(${r.id}, 'actioned', true, false)">⚠️ Strike</button>
+                                    <button class="btn btn-danger" style="padding:0.2rem 0.5rem;font-size:0.75rem;" onclick="actionReport(${r.id}, 'actioned', true, true)">🚫 Ban</button>
+                                    <button class="btn btn-ghost" style="padding:0.2rem 0.5rem;font-size:0.75rem;" onclick="actionReport(${r.id}, 'dismissed', false, false)">Dismiss</button>
+                                ` : '<span style="color:var(--text3);font-size:0.75rem;">Reviewed</span>'}
+                            </td>
+                        </tr>
+                    `).join('')
+                }
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;color:#ef4444;">Failed to load reports.</td></tr>`
+            }
+        }
+
+        async function actionReport(reportId, status, issue_strike, ban_user) {
+            const res = await api(`/superadmin/reports/${reportId}/`, {
+                method: 'PATCH',
+                body: JSON.stringify({ status, issue_strike, ban_user })
+            })
+            if (res && res.ok) {
+                showToast('Report actioned successfully!')
+                loadReports()
+                loadOverview()
+            } else {
+                showToast('Failed to action report.', 'error')
+            }
+        }
+
+        async function loadPayments() {
+            const search = document.getElementById('payment-search').value.trim()
+            const status = document.getElementById('payment-status-filter').value
+            const tbody = document.getElementById('payments-tbody')
+
+            try {
+                const res = await api(`/superadmin/payments/?search=${encodeURIComponent(search)}&status=${status}`)
+                if (res && res.ok) {
+                    const data = await res.json()
+                    if (!data.payments.length) {
+                        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text3);">No payment records found.</td></tr>`
+                        return
+                    }
+                    tbody.innerHTML = data.payments.map(p => `
+                        <tr>
+                            <td><strong>${p.user_email}</strong></td>
+                            <td style="font-family:monospace;font-size:0.8rem;">${p.rzp_order_id}</td>
+                            <td style="font-family:monospace;font-size:0.8rem;">${p.rzp_payment_id}</td>
+                            <td><strong>₹${p.amount_inr}</strong></td>
+                            <td><span class="badge ${p.status === 'success' ? 'badge-green' : p.status === 'failed' ? 'badge-red' : 'badge-yellow'}">${p.status}</span></td>
+                            <td style="color:var(--text3);font-size:0.78rem;">${new Date(p.created_at).toLocaleString()}</td>
+                        </tr>
+                    `).join('')
+                }
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2rem;color:#ef4444;">Failed to load payments.</td></tr>`
+            }
+        }
+
+        // Initialize Guard and Load Data
+        (async function initSuperAdmin() {
+            await requireSuperAdmin()
+            await loadOverview()
+            loadTabContent()
+        })()
+    </script>
+</body>
+</html>

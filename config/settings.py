@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'moderation.apps.ModerationConfig',
     'analytics.apps.AnalyticsConfig',
     'notifications.apps.NotificationsConfig',
+    'superadmin.apps.SuperadminConfig',
 ]
 
 MIDDLEWARE = [

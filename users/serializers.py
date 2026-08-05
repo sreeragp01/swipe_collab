@@ -51,6 +51,9 @@ class LoginSerializer(TokenObtainPairSerializer):
         data['trial_ends_at'] = str(self.user.trial_ends_at) if self.user.trial_ends_at else None
         data['trial_expired'] = self.user.trial_expired
         data['has_access'] = self.user.has_access
+        data['is_staff'] = self.user.is_staff
+        data['is_superuser'] = self.user.is_superuser
+        data['is_active'] = self.user.is_active
         return data
 
 
@@ -68,7 +71,8 @@ class UserSerializer(serializers.ModelSerializer):
             'role', 'avatar', 'is_verified', 'face_verified', 'is_paid',
             'is_trial_active', 'trial_started_at', 'trial_ends_at',
             'trial_expired', 'has_access', 'can_swipe',
-            'full_name', 'date_joined', 'updated_at',
+            'full_name', 'is_staff', 'is_superuser', 'is_active',
+            'date_joined', 'updated_at',
         ]
         read_only_fields = [
             'id', 'is_verified', 'face_verified', 'is_paid',

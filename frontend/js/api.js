@@ -45,6 +45,15 @@ function requireAuth() {
     if (!getToken()) window.location.href = '/login/'
 }
 
+async function requireSuperAdmin() {
+    requireAuth()
+    const user = await fetchCurrentUser()
+    if (!user || (!user.is_staff && !user.is_superuser)) {
+        showToast('Access denied: Super Admin privilege required.', 'error')
+        setTimeout(() => { window.location.href = '/dashboard/' }, 1000)
+    }
+}
+
 
 async function api(endpoint, options = {}) {
     const headers = { 'Content-Type': 'application/json', ...options.headers }
@@ -271,7 +280,28 @@ function initMobileNav() {
     nav.appendChild(toggleBtn)
 }
 
+async function checkSuperAdminNav() {
+    if (!getToken()) return
+    const user = await fetchCurrentUser()
+    if (user && (user.is_staff || user.is_superuser)) {
+        const navLinks = document.querySelector('.nav-links')
+        if (navLinks && !document.getElementById('superadmin-nav-link')) {
+            const link = document.createElement('a')
+            link.id = 'superadmin-nav-link'
+            link.href = '/superadmin/'
+            link.className = 'nav-link'
+            link.style.color = '#ef4444'
+            link.style.fontWeight = '700'
+            link.textContent = '🛡️ Super Admin'
+            navLinks.appendChild(link)
+        }
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     initMobileNav()
-    if (getToken()) initNotifications()
+    if (getToken()) {
+        initNotifications()
+        checkSuperAdminNav()
+    }
 })

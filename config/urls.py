@@ -22,6 +22,7 @@ urlpatterns = [
     path('api/v1/moderation/', include('moderation.urls')),
     path('api/v1/analytics/',  include('analytics.urls')),
     path('api/v1/notifications/', include('notifications.urls')),
+    path('api/v1/superadmin/',   include('superadmin.urls')),
 
     # Frontend HTML pages
     path('',              TemplateView.as_view(template_name='index.html'),        name='index'),
@@ -36,6 +37,7 @@ urlpatterns = [
     path('projects/',     TemplateView.as_view(template_name='projects.html'),     name='projects'),
     path('payment/',      TemplateView.as_view(template_name='payment.html'),      name='payment'),
     path('moderation/',   TemplateView.as_view(template_name='moderation.html'),   name='moderation'),
+    path('superadmin/',   TemplateView.as_view(template_name='superadmin.html'),   name='superadmin'),
     path('verify-email/', TemplateView.as_view(template_name='verify_email.html'), name='verify-email'),
     path('settings/',     TemplateView.as_view(template_name='settings.html'),     name='settings'),
     path('portfolio-show/', TemplateView.as_view(template_name='portfolio_show.html'), name='portfolio-show'),
