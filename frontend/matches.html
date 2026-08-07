@@ -315,6 +315,10 @@
                 <span>❤️ Interests Received</span>
                 <span class="badge" style="background:var(--accent2);color:#fff;" id="tab-interests-count">0</span>
             </button>
+            <button class="tab-btn" id="tab-invitations" onclick="switchTab('invitations')">
+                <span>🚀 Project Invitations</span>
+                <span class="badge" style="background:var(--accent);color:#fff;" id="tab-invitations-count">0</span>
+            </button>
         </div>
 
         <div class="debug-box" id="debug-box"></div>
@@ -329,6 +333,11 @@
                 <p>Keep swiping or accept incoming candidate interests!</p>
                 <a href="/swipe/" class="btn btn-primary" style="margin-top:0.85rem;">Start Swiping ↗</a>
             </div>
+        </div>
+
+        <!-- Project Invitations Tab View -->
+        <div id="invitations-tab-content" style="display:none;">
+            <div id="invitations-grid" class="matches-grid"></div>
         </div>
 
         <!-- Interests Tab View -->
@@ -440,22 +449,73 @@
             activeTab = tab
             document.getElementById('tab-matches').classList.toggle('active', tab === 'matches')
             document.getElementById('tab-interests').classList.toggle('active', tab === 'interests')
+            document.getElementById('tab-invitations').classList.toggle('active', tab === 'invitations')
 
             const matchesContent = document.getElementById('matches-tab-content')
             const interestsContent = document.getElementById('interests-tab-content')
+            const invitationsContent = document.getElementById('invitations-tab-content')
+
+            matchesContent.style.display = tab === 'matches' ? 'block' : 'none'
+            interestsContent.style.display = tab === 'interests' ? 'block' : 'none'
+            invitationsContent.style.display = tab === 'invitations' ? 'block' : 'none'
 
             if (tab === 'matches') {
-                matchesContent.style.display = 'block'
-                interestsContent.style.display = 'none'
                 document.getElementById('page-title').textContent = 'Your Matches'
                 document.getElementById('page-subtitle').textContent = 'Click on a profile to view details'
                 document.getElementById('match-count').textContent = `${matches.length} match${matches.length !== 1 ? 'es' : ''}`
-            } else {
-                matchesContent.style.display = 'none'
-                interestsContent.style.display = 'block'
+            } else if (tab === 'interests') {
                 document.getElementById('page-title').textContent = 'Interests Received'
                 document.getElementById('page-subtitle').textContent = 'People who showed interest in collaborating with you'
                 document.getElementById('match-count').textContent = `${interests.length} interest${interests.length !== 1 ? 's' : ''}`
+            } else if (tab === 'invitations') {
+                document.getElementById('page-title').textContent = 'Direct Project Invitations'
+                document.getElementById('page-subtitle').textContent = 'Project invitations sent directly to you by companies'
+                loadInvitationsTab()
+            }
+        }
+
+        async function loadInvitationsTab() {
+            const grid = document.getElementById('invitations-grid');
+            if (!grid) return;
+            grid.innerHTML = '<div style="color:var(--text3); padding:2rem; text-align:center;">Loading project invitations...</div>';
+            try {
+                const res = await api('/invitations/received/');
+                if (res && res.ok) {
+                    const list = await res.json();
+                    document.getElementById('tab-invitations-count').textContent = list.length;
+                    if (activeTab === 'invitations') {
+                        document.getElementById('match-count').textContent = `${list.length} invitation${list.length !== 1 ? 's' : ''}`;
+                    }
+                    if (list.length === 0) {
+                        grid.innerHTML = '<div style="background:#ffffff; border:1px solid var(--border); border-radius:var(--radius); padding:2.5rem; text-align:center; color:var(--text3); grid-column:1/-1;">No pending project invitations.</div>';
+                        return;
+                    }
+                    grid.innerHTML = list.map(inv => `
+                        <div class="match-card" style="background:#ffffff; border:1px solid var(--border); border-radius:var(--radius); padding:1.5rem;">
+                            <div style="font-family:var(--font-head); font-weight:800; font-size:1.1rem; color:#0f172a; margin-bottom:0.35rem;">${inv.project_title}</div>
+                            <div style="color:var(--text2); font-size:0.88rem; margin-bottom:0.75rem;">Invited by: <strong>${inv.sender_email}</strong></div>
+                            <p style="color:var(--text2); font-size:0.88rem; line-height:1.5; margin-bottom:1.25rem;">${inv.message || 'Company invited you to join their project.'}</p>
+                            <div style="display:flex; gap:0.5rem;">
+                                <button class="btn btn-primary" style="font-size:0.85rem; padding:0.5rem 1rem; flex:1;" onclick="respondMatchInvitation('${inv.id}', 'accept')">✅ Accept & Open Workspace</button>
+                                <button class="btn btn-ghost" style="font-size:0.85rem; padding:0.5rem 0.85rem; color:var(--red);" onclick="respondMatchInvitation('${inv.id}', 'decline')">✕ Decline</button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch (e) {
+                grid.innerHTML = '<div style="color:var(--red); padding:2rem; text-align:center; grid-column:1/-1;">Error loading invitations.</div>';
+            }
+        }
+
+        async function respondMatchInvitation(id, action) {
+            const res = await api(`/invitations/${id}/respond/`, {
+                method: 'POST',
+                body: JSON.stringify({ action })
+            });
+            if (res && res.ok) {
+                showToast(action === 'accept' ? 'Invitation accepted! Workspace created.' : 'Invitation declined.');
+                loadInvitationsTab();
+                if (action === 'accept') setTimeout(() => { window.location.href = '/workspace/'; }, 1000);
             }
         }
 
