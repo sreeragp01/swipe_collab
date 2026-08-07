@@ -20,17 +20,17 @@ class MatchSerializer(serializers.ModelSerializer):
         ]
 
     def _build_user_payload(self, obj, request):
-        if not request:
-            return None
-        other = obj.other_user(request.user)
+        other = None
+        if request and hasattr(request, 'user') and request.user.is_authenticated:
+            other = obj.other_user(request.user)
         if not other:
-            return None
+            other = obj.user2
 
         exact_name = None
         profile_id = None
         avatar_url = None
 
-        if other.is_freelancer:
+        if hasattr(other, 'is_freelancer') and other.is_freelancer:
             try:
                 prof = other.freelancer_profile
                 exact_name = prof.full_name
@@ -50,14 +50,14 @@ class MatchSerializer(serializers.ModelSerializer):
                 pass
 
         if not exact_name or not exact_name.strip():
-            exact_name = other.get_full_name() or other.email.split('@')[0].capitalize()
+            exact_name = getattr(other, 'email', 'User').split('@')[0].capitalize()
 
         return {
             'id':          str(other.id),
             'user_id':     str(other.id),
             'profile_id':  profile_id,
-            'email':       other.email,
-            'role':        other.role,
+            'email':       getattr(other, 'email', ''),
+            'role':        getattr(other, 'role', 'freelancer'),
             'name':        exact_name,
             'full_name':   exact_name,
             'avatar_url':  avatar_url,
