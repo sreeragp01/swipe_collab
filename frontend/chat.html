@@ -99,7 +99,7 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            background: var(--bg);
+            background: #f8fafc;
         }
 
         .chat-header {
@@ -108,15 +108,14 @@
             display: flex;
             gap: 1.1rem;
             padding: 1.1rem 1.8rem;
-            background: rgba(18, 20, 32, 0.75);
-            backdrop-filter: var(--glass-blur);
+            background: #ffffff;
         }
 
         .chat-header-name {
             font-family: var(--font-head);
             font-size: 1.1rem;
             font-weight: 800;
-            color: #fff;
+            color: #0f172a;
         }
 
         .chat-header-status {
@@ -156,22 +155,21 @@
             line-height: 1.55;
             padding: 0.75rem 1.1rem;
             word-break: break-word;
-            box-shadow: var(--shadow);
+            box-shadow: var(--shadow-sm);
         }
 
         .msg.mine .msg-bubble {
-            background: var(--gradient-primary);
+            background: var(--accent);
             border-bottom-right-radius: 4px;
-            color: #fff;
-            box-shadow: 0 4px 20px rgba(139, 92, 246, 0.35);
+            color: #ffffff;
+            box-shadow: 0 4px 16px rgba(16, 138, 0, 0.25);
         }
 
         .msg.theirs .msg-bubble {
-            background: var(--bg3);
+            background: #ffffff;
             border-bottom-left-radius: 4px;
-            color: var(--text);
+            color: #0f172a;
             border: 1px solid var(--border);
-            backdrop-filter: var(--glass-blur);
         }
 
         .msg-meta {
@@ -185,7 +183,7 @@
         }
 
         .read-tick {
-            color: #a78bfa;
+            color: var(--accent);
             font-size: 0.7rem;
             font-weight: 800;
         }
@@ -198,7 +196,7 @@
         }
 
         .reaction-badge {
-            background: var(--bg3);
+            background: #ffffff;
             border: 1px solid var(--border);
             border-radius: 999px;
             cursor: pointer;
@@ -212,7 +210,7 @@
         }
 
         .typing-indicator {
-            color: #a78bfa;
+            color: var(--accent);
             font-size: 0.82rem;
             font-style: italic;
             padding: 0 1.8rem 0.6rem;
@@ -226,8 +224,7 @@
             align-items: flex-end;
             gap: 0.85rem;
             padding: 1.2rem 1.8rem;
-            background: rgba(18, 20, 32, 0.8);
-            backdrop-filter: var(--glass-blur);
+            background: #ffffff;
         }
 
         .chat-input-area textarea {
@@ -239,7 +236,7 @@
         }
 
         .send-btn {
-            background: var(--gradient-primary);
+            background: var(--accent);
             border: none;
             border-radius: var(--radius-sm);
             color: #fff;
@@ -248,12 +245,12 @@
             padding: 0.8rem 1.3rem;
             flex-shrink: 0;
             transition: var(--transition);
-            box-shadow: 0 4px 16px rgba(139, 92, 246, 0.4);
+            box-shadow: 0 4px 16px rgba(16, 138, 0, 0.3);
         }
 
         .send-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 24px rgba(139, 92, 246, 0.6);
+            background: var(--accent-hover);
         }
 
         .emoji-row {
@@ -326,7 +323,7 @@
         <div class="chat-main">
             <div class="no-chat" id="no-chat">
                 <div style="font-size:3.5rem;filter:drop-shadow(0 0 20px rgba(139,92,246,0.4));">💬</div>
-                <strong style="font-size:1.2rem;color:#fff;">Select a conversation</strong>
+                <strong style="font-size:1.2rem;color:#0f172a;">Select a conversation</strong>
                 <p style="font-size:0.9rem;color:var(--text2);">Pick a match from the left menu to start messaging</p>
             </div>
             <div id="active-chat" style="display:none;flex-direction:column;height:100%;">
