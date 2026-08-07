@@ -185,7 +185,7 @@ class ApplicationListView(APIView):
                     title="New Project Application 📩",
                     message=f"{freelancer.name} applied to your project '{project.title}' with a proposal of ₹{application.proposed_rate}",
                     sender=request.user,
-                    link="/discover/",
+                    link=f"/projects/?review={project.id}",
                 )
 
             try:
@@ -195,6 +195,16 @@ class ApplicationListView(APIView):
                 pass
             return Response(ApplicationSerializer(application).data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CompanyApplicationsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        applications = Application.objects.filter(
+            Q(project__company__user=request.user) | Q(project__owner=request.user)
+        ).select_related('project', 'freelancer', 'freelancer__user').order_by('-created_at')
+        return Response(ApplicationSerializer(applications, many=True).data)
 
 
 class ApplicationStatusView(APIView):
