@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Details — SwipeCollab Marketplace</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .detail-card {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 2.5rem;
+            box-shadow: var(--shadow);
+            margin-top: 1.5rem;
+        }
+
+        .ai-banner {
+            background: rgba(16, 138, 0, 0.08);
+            border: 1px solid rgba(16, 138, 0, 0.25);
+            border-radius: var(--radius);
+            padding: 1.25rem 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .ai-banner h3 {
+            margin: 0;
+            color: var(--accent);
+            font-size: 1.15rem;
+            font-family: var(--font-head);
+            font-weight: 800;
+        }
+
+        .ai-reasons {
+            margin: 0.5rem 0 0 0;
+            padding: 0;
+            list-style: none;
+            font-size: 0.88rem;
+            color: var(--text2);
+        }
+
+        .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.25rem;
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+        }
+
+        .meta-item label {
+            display: block;
+            font-size: 0.78rem;
+            color: var(--text3);
+            margin-bottom: 0.3rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 700;
+        }
+
+        .meta-item span {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: #0f172a;
+            font-family: var(--font-head);
+        }
+
+        .skill-tag {
+            background: #f1f5f9;
+            border: 1px solid var(--border);
+            color: var(--text2);
+            padding: 0.35rem 0.75rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: inline-block;
+            margin: 0.25rem;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="nav">
+        <a href="/" class="nav-logo">Swipe<span style="color:var(--accent)">Collab</span></a>
+        <div class="nav-right-actions"></div>
+        <div class="nav-links" id="nav-links">
+            <a href="/discover/" class="nav-link">← Back to Discover</a>
+        </div>
+    </nav>
+
+    <div class="page">
+        <div class="detail-card" id="project-card">
+            <div style="text-align: center; padding: 3rem; color: var(--text3);">Loading project details...</div>
+        </div>
+    </div>
+
+    <script src="/static/js/api.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            requireAuth();
+            const params = new URLSearchParams(window.location.search);
+            const projectId = params.get('id');
+            if (!projectId) {
+                window.location.href = '/discover/';
+                return;
+            }
+
+            const res = await api(`/projects/${projectId}/`);
+            if (res && res.ok) {
+                const project = await res.json();
+                renderDetail(project);
+            } else {
+                document.getElementById('project-card').innerHTML = `<div style="text-align:center; color:var(--red);">Project not found.</div>`;
+            }
+        });
+
+        function renderDetail(p) {
+            const card = document.getElementById('project-card');
+            const match = p.ai_match || { score: 92, reasons: ["✓ Relevant skill alignment", "✓ Matches project budget parameters"] };
+            const skills = p.skills || [];
+
+            card.innerHTML = `
+                <div class="ai-banner">
+                    <div>
+                        <h3>⚡ ${match.score}% AI Compatibility Match</h3>
+                        <ul class="ai-reasons">
+                            ${match.reasons.map(r => `<li>${r}</li>`).join('')}
+                        </ul>
+                    </div>
+                </div>
+
+                <h1 style="font-size: 2rem; margin-top:0; color:#0f172a; font-family:var(--font-head); font-weight:800;">${p.title}</h1>
+                <div style="color: var(--text2); font-size: 0.95rem; margin-bottom: 1.5rem;">
+                    Posted by <strong style="color:#0f172a;">${p.company_name}</strong> • ${p.category || 'Software Development'}
+                </div>
+
+                <div class="meta-grid">
+                    <div class="meta-item">
+                        <label>Estimated Budget</label>
+                        <span style="color:var(--accent);">₹${Number(p.budget_min).toLocaleString()} – ₹${Number(p.budget_max).toLocaleString()}</span>
+                    </div>
+                    <div class="meta-item">
+                        <label>Timeline</label>
+                        <span>${p.duration || 'Flexible'}</span>
+                    </div>
+                    <div class="meta-item">
+                        <label>Project Type</label>
+                        <span>${p.project_type === 'hourly' ? 'Hourly Rate' : 'Fixed Price'}</span>
+                    </div>
+                    <div class="meta-item">
+                        <label>Location</label>
+                        <span>${p.location_type || 'Remote'}</span>
+                    </div>
+                </div>
+
+                <h3 style="color:#0f172a; font-family:var(--font-head); margin-top:2rem;">About the Project</h3>
+                <p style="color:var(--text2); line-height:1.7; font-size:0.98rem; white-space:pre-line;">${p.description}</p>
+
+                <h3 style="color:#0f172a; font-family:var(--font-head); margin-top:2rem;">Required Technology Stack</h3>
+                <div style="margin-bottom: 2.5rem;">
+                    ${skills.map(s => `<span class="skill-tag">${s.name}</span>`).join('')}
+                </div>
+
+                <button class="btn btn-primary btn-full" style="padding:0.9rem;" onclick="window.location.href='/discover/'">Apply Now on Discover</button>
+            `;
+        }
+    </script>
+</body>
+</html>

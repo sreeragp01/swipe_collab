@@ -54,7 +54,6 @@ async function requireSuperAdmin() {
     }
 }
 
-
 async function api(endpoint, options = {}) {
     const headers = { 'Content-Type': 'application/json', ...options.headers }
     if (options.body instanceof FormData) {
@@ -127,31 +126,21 @@ function logout() {
     window.location.href = '/'
 }
 
-// Apply saved theme automatically on script load
+// Reset and enforce clean Upwork Light Theme tokens across entire app
 (function applySavedTheme() {
-    const theme = localStorage.getItem('swipe_theme') || 'default'
     const root = document.documentElement
-    if (theme === 'oled') {
-        root.style.setProperty('--bg', '#000000')
-        root.style.setProperty('--bg2', '#0a0a0a')
-        root.style.setProperty('--bg3', '#141414')
-        root.style.setProperty('--accent', '#3b82f6')
-    } else if (theme === 'cyber') {
-        root.style.setProperty('--bg', '#09090e')
-        root.style.setProperty('--bg2', '#12111a')
-        root.style.setProperty('--bg3', '#1c1b26')
-        root.style.setProperty('--accent', '#f43f5e')
-    } else if (theme === 'emerald') {
-        root.style.setProperty('--bg', '#061712')
-        root.style.setProperty('--bg2', '#0d2820')
-        root.style.setProperty('--bg3', '#16382e')
-        root.style.setProperty('--accent', '#10b981')
-    } else {
-        root.style.removeProperty('--bg')
-        root.style.removeProperty('--bg2')
-        root.style.removeProperty('--bg3')
-        root.style.removeProperty('--accent')
-    }
+    root.style.setProperty('--bg', '#f8fafc')
+    root.style.setProperty('--bg-solid', '#ffffff')
+    root.style.setProperty('--bg2', '#ffffff')
+    root.style.setProperty('--bg3', '#f1f5f9')
+    root.style.setProperty('--border', '#e2e8f0')
+    root.style.setProperty('--border-hover', '#108a00')
+    root.style.setProperty('--accent', '#108a00')
+    root.style.setProperty('--accent-hover', '#0d7400')
+    root.style.setProperty('--text', '#0f172a')
+    root.style.setProperty('--text1', '#0f172a')
+    root.style.setProperty('--text2', '#475569')
+    root.style.setProperty('--text3', '#64748b')
 })()
 
 async function initNotifications() {
@@ -251,7 +240,6 @@ function initMobileNav() {
     const navLinks = document.querySelector('.nav-links')
     if (!nav || !navLinks) return
 
-    // Remove any duplicate toggle buttons in nav if they exist
     const existingBtns = nav.querySelectorAll('.nav-toggle-btn')
     if (existingBtns.length > 1) {
         for (let i = 1; i < existingBtns.length; i++) {
@@ -281,7 +269,6 @@ function initMobileNav() {
         const isOpen = navLinks.classList.toggle('open')
         toggleBtn.innerHTML = isOpen ? '✕' : '☰'
         
-        // Close sidebar if open
         const sb = document.querySelector('.sidebar')
         if (sb && isOpen) sb.classList.remove('mobile-show')
     }

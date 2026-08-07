@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Workspace — SwipeCollab Marketplace</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .workspace-header {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow);
+        }
+
+        .workspace-title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .workspace-title-row h1 {
+            font-family: var(--font-head);
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: #0f172a;
+            margin: 0;
+        }
+
+        .progress-bar-wrap {
+            background: #f1f5f9;
+            border-radius: 999px;
+            height: 10px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            margin-top: 0.75rem;
+        }
+
+        .progress-fill {
+            background: var(--accent);
+            height: 100%;
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+
+        .board-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.25rem;
+            margin-bottom: 3rem;
+        }
+
+        @media (max-width: 900px) {
+            .board-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .board-column {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.25rem;
+            min-height: 400px;
+            box-shadow: var(--shadow);
+        }
+
+        .col-header {
+            font-family: var(--font-head);
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 0.6rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .task-card {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            transition: var(--transition);
+        }
+
+        .task-card:hover {
+            border-color: var(--border-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+        }
+
+        .task-title {
+            font-weight: 700;
+            font-size: 0.92rem;
+            color: #0f172a;
+            margin-bottom: 0.4rem;
+        }
+
+        .task-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem;
+            color: var(--text3);
+        }
+
+        .priority-badge {
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 0.15rem 0.45rem;
+            border-radius: 0.25rem;
+            text-transform: uppercase;
+        }
+
+        .priority-high { background: rgba(220, 38, 38, 0.1); color: var(--red); }
+        .priority-medium { background: rgba(217, 119, 6, 0.1); color: var(--yellow); }
+        .priority-low { background: rgba(37, 99, 235, 0.1); color: var(--accent2); }
+
+        .apply-modal-bg {
+            background: rgba(15, 23, 42, 0.6);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            left: 0;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 999;
+            padding: 1rem;
+        }
+        .apply-modal-bg.active {
+            display: flex;
+        }
+        .apply-modal {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            max-width: 440px;
+            padding: 2rem;
+            width: 95%;
+            box-shadow: 0 25px 60px rgba(15, 23, 42, 0.15);
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="nav">
+        <a href="/" class="nav-logo">Swipe<span style="color:var(--accent)">Collab</span></a>
+        <div class="nav-right-actions"></div>
+        <div class="nav-links" id="nav-links">
+            <a href="/dashboard/" class="nav-link">Home</a>
+            <a href="/discover/" class="nav-link">Discover</a>
+            <a href="/projects/" class="nav-link">Projects</a>
+            <a href="/workspace/" class="nav-link active" style="color:var(--accent); font-weight:700;">Workspace</a>
+            <a href="/matches/" class="nav-link">Matches</a>
+            <a href="/chat/" class="nav-link">Chat</a>
+            <a href="/swipe/" class="nav-link">Quick Match</a>
+            <a href="/profile/" class="nav-link">Profile</a>
+            <button class="btn btn-ghost" style="padding:0.4rem 0.85rem;font-size:0.8rem;" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <div class="page">
+        <div class="workspace-header">
+            <div class="workspace-title-row">
+                <div>
+                    <h1 id="ws-title">Project Collaboration Workspace</h1>
+                    <p style="margin: 0.3rem 0 0 0; color: var(--text2); font-size: 0.95rem;">Manage project deliverables, assign tasks, and track progress.</p>
+                </div>
+                <div style="display: flex; gap: 0.75rem;">
+                    <a href="/chat/" class="btn btn-outline" style="text-decoration: none;">💬 Open Live Chat</a>
+                    <button class="btn btn-primary" onclick="openAddTaskModal()">+ Add New Task</button>
+                </div>
+            </div>
+            
+            <div style="margin-top: 1.5rem; display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 700; color: #0f172a;">
+                <span>Project Completion Progress</span>
+                <span id="progress-text" style="color:var(--accent);">0%</span>
+            </div>
+            <div class="progress-bar-wrap">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+        </div>
+
+        <div class="board-grid">
+            <div class="board-column">
+                <div class="col-header">
+                    <span>📌 TO DO</span>
+                    <span id="count-todo" style="color:var(--text3);">0</span>
+                </div>
+                <div id="col-todo"></div>
+            </div>
+
+            <div class="board-column">
+                <div class="col-header">
+                    <span>⚡ IN PROGRESS</span>
+                    <span id="count-in_progress" style="color:var(--accent2);">0</span>
+                </div>
+                <div id="col-in_progress"></div>
+            </div>
+
+            <div class="board-column">
+                <div class="col-header">
+                    <span>👀 IN REVIEW</span>
+                    <span id="count-in_review" style="color:var(--yellow);">0</span>
+                </div>
+                <div id="col-in_review"></div>
+            </div>
+
+            <div class="board-column">
+                <div class="col-header">
+                    <span>✅ COMPLETED</span>
+                    <span id="count-completed" style="color:var(--accent);">0</span>
+                </div>
+                <div id="col-completed"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Task Modal -->
+    <div class="apply-modal-bg" id="task-modal">
+        <div class="apply-modal">
+            <h2 style="font-size: 1.25rem; font-family: var(--font-head); font-weight: 800; color: #0f172a; margin-bottom: 1.25rem;">Create Workspace Task</h2>
+            <form onsubmit="submitTask(event)">
+                <div class="form-group">
+                    <label>Task Title *</label>
+                    <input type="text" id="task-title-input" required placeholder="e.g. Build REST API for Authentication">
+                </div>
+                <div class="form-group">
+                    <label>Priority</label>
+                    <select id="task-priority-input">
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                        <option value="low">Low</option>
+                    </select>
+                </div>
+                <div style="display:flex; gap:0.75rem; margin-top:1.5rem;">
+                    <button type="button" class="btn btn-ghost" style="flex:1;" onclick="closeModal('task-modal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="flex:1;">Save Task</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/static/js/api.js"></script>
+    <script>
+        let currentWorkspaceId = null;
+        let workspaceTasks = [];
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            requireAuth();
+            await loadWorkspace();
+        });
+
+        async function loadWorkspace() {
+            const res = await api('/workspaces/');
+            if (res && res.ok) {
+                const workspaces = await res.json();
+                if (workspaces.length > 0) {
+                    const ws = workspaces[0];
+                    currentWorkspaceId = ws.id;
+                    document.getElementById('ws-title').textContent = ws.title;
+                    updateProgress(ws.progress_percent || 0);
+                    workspaceTasks = ws.tasks || [];
+                    renderTasks();
+                } else {
+                    document.getElementById('col-todo').innerHTML = `<div style="color:var(--text3); font-size:0.85rem; text-align:center; padding:2rem;">No active workspace yet. Accept an application or invitation on Discover to start!</div>`;
+                }
+            }
+        }
+
+        function updateProgress(percent) {
+            document.getElementById('progress-text').textContent = percent + '%';
+            document.getElementById('progress-fill').style.width = percent + '%';
+        }
+
+        function renderTasks() {
+            const cols = {
+                todo: document.getElementById('col-todo'),
+                in_progress: document.getElementById('col-in_progress'),
+                in_review: document.getElementById('col-in_review'),
+                completed: document.getElementById('col-completed')
+            };
+
+            const counts = { todo: 0, in_progress: 0, in_review: 0, completed: 0 };
+            Object.keys(cols).forEach(k => cols[k].innerHTML = '');
+
+            workspaceTasks.forEach(t => {
+                counts[t.status] = (counts[t.status] || 0) + 1;
+                const card = document.createElement('div');
+                card.className = 'task-card';
+                card.innerHTML = `
+                    <div class="task-title">${t.title}</div>
+                    <div class="task-meta">
+                        <span class="priority-badge priority-${t.priority}">${t.priority}</span>
+                        <select onchange="updateTaskStatus(${t.id}, this.value)" style="background:transparent; border:none; color:var(--text2); font-size:0.75rem; cursor:pointer; font-weight:600;">
+                            <option value="todo" ${t.status==='todo'?'selected':''}>To Do</option>
+                            <option value="in_progress" ${t.status==='in_progress'?'selected':''}>In Progress</option>
+                            <option value="in_review" ${t.status==='in_review'?'selected':''}>In Review</option>
+                            <option value="completed" ${t.status==='completed'?'selected':''}>Completed</option>
+                        </select>
+                    </div>`;
+                if (cols[t.status]) cols[t.status].appendChild(card);
+            });
+
+            Object.keys(counts).forEach(k => {
+                const el = document.getElementById(`count-${k}`);
+                if (el) el.textContent = counts[k];
+            });
+
+            const total = workspaceTasks.length;
+            if (total > 0) {
+                const pct = Math.round((counts.completed / total) * 100);
+                updateProgress(pct);
+            }
+        }
+
+        async function updateTaskStatus(taskId, status) {
+            const res = await api(`/workspaces/tasks/${taskId}/`, {
+                method: 'PATCH',
+                body: JSON.stringify({ status })
+            });
+
+            if (res && res.ok) {
+                const updated = await res.json();
+                const idx = workspaceTasks.findIndex(t => t.id === taskId);
+                if (idx !== -1) workspaceTasks[idx] = updated;
+                renderTasks();
+                showToast('Task status updated!');
+            }
+        }
+
+        function openAddTaskModal() {
+            if (!currentWorkspaceId) {
+                showToast('Please create or join a workspace first.', 'error');
+                return;
+            }
+            document.getElementById('task-modal').classList.add('active');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        async function submitTask(e) {
+            e.preventDefault();
+            const title = document.getElementById('task-title-input').value;
+            const priority = document.getElementById('task-priority-input').value;
+
+            const res = await api('/workspaces/tasks/', {
+                method: 'POST',
+                body: JSON.stringify({
+                    workspace: currentWorkspaceId,
+                    title,
+                    priority,
+                    status: 'todo'
+                })
+            });
+
+            if (res && res.ok) {
+                const newTask = await res.json();
+                workspaceTasks.push(newTask);
+                renderTasks();
+                closeModal('task-modal');
+                showToast('Task added to workspace!');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -7,6 +7,20 @@ from django.utils import timezone
 class Match(models.Model):
     EXPIRY_HOURS = 48
 
+    MATCH_SWIPE = "swipe_match"
+    MATCH_APPLICATION = "project_application"
+    MATCH_INVITATION = "project_invitation"
+    MATCH_DIRECT_HIRE = "direct_hire"
+    MATCH_COFOUNDER = "cofounder_match"
+
+    MATCH_TYPE_CHOICES = [
+        (MATCH_SWIPE, "Swipe Match"),
+        (MATCH_APPLICATION, "Project Application"),
+        (MATCH_INVITATION, "Project Invitation"),
+        (MATCH_DIRECT_HIRE, "Direct Hire"),
+        (MATCH_COFOUNDER, "Co-Founder Match"),
+    ]
+
     user1 = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -16,6 +30,18 @@ class Match(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="matches_as_user2",
+    )
+    project = models.ForeignKey(
+        "projects.Project",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="matches",
+    )
+    match_type = models.CharField(
+        max_length=30,
+        choices=MATCH_TYPE_CHOICES,
+        default=MATCH_SWIPE,
     )
     expires_at = models.DateTimeField(
         null=True,
@@ -27,22 +53,29 @@ class Match(models.Model):
 
     class Meta:
         db_table = "matches_match"
-        unique_together = ("user1", "user2")
         ordering = ["-created_at"]
 
     def __str__(self):
-        return f"Match({self.user1} ↔ {self.user2})"
+        return f"Match({self.user1} ↔ {self.user2} [{self.match_type}])"
 
     @classmethod
-    def create(cls, user_a, user_b):
+    def create(cls, user_a, user_b, match_type=MATCH_SWIPE, project=None):
         uid_a, uid_b = str(user_a.pk), str(user_b.pk)
         if uid_a > uid_b:
             user_a, user_b = user_b, user_a
-        return cls.objects.create(
+        match, created = cls.objects.get_or_create(
             user1=user_a,
             user2=user_b,
-            expires_at=timezone.now() + timedelta(hours=cls.EXPIRY_HOURS),
+            defaults={
+                "match_type": match_type,
+                "project": project,
+                "expires_at": timezone.now() + timedelta(hours=cls.EXPIRY_HOURS),
+            }
         )
+        if not created and project and not match.project:
+            match.project = project
+            match.save(update_fields=["project"])
+        return match
 
     def other_user(self, user):
         return self.user2 if self.user1 == user else self.user1

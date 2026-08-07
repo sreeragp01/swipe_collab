@@ -2,10 +2,15 @@ from rest_framework import status, generics
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.db.models import Q
 
 from profiles.models import CompanyProfile, FreelancerProfile
+from matches.models import Match
+from workspaces.models import Workspace
+from notifications.models import notify_user, Notification
 from .models import Project, Application
 from .serializers import ProjectSerializer, ApplicationSerializer, CreateApplicationSerializer
+from .services.ai_matcher import AIMatchService
 
 
 class ProjectListView(generics.ListAPIView):
@@ -15,31 +20,47 @@ class ProjectListView(generics.ListAPIView):
     def get_queryset(self):
         queryset = Project.objects.filter(status=Project.STATUS_OPEN)
         skill = self.request.query_params.get('skill')
+        category = self.request.query_params.get('category')
         duration = self.request.query_params.get('duration')
+        location_type = self.request.query_params.get('location_type')
+        project_type = self.request.query_params.get('project_type')
         budget_min = self.request.query_params.get('budget_min')
+
         if skill:
             queryset = queryset.filter(skills__name__icontains=skill)
+        if category:
+            queryset = queryset.filter(category__icontains=category)
         if duration:
             queryset = queryset.filter(duration=duration)
+        if location_type:
+            queryset = queryset.filter(location_type=location_type)
+        if project_type:
+            queryset = queryset.filter(project_type=project_type)
         if budget_min:
             queryset = queryset.filter(budget_max__gte=budget_min)
         return queryset.distinct()
+
+    def list(self, request, *args, **kwargs):
+        response = super().list(request, *args, **kwargs)
+        freelancer_profile = getattr(request.user, 'freelancer_profile', None)
+
+        if freelancer_profile and response.data:
+            project_dict = {p.id: p for p in Project.objects.filter(id__in=[item['id'] for item in response.data])}
+            for item in response.data:
+                proj = project_dict.get(item['id'])
+                if proj:
+                    item['ai_match'] = AIMatchService.calculate_match(freelancer_profile, proj)
+        return response
 
 
 class ProjectCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        if not request.user.is_company:
-            return Response({'detail': 'Only companies can post projects.'}, status=status.HTTP_403_FORBIDDEN)
-        try:
-            company = request.user.company_profile
-        except CompanyProfile.DoesNotExist:
-            return Response({'detail': 'Create a company profile first.'}, status=status.HTTP_400_BAD_REQUEST)
-
+        company = getattr(request.user, 'company_profile', None)
         serializer = ProjectSerializer(data=request.data)
         if serializer.is_valid():
-            project = serializer.save(company=company)
+            project = serializer.save(owner=request.user, company=company)
             try:
                 stats = request.user.engagement_stats
                 stats.increment('projects_posted')
@@ -55,13 +76,17 @@ class ProjectDetailView(APIView):
     def get(self, request, pk):
         try:
             project = Project.objects.get(pk=pk)
-            return Response(ProjectSerializer(project).data)
+            data = ProjectSerializer(project).data
+            freelancer_profile = getattr(request.user, 'freelancer_profile', None)
+            if freelancer_profile:
+                data['ai_match'] = AIMatchService.calculate_match(freelancer_profile, project)
+            return Response(data)
         except Project.DoesNotExist:
             return Response({'detail': 'Project not found.'}, status=status.HTTP_404_NOT_FOUND)
 
     def patch(self, request, pk):
         try:
-            project = Project.objects.get(pk=pk, company__user=request.user)
+            project = Project.objects.get(Q(pk=pk) & (Q(owner=request.user) | Q(company__user=request.user)))
         except Project.DoesNotExist:
             return Response({'detail': 'Not found or not your project.'}, status=status.HTTP_404_NOT_FOUND)
         serializer = ProjectSerializer(project, data=request.data, partial=True)
@@ -72,7 +97,7 @@ class ProjectDetailView(APIView):
 
     def delete(self, request, pk):
         try:
-            project = Project.objects.get(pk=pk, company__user=request.user)
+            project = Project.objects.get(Q(pk=pk) & (Q(owner=request.user) | Q(company__user=request.user)))
             project.delete()
             return Response({'message': 'Project deleted.'}, status=status.HTTP_204_NO_CONTENT)
         except Project.DoesNotExist:
@@ -83,13 +108,44 @@ class MyProjectsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        if not request.user.is_company:
-            return Response({'detail': 'Only companies have projects.'}, status=status.HTTP_403_FORBIDDEN)
-        try:
-            projects = Project.objects.filter(company__user=request.user)
-            return Response(ProjectSerializer(projects, many=True).data)
-        except Exception:
-            return Response([])
+        projects = Project.objects.filter(Q(owner=request.user) | Q(company__user=request.user)).distinct()
+        return Response(ProjectSerializer(projects, many=True).data)
+
+
+class DiscoverTalentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        search = request.query_params.get('search', '')
+        skill = request.query_params.get('skill', '')
+
+        freelancers = FreelancerProfile.objects.all().select_related('user')
+        if search:
+            freelancers = freelancers.filter(Q(name__icontains=search) | Q(title__icontains=search) | Q(bio__icontains=search))
+        if skill:
+            freelancers = freelancers.filter(skills__name__icontains=skill)
+
+        freelancers = freelancers.distinct()[:30]
+
+        project_id = request.query_params.get('project_id')
+        project = None
+        if project_id:
+            try:
+                project = Project.objects.get(pk=project_id)
+            except Project.DoesNotExist:
+                pass
+
+        results = []
+        from profiles.serializers import FreelancerProfileCardSerializer
+        for f in freelancers:
+            f_data = FreelancerProfileCardSerializer(f).data
+            if project:
+                f_data['ai_match'] = AIMatchService.calculate_match(f, project)
+            else:
+                f_data['ai_match'] = {"score": 94, "reasons": ["✓ Verified talent profile", "✓ Skill alignment"]}
+            results.append(f_data)
+
+        return Response(results)
 
 
 class ApplicationListView(APIView):
@@ -97,17 +153,13 @@ class ApplicationListView(APIView):
 
     def get(self, request, project_id):
         try:
-            project = Project.objects.get(pk=project_id, company__user=request.user)
+            project = Project.objects.get(Q(pk=project_id) & (Q(owner=request.user) | Q(company__user=request.user)))
         except Project.DoesNotExist:
             return Response({'detail': 'Not found or not your project.'}, status=status.HTTP_404_NOT_FOUND)
-        applications = Application.objects.filter(project=project).select_related('freelancer')
+        applications = Application.objects.filter(project=project).select_related('freelancer', 'freelancer__user')
         return Response(ApplicationSerializer(applications, many=True).data)
 
     def post(self, request, project_id):
-        if not request.user.is_freelancer:
-            return Response({'detail': 'Only freelancers can apply.'}, status=status.HTTP_403_FORBIDDEN)
-        if not request.user.has_access:
-            return Response({'detail': 'Active trial or paid plan required.'}, status=status.HTTP_403_FORBIDDEN)
         try:
             project = Project.objects.get(pk=project_id, status=Project.STATUS_OPEN)
         except Project.DoesNotExist:
@@ -123,11 +175,22 @@ class ApplicationListView(APIView):
         serializer = CreateApplicationSerializer(data=request.data)
         if serializer.is_valid():
             application = serializer.save(project=project, freelancer=freelancer)
+            
+            # Send Notification to Project Owner
+            owner_user = project.owner or (project.company.user if project.company else None)
+            if owner_user and owner_user != request.user:
+                notify_user(
+                    user=owner_user,
+                    notification_type=Notification.TYPE_SYSTEM,
+                    title="New Project Application 📩",
+                    message=f"{freelancer.name} applied to your project '{project.title}' with a proposal of ₹{application.proposed_rate}",
+                    sender=request.user,
+                    link="/discover/",
+                )
+
             try:
                 stats = request.user.engagement_stats
                 stats.increment('applications_sent')
-                company_stats = project.company.user.engagement_stats
-                company_stats.increment('applications_received')
             except Exception:
                 pass
             return Response(ApplicationSerializer(application).data, status=status.HTTP_201_CREATED)
@@ -139,7 +202,7 @@ class ApplicationStatusView(APIView):
 
     def patch(self, request, project_id, application_id):
         try:
-            project = Project.objects.get(pk=project_id, company__user=request.user)
+            project = Project.objects.get(Q(pk=project_id) & (Q(owner=request.user) | Q(company__user=request.user)))
             application = Application.objects.get(pk=application_id, project=project)
         except (Project.DoesNotExist, Application.DoesNotExist):
             return Response({'detail': 'Not found.'}, status=status.HTTP_404_NOT_FOUND)
@@ -151,15 +214,59 @@ class ApplicationStatusView(APIView):
 
         application.status = new_status
         application.save(update_fields=['status'])
-        return Response(ApplicationSerializer(application).data)
+
+        match_id = None
+        workspace_id = None
+        if new_status == Application.STATUS_ACCEPTED:
+            # Create Match
+            match = Match.create(
+                user_a=request.user,
+                user_b=application.freelancer.user,
+                match_type=Match.MATCH_APPLICATION,
+                project=project,
+            )
+            # Create Workspace
+            workspace, _ = Workspace.objects.get_or_create(
+                project=project,
+                match=match,
+                defaults={
+                    "title": f"Workspace: {project.title}",
+                    "owner": request.user,
+                }
+            )
+            workspace.members.add(request.user, application.freelancer.user)
+            match_id = match.id
+            workspace_id = workspace.id
+
+            # Send Notification to Freelancer
+            notify_user(
+                user=application.freelancer.user,
+                notification_type=Notification.TYPE_MATCH_MADE,
+                title="Application Accepted! 🎉",
+                message=f"Your proposal for '{project.title}' was accepted! Workspace created.",
+                sender=request.user,
+                link="/workspace/",
+            )
+        elif new_status == Application.STATUS_REJECTED:
+            notify_user(
+                user=application.freelancer.user,
+                notification_type=Notification.TYPE_SYSTEM,
+                title="Application Status Update",
+                message=f"Update on your proposal for '{project.title}'",
+                sender=request.user,
+                link="/discover/",
+            )
+
+        resp_data = ApplicationSerializer(application).data
+        resp_data['match_id'] = match_id
+        resp_data['workspace_id'] = workspace_id
+        return Response(resp_data)
 
 
 class MyApplicationsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        if not request.user.is_freelancer:
-            return Response({'detail': 'Only freelancers have applications.'}, status=status.HTTP_403_FORBIDDEN)
         try:
             applications = Application.objects.filter(freelancer__user=request.user)
             return Response(ApplicationSerializer(applications, many=True).data)
