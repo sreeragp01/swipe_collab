@@ -414,10 +414,9 @@
     <script src="/static/js/i18n.js"></script>
     <script>
         requireAuth()
-        const currentUser = getUser()
-        let ws = null, activeRoomKey = null, typingTimeout = null, lastMsgId = null
         const params = new URLSearchParams(location.search)
         const autoRoom = params.get('room')
+        const autoMatch = params.get('match')
 
         async function handleTranslateMessage(msgId, originalText) {
             const bubble = document.getElementById(`msg-text-${msgId}`)
@@ -758,7 +757,19 @@
                         item.onclick = () => openChat(room.room_key, otherUser)
                         list.appendChild(item)
                     })
-                    if (autoRoom) { const matched = rooms.find(r => r.room_key === autoRoom); if (matched) openChat(matched.room_key, matched.other_user || {}) }
+                    if (autoRoom || autoMatch) {
+                        const matched = rooms.find(r => 
+                            (autoRoom && r.room_key === autoRoom) || 
+                            (autoMatch && (String(r.match_id) === String(autoMatch) || String(r.match) === String(autoMatch)))
+                        );
+                        if (matched) {
+                            openChat(matched.room_key, matched.other_user || {});
+                        } else if (rooms.length > 0 && !activeRoomKey) {
+                            openChat(rooms[0].room_key, rooms[0].other_user || {});
+                        }
+                    } else if (rooms.length > 0 && !activeRoomKey) {
+                        openChat(rooms[0].room_key, rooms[0].other_user || {});
+                    }
                 }
             } catch {}
         }
@@ -846,13 +857,34 @@
 
         }
 
-        function sendMessage() {
+        async function sendMessage() {
             const input = document.getElementById('msg-input')
             const content = input.value.trim()
-            if (!content || !ws || ws.readyState !== WebSocket.OPEN) return
-            ws.send(JSON.stringify({ type: 'message', message_type: 'text', content }))
-            input.value = ''
-            ws.send(JSON.stringify({ type: 'typing', is_typing: false }))
+            if (!content || !activeRoomKey) return
+
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ type: 'message', message_type: 'text', content }))
+                input.value = ''
+                ws.send(JSON.stringify({ type: 'typing', is_typing: false }))
+            } else {
+                try {
+                    const res = await api(`/chat/rooms/${activeRoomKey}/messages/`, {
+                        method: 'POST',
+                        body: JSON.stringify({ message_type: 'text', content })
+                    });
+                    if (res && res.ok) {
+                        const msg = await res.json();
+                        input.value = '';
+                        appendMessage(msg);
+                        scrollToBottom();
+                        loadRooms();
+                    } else {
+                        showToast('Failed to send message.', 'error');
+                    }
+                } catch (e) {
+                    showToast('Error sending message.', 'error');
+                }
+            }
         }
 
         function sendReaction(emoji) { if (!lastMsgId || !ws || ws.readyState !== WebSocket.OPEN) return; ws.send(JSON.stringify({ type: 'reaction', message_id: lastMsgId, emoji })) }

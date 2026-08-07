@@ -13,6 +13,13 @@ class ChatRoomListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        from matches.models import Match
+        matches = Match.objects.filter(
+            Q(user1=request.user) | Q(user2=request.user)
+        )
+        for m in matches:
+            ChatRoom.objects.get_or_create(match=m)
+
         rooms = ChatRoom.objects.filter(
             Q(match__user1=request.user) | Q(match__user2=request.user)
         ).select_related('match').prefetch_related('messages')
