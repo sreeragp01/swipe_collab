@@ -734,44 +734,84 @@
         async function loadRooms() {
             try {
                 const res = await api('/chat/rooms/')
+                let rooms = []
                 if (res && res.ok) {
                     const data = await res.json()
-                    const rooms = data.rooms || []
-                    const list = document.getElementById('room-list')
-                    list.innerHTML = ''
-                    rooms.forEach(room => {
-                        const lastMsg = room.last_message?.content || 'No messages yet'
-                        const unread = room.unread_count || 0
-                        const otherUser = room.other_user || {}
-                        const displayName = otherUser.display_name || otherUser.username || (otherUser.email ? otherUser.email.split('@')[0] : (room.other_email || 'User'))
-                        const item = document.createElement('div')
-                        item.className = `room-item${room.room_key === activeRoomKey ? ' active' : ''}`
-                        item.dataset.key = room.room_key
-                        item.innerHTML = `
-                            <div class="avatar-placeholder room-avatar">${displayName[0].toUpperCase()}</div>
-                            <div style="flex:1;min-width:0;">
-                                <div class="room-name">${escapeHtml(displayName)}</div>
-                                <div class="room-last">${escapeHtml(lastMsg)}</div>
-                            </div>
-                            ${unread > 0 ? `<div class="room-unread">${unread}</div>` : ''}`
-                        item.onclick = () => openChat(room.room_key, otherUser)
-                        list.appendChild(item)
-                    })
-                    if (autoRoom || autoMatch) {
-                        const matched = rooms.find(r => 
-                            (autoRoom && r.room_key === autoRoom) || 
-                            (autoMatch && (String(r.match_id) === String(autoMatch) || String(r.match) === String(autoMatch)))
-                        );
-                        if (matched) {
-                            openChat(matched.room_key, matched.other_user || {});
-                        } else if (rooms.length > 0 && !activeRoomKey) {
-                            openChat(rooms[0].room_key, rooms[0].other_user || {});
-                        }
-                    } else if (rooms.length > 0 && !activeRoomKey) {
-                        openChat(rooms[0].room_key, rooms[0].other_user || {});
-                    }
+                    rooms = data.rooms || []
                 }
-            } catch {}
+
+                // Fallback: Fetch /matches/ to ensure 100% of matched connections render for Quick Chat
+                try {
+                    const matchRes = await api('/matches/')
+                    if (matchRes && matchRes.ok) {
+                        const matchData = await matchRes.json()
+                        const matchesList = Array.isArray(matchData) ? matchData : (matchData.matches || [])
+                        matchesList.forEach(m => {
+                            const exists = rooms.some(r => String(r.match_id) === String(m.id) || String(r.room_key) === String(m.room_key));
+                            if (!exists) {
+                                const partner = m.partner || m.other_user || {};
+                                rooms.push({
+                                    id: m.id,
+                                    match_id: m.id,
+                                    room_key: m.room_key || `match_${m.id}`,
+                                    last_message: null,
+                                    unread_count: 0,
+                                    other_user: partner
+                                });
+                            }
+                        });
+                    }
+                } catch (e) {}
+
+                const list = document.getElementById('room-list')
+                list.innerHTML = ''
+
+                if (rooms.length === 0) {
+                    list.innerHTML = '<div style="padding:2rem 1rem; text-align:center; color:var(--text3); font-size:0.85rem;">No active matched connections yet.<br><br><a href="/discover/" class="btn btn-primary" style="font-size:0.78rem; padding:0.4rem 0.8rem;">Browse Discover Hub</a></div>'
+                    return
+                }
+
+                rooms.forEach(room => {
+                    const lastMsg = room.last_message?.content || '⚡ Click to Quick Chat'
+                    const unread = room.unread_count || 0
+                    const otherUser = room.other_user || {}
+                    const displayName = otherUser.display_name || otherUser.name || otherUser.username || (otherUser.email ? otherUser.email.split('@')[0] : 'Collaborator')
+                    const avatarUrl = otherUser.avatar_url || otherUser.avatar
+                    const avatarHtml = avatarUrl ? 
+                        `<img src="${avatarUrl}" class="avatar-placeholder room-avatar" style="object-fit:cover; border:1px solid var(--accent);">` : 
+                        `<div class="avatar-placeholder room-avatar">${displayName[0].toUpperCase()}</div>`
+
+                    const rKey = room.room_key || `match_${room.match_id}`
+                    const item = document.createElement('div')
+                    item.className = `room-item${(rKey === activeRoomKey || (autoMatch && String(room.match_id) === String(autoMatch))) ? ' active' : ''}`
+                    item.dataset.key = rKey
+                    item.innerHTML = `
+                        ${avatarHtml}
+                        <div style="flex:1;min-width:0;">
+                            <div class="room-name">${escapeHtml(displayName)}</div>
+                            <div class="room-last">${escapeHtml(lastMsg)}</div>
+                        </div>
+                        ${unread > 0 ? `<div class="room-unread">${unread}</div>` : ''}`
+                    item.onclick = () => openChat(rKey, otherUser)
+                    list.appendChild(item)
+                })
+
+                if (autoRoom || autoMatch) {
+                    const matched = rooms.find(r => 
+                        (autoRoom && r.room_key === autoRoom) || 
+                        (autoMatch && (String(r.match_id) === String(autoMatch) || String(r.id) === String(autoMatch)))
+                    );
+                    if (matched) {
+                        openChat(matched.room_key || `match_${matched.match_id}`, matched.other_user || {});
+                    } else if (rooms.length > 0 && !activeRoomKey) {
+                        openChat(rooms[0].room_key || `match_${rooms[0].match_id}`, rooms[0].other_user || {});
+                    }
+                } else if (rooms.length > 0 && !activeRoomKey) {
+                    openChat(rooms[0].room_key || `match_${rooms[0].match_id}`, rooms[0].other_user || {});
+                }
+            } catch (err) {
+                console.error('loadRooms error:', err)
+            }
         }
 
         async function openChat(roomKey, otherUser) {

@@ -39,16 +39,44 @@ class ChatRoomSerializer(serializers.ModelSerializer):
 
     def get_other_user(self, obj):
         request = self.context.get('request')
-        if not request or not hasattr(request, 'user') or not request.user or not request.user.is_authenticated:
-            return None
-        other = obj.match.other_user(request.user)
+        other = None
+        if request and hasattr(request, 'user') and request.user and request.user.is_authenticated:
+            other = obj.match.other_user(request.user)
+        if not other:
+            other = obj.match.user2
+
         if not other:
             return None
-        username = other.username if other.username else (other.get_full_name() or other.email.split('@')[0])
+
+        exact_name = None
+        avatar_url = None
+        if hasattr(other, 'is_freelancer') and other.is_freelancer:
+            try:
+                prof = getattr(other, 'freelancer_profile', None)
+                if prof:
+                    exact_name = prof.full_name
+                    if prof.avatar:
+                        avatar_url = prof.avatar.url
+            except Exception:
+                pass
+        else:
+            try:
+                prof = getattr(other, 'company_profile', None)
+                if prof:
+                    exact_name = prof.company_name
+                    if prof.logo:
+                        avatar_url = prof.logo.url
+            except Exception:
+                pass
+
+        if not exact_name or not exact_name.strip():
+            exact_name = getattr(other, 'username', None) or getattr(other, 'email', 'Collaborator').split('@')[0]
+
         return {
             'id': str(other.id),
-            'username': username,
-            'email': other.email,
-            'role': other.role,
-            'display_name': username,
+            'username': getattr(other, 'username', exact_name),
+            'email': getattr(other, 'email', ''),
+            'role': getattr(other, 'role', 'freelancer'),
+            'display_name': exact_name,
+            'avatar_url': avatar_url,
         }
