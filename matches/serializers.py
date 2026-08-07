@@ -75,7 +75,9 @@ class MatchSerializer(serializers.ModelSerializer):
         try:
             return str(obj.chat_room.room_key)
         except Exception:
-            return None
+            from chat.models import ChatRoom
+            room, _ = ChatRoom.objects.get_or_create(match=obj)
+            return str(room.room_key)
 
     def get_hours_remaining(self, obj):
         return obj.hours_remaining

@@ -616,7 +616,7 @@
                     </div>
 
                     <div class="match-actions">
-                        <a href="/chat/?match=${m.id}" class="btn btn-primary">💬 Chat ↗</a>
+                        <a href="/chat/?room=${m.room_key || m.id}&match=${m.id}" class="btn btn-primary">💬 Chat ↗</a>
                         <button class="btn btn-ghost" onclick="toggleSessions(${m.id})">🎥 Session</button>
                         <button class="btn btn-ghost" style="color:var(--text3);" onclick="openReportModal('${partnerUserId}', '${name}')">🚩</button>
                     </div>

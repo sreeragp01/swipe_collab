@@ -16,9 +16,12 @@ class MatchListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        from chat.models import ChatRoom
         matches = Match.objects.filter(
             Q(user1=request.user) | Q(user2=request.user)
-        ).select_related('user1', 'user2').prefetch_related('chat_room')
+        ).select_related('user1', 'user2')
+        for m in matches:
+            ChatRoom.objects.get_or_create(match=m)
 
         serializer = MatchSerializer(
             matches, many=True, context={'request': request}
