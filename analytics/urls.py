@@ -8,6 +8,7 @@ from .views import (
 )
 
 urlpatterns = [
+    path('',                          MyStatsView.as_view(),           name='my-stats-root'),
     path('me/',                          MyStatsView.as_view(),           name='my-stats'),
     path('sync/',                        SyncMyStatsView.as_view(),       name='sync-stats'),
     path('profile-views/',               ProfileViewListView.as_view(),   name='profile-views'),

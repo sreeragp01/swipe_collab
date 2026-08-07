@@ -426,15 +426,24 @@
 
         async function fetchAnalytics() {
             try {
-                const res = await api('/analytics/');
+                let res = await api('/analytics/me/');
+                if (!res || !res.ok) {
+                    res = await api('/analytics/');
+                }
+                if (!res || !res.ok) {
+                    res = await api('/analytics/sync/');
+                }
                 if (res && res.ok) {
-                    const data = await res.json();
+                    const json = await res.json();
+                    const data = json.stats || json;
                     document.getElementById('stat-views').textContent = data.profile_views ?? data.profile_view_count ?? 0;
                     document.getElementById('stat-likes').textContent = data.likes_received ?? data.total_likes_received ?? 0;
                     document.getElementById('stat-matches').textContent = data.mutual_matches ?? data.match_count ?? 0;
                     document.getElementById('stat-messages').textContent = data.messages_sent ?? data.message_count ?? 0;
                 }
-            } catch {}
+            } catch (e) {
+                console.error('Analytics fetch error:', e);
+            }
         }
 
         function switchHubTab(tabId, btn) {
