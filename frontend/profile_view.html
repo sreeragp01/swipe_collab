@@ -237,22 +237,22 @@
         // ── Load profile ───────────────────────────
         async function loadProfile() {
             try {
-                let endpoint = ''
+                let res = null
                 if (userId) {
-                    // Use by-user endpoint — most reliable
-                    endpoint = role === 'company'
-                        ? `/profiles/company/by-user/${userId}/`
-                        : `/profiles/freelancer/by-user/${userId}/`
+                    res = await api(`/profiles/freelancer/by-user/${userId}/`)
+                    if (!res || !res.ok) {
+                        res = await api(`/profiles/company/by-user/${userId}/`)
+                    }
                 } else if (profileId) {
-                    endpoint = role === 'company'
-                        ? `/profiles/company/${profileId}/`
-                        : `/profiles/freelancer/${profileId}/`
+                    res = await api(`/profiles/freelancer/${profileId}/`)
+                    if (!res || !res.ok) {
+                        res = await api(`/profiles/company/${profileId}/`)
+                    }
                 } else {
                     document.getElementById('loading-state').style.display = 'none'
                     return
                 }
 
-                const res = await api(endpoint)
                 if (!res || !res.ok) {
                     document.getElementById('loading-state').innerHTML =
                         '<div class="empty-state"><div class="empty-state-icon">😔</div><strong>Profile not found</strong></div>'

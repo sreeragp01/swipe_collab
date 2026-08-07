@@ -342,9 +342,9 @@
 
             <!-- Single Dashboard Integrated Tabs -->
             <div class="hub-tabs">
-                <button class="hub-tab active" onclick="switchHubTab('discover_projects', this)">📂 Discover Projects</button>
-                <button class="hub-tab" onclick="switchHubTab('discover_talent', this)">👨‍💻 Find Talent</button>
-                <button class="hub-tab" onclick="switchHubTab('workspaces', this)">🗂 My Workspaces</button>
+                <button class="hub-tab active" id="hub-tab-discover_projects" onclick="switchHubTab('discover_projects', this)">📂 Discover Projects</button>
+                <button class="hub-tab" id="hub-tab-discover_talent" onclick="switchHubTab('discover_talent', this)">👨‍💻 Find Talent</button>
+                <button class="hub-tab" id="hub-tab-workspaces" onclick="switchHubTab('workspaces', this)">🗂 My Workspaces</button>
             </div>
 
             <!-- Tab 1: Discover Projects -->
@@ -422,6 +422,15 @@
 
             document.getElementById('sidebar-name').textContent = user.email;
             document.getElementById('sidebar-role').textContent = user.role === 'freelancer' ? 'Freelancer' : 'Company';
+
+            if (user.role === 'company') {
+                const projTab = document.getElementById('hub-tab-discover_projects');
+                const talentTab = document.getElementById('hub-tab-discover_talent');
+                if (projTab) projTab.style.display = 'none';
+                if (talentTab && document.getElementById('panel-discover_projects').classList.contains('active')) {
+                    switchHubTab('discover_talent', talentTab);
+                }
+            }
         }
 
         async function fetchAnalytics() {

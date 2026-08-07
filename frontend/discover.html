@@ -266,9 +266,9 @@
         </div>
 
         <div class="tabs">
-            <button class="tab active" onclick="switchTab('projects', this)">📂 Find Projects</button>
-            <button class="tab" onclick="switchTab('talent', this)">👨‍💻 Find Talent</button>
-            <button class="tab" onclick="switchTab('cofounders', this)">🤝 Co-Founders</button>
+            <button class="tab active" id="disc-tab-projects" onclick="switchTab('projects', this)">📂 Find Projects</button>
+            <button class="tab" id="disc-tab-talent" onclick="switchTab('talent', this)">👨‍💻 Find Talent</button>
+            <button class="tab" id="disc-tab-cofounders" onclick="switchTab('cofounders', this)">🤝 Co-Founders</button>
         </div>
 
         <div class="search-section">
@@ -327,7 +327,15 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             requireAuth();
-            loadDiscoverData();
+            const user = getUser();
+            if (user?.role === 'company') {
+                const projBtn = document.getElementById('disc-tab-projects');
+                const talentBtn = document.getElementById('disc-tab-talent');
+                if (projBtn) projBtn.style.display = 'none';
+                if (talentBtn) switchTab('talent', talentBtn);
+            } else {
+                loadDiscoverData();
+            }
             loadReceivedInvitations();
         });
 
