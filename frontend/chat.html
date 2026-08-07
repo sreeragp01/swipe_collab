@@ -760,6 +760,49 @@
                     }
                 } catch (e) {}
 
+        function getDisplayName(u) {
+            if (!u) return 'Collaborator';
+            if (typeof u === 'string') return u.trim() || 'Collaborator';
+            return (u.display_name || u.full_name || u.name || u.username || u.company_name || (u.email ? u.email.split('@')[0] : null) || 'Collaborator').trim();
+        }
+
+        function getAvatarChar(name) {
+            const s = (name || '').trim();
+            return (s[0] || 'C').toUpperCase();
+        }
+
+        async function loadRooms() {
+            try {
+                const res = await api('/chat/rooms/')
+                let rooms = []
+                if (res && res.ok) {
+                    const data = await res.json()
+                    rooms = data.rooms || []
+                }
+
+                // Fallback: Fetch /matches/ to ensure 100% of matched connections render for Quick Chat
+                try {
+                    const matchRes = await api('/matches/')
+                    if (matchRes && matchRes.ok) {
+                        const matchData = await matchRes.json()
+                        const matchesList = Array.isArray(matchData) ? matchData : (matchData.matches || [])
+                        matchesList.forEach(m => {
+                            const exists = rooms.some(r => String(r.match_id) === String(m.id) || String(r.room_key) === String(m.room_key));
+                            if (!exists) {
+                                const partner = m.partner || m.other_user || {};
+                                rooms.push({
+                                    id: m.id,
+                                    match_id: m.id,
+                                    room_key: m.room_key || `match_${m.id}`,
+                                    last_message: null,
+                                    unread_count: 0,
+                                    other_user: partner
+                                });
+                            }
+                        });
+                    }
+                } catch (e) {}
+
                 const list = document.getElementById('room-list')
                 list.innerHTML = ''
 
@@ -771,16 +814,17 @@
                 rooms.forEach(room => {
                     const lastMsg = room.last_message?.content || '⚡ Click to Quick Chat'
                     const unread = room.unread_count || 0
-                    const otherUser = room.other_user || {}
-                    const displayName = otherUser.display_name || otherUser.name || otherUser.username || (otherUser.email ? otherUser.email.split('@')[0] : 'Collaborator')
+                    const otherUser = room.other_user || room.partner || {}
+                    const displayName = getDisplayName(otherUser)
+                    const avatarChar = getAvatarChar(displayName)
                     const avatarUrl = otherUser.avatar_url || otherUser.avatar
                     const avatarHtml = avatarUrl ? 
                         `<img src="${avatarUrl}" class="avatar-placeholder room-avatar" style="object-fit:cover; border:1px solid var(--accent);">` : 
-                        `<div class="avatar-placeholder room-avatar">${displayName[0].toUpperCase()}</div>`
+                        `<div class="avatar-placeholder room-avatar">${avatarChar}</div>`
 
                     const rKey = room.room_key || `match_${room.match_id}`
                     const item = document.createElement('div')
-                    item.className = `room-item${(rKey === activeRoomKey || (autoMatch && String(room.match_id) === String(autoMatch))) ? ' active' : ''}`
+                    item.className = `room-item${(rKey === activeRoomKey || (autoRoom && rKey === autoRoom) || (autoMatch && String(room.match_id) === String(autoMatch))) ? ' active' : ''}`
                     item.dataset.key = rKey
                     item.innerHTML = `
                         ${avatarHtml}
@@ -795,16 +839,16 @@
 
                 if (autoRoom || autoMatch) {
                     const matched = rooms.find(r => 
-                        (autoRoom && r.room_key === autoRoom) || 
+                        (autoRoom && (r.room_key === autoRoom || String(r.match_id) === String(autoRoom))) || 
                         (autoMatch && (String(r.match_id) === String(autoMatch) || String(r.id) === String(autoMatch)))
                     );
                     if (matched) {
-                        openChat(matched.room_key || `match_${matched.match_id}`, matched.other_user || {});
+                        openChat(matched.room_key || `match_${matched.match_id}`, matched.other_user || matched.partner || {});
                     } else if (rooms.length > 0 && !activeRoomKey) {
-                        openChat(rooms[0].room_key || `match_${rooms[0].match_id}`, rooms[0].other_user || {});
+                        openChat(rooms[0].room_key || `match_${rooms[0].match_id}`, rooms[0].other_user || rooms[0].partner || {});
                     }
                 } else if (rooms.length > 0 && !activeRoomKey) {
-                    openChat(rooms[0].room_key || `match_${rooms[0].match_id}`, rooms[0].other_user || {});
+                    openChat(rooms[0].room_key || `match_${rooms[0].match_id}`, rooms[0].other_user || rooms[0].partner || {});
                 }
             } catch (err) {
                 console.error('loadRooms error:', err)
@@ -812,18 +856,30 @@
         }
 
         async function openChat(roomKey, otherUser) {
-            if (ws) ws.close()
+            if (ws) { try { ws.close(); } catch(e){} }
             activeRoomKey = roomKey
+            const displayName = getDisplayName(otherUser)
+            const avatarChar = getAvatarChar(displayName)
+
             document.getElementById('no-chat').style.display = 'none'
             document.getElementById('active-chat').style.display = 'flex'
+
             const sidebar = document.querySelector('.chat-sidebar')
             const main = document.querySelector('.chat-main')
             if (sidebar) sidebar.classList.add('mobile-hide')
             if (main) main.classList.add('mobile-show')
-            const displayName = typeof otherUser === 'string' ? otherUser : (otherUser?.display_name || otherUser?.username || (otherUser?.email ? otherUser.email.split('@')[0] : 'User'))
+
             document.getElementById('chat-name').textContent = displayName
-            chatOtherUserId = (typeof otherUser === 'object' && otherUser) ? (otherUser.id || null) : null
-            document.getElementById('chat-avatar').textContent = displayName[0].toUpperCase()
+            chatOtherUserId = (typeof otherUser === 'object' && otherUser) ? (otherUser.id || otherUser.user_id || null) : null
+
+            const avatarEl = document.getElementById('chat-avatar')
+            const avatarUrl = typeof otherUser === 'object' ? (otherUser.avatar_url || otherUser.avatar) : null
+            if (avatarUrl) {
+                avatarEl.innerHTML = `<img src="${avatarUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
+            } else {
+                avatarEl.textContent = avatarChar
+            }
+
             document.querySelectorAll('.room-item').forEach(i => i.classList.toggle('active', i.dataset.key === roomKey))
             await loadMessages(roomKey)
             connectWS(roomKey)
