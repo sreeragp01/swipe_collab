@@ -9,6 +9,23 @@ from .models import ChatRoom, Message
 from .serializers import ChatRoomSerializer, MessageSerializer
 
 
+def get_room_by_key_or_id(room_key):
+    if not room_key:
+        return None
+    try:
+        return ChatRoom.objects.get(room_key=room_key)
+    except ChatRoom.DoesNotExist:
+        pass
+
+    raw_id = str(room_key).replace('match_', '')
+    try:
+        return ChatRoom.objects.get(match_id=raw_id)
+    except (ChatRoom.DoesNotExist, ValueError):
+        pass
+
+    return None
+
+
 class ChatRoomListView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -22,7 +39,7 @@ class ChatRoomListView(APIView):
 
         rooms = ChatRoom.objects.filter(
             Q(match__user1=request.user) | Q(match__user2=request.user)
-        ).select_related('match').prefetch_related('messages')
+        ).select_related('match', 'match__user1', 'match__user2').prefetch_related('messages')
         serializer = ChatRoomSerializer(rooms, many=True, context={'request': request})
         return Response({'rooms': serializer.data, 'count': rooms.count()})
 
@@ -31,16 +48,15 @@ class ChatRoomDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, room_key):
-        try:
-            room = ChatRoom.objects.get(
-                room_key=room_key,
-            )
-            if room.match.user1 != request.user and room.match.user2 != request.user:
-                return Response({'detail': 'Forbidden.'}, status=status.HTTP_403_FORBIDDEN)
-            serializer = ChatRoomSerializer(room, context={'request': request})
-            return Response(serializer.data)
-        except ChatRoom.DoesNotExist:
+        room = get_room_by_key_or_id(room_key)
+        if not room:
             return Response({'detail': 'Room not found.'}, status=status.HTTP_404_NOT_FOUND)
+        
+        if room.match.user1 != request.user and room.match.user2 != request.user:
+            return Response({'detail': 'Forbidden.'}, status=status.HTTP_403_FORBIDDEN)
+        
+        serializer = ChatRoomSerializer(room, context={'request': request})
+        return Response(serializer.data)
 
 
 class MessageListView(APIView):
@@ -48,12 +64,12 @@ class MessageListView(APIView):
     parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def get(self, request, room_key):
-        try:
-            room = ChatRoom.objects.get(room_key=room_key)
-            if room.match.user1 != request.user and room.match.user2 != request.user:
-                return Response({'detail': 'Forbidden.'}, status=status.HTTP_403_FORBIDDEN)
-        except ChatRoom.DoesNotExist:
+        room = get_room_by_key_or_id(room_key)
+        if not room:
             return Response({'detail': 'Room not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        if room.match.user1 != request.user and room.match.user2 != request.user:
+            return Response({'detail': 'Forbidden.'}, status=status.HTTP_403_FORBIDDEN)
 
         room.messages.exclude(sender=request.user).update(is_read=True)
         messages = room.messages.all()
@@ -61,12 +77,12 @@ class MessageListView(APIView):
         return Response({'messages': serializer.data, 'count': messages.count()})
 
     def post(self, request, room_key):
-        try:
-            room = ChatRoom.objects.get(room_key=room_key)
-            if room.match.user1 != request.user and room.match.user2 != request.user:
-                return Response({'detail': 'Forbidden.'}, status=status.HTTP_403_FORBIDDEN)
-        except ChatRoom.DoesNotExist:
+        room = get_room_by_key_or_id(room_key)
+        if not room:
             return Response({'detail': 'Room not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        if room.match.user1 != request.user and room.match.user2 != request.user:
+            return Response({'detail': 'Forbidden.'}, status=status.HTTP_403_FORBIDDEN)
 
         serializer = MessageSerializer(data=request.data)
         if serializer.is_valid():
@@ -79,7 +95,7 @@ class MessageListView(APIView):
                     sender=request.user,
                     notification_type=Notification.TYPE_CHAT_MESSAGE,
                     title="New Chat Message 💬",
-                    message=f"{request.user.full_name}: {msg_obj.text[:50] if hasattr(msg_obj, 'text') and msg_obj.text else 'Sent a message'}",
+                    message=f"{request.user.full_name}: {msg_obj.content[:50] if hasattr(msg_obj, 'content') and msg_obj.content else 'Sent a message'}",
                     link=f"/chat/?match={room.match.id}",
                 )
             except Exception as e:
@@ -114,4 +130,4 @@ class MessageDeleteView(APIView):
             msg.save(update_fields=['is_deleted', 'content', 'file'])
             return Response({'message': 'Message deleted successfully.', 'id': msg.id})
         except Message.DoesNotExist:
-            return Response({'detail': 'Message not found.'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'detail': 'Message not found.'}, status=status.HTTP_404_NOT_FOUND)

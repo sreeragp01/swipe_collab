@@ -212,19 +212,19 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def is_room_member(self, user, room_key):
-        from chat.models import ChatRoom
-        try:
-            room = ChatRoom.objects.select_related(
-                'match__user1', 'match__user2'
-            ).get(room_key=room_key)
-            return room.match.user1_id == user.id or room.match.user2_id == user.id
-        except ChatRoom.DoesNotExist:
+        from chat.views import get_room_by_key_or_id
+        room = get_room_by_key_or_id(room_key)
+        if not room:
             return False
+        return room.match.user1_id == user.id or room.match.user2_id == user.id
 
     @database_sync_to_async
     def save_message(self, user, room_key, content, message_type, file_url=None):
-        from chat.models import ChatRoom, Message
-        room = ChatRoom.objects.get(room_key=room_key)
+        from chat.views import get_room_by_key_or_id
+        from chat.models import Message
+        room = get_room_by_key_or_id(room_key)
+        if not room:
+            raise ValueError('Room not found')
 
         match = room.match
         match.reset_expiry()
