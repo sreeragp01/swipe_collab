@@ -327,15 +327,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             requireAuth();
-            const user = getUser();
-            if (user?.role === 'company') {
-                const projBtn = document.getElementById('disc-tab-projects');
-                const talentBtn = document.getElementById('disc-tab-talent');
-                if (projBtn) projBtn.style.display = 'none';
-                if (talentBtn) switchTab('talent', talentBtn);
-            } else {
-                loadDiscoverData();
-            }
+            loadDiscoverData();
             loadReceivedInvitations();
         });
 
