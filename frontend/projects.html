@@ -3,14 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Browse Projects — SwipeCollab Freelance & Company Marketplace</title>
-    <meta name="description" content="Explore active company projects on SwipeCollab. Search by technical skills, budget, and location, and submit candidate applications.">
-    <meta name="keywords" content="company projects, freelance gigs, developer jobs, technical contracts, SwipeCollab">
-    <meta name="robots" content="index, follow">
-    <meta name="theme-color" content="#ffffff">
+    <title>Projects & Proposals — SwipeCollab Marketplace</title>
+    <meta name="description" content="Manage projects, review freelancer proposals, and track applications on SwipeCollab.">
     <link rel="stylesheet" href="/static/css/style.css">
     <style>
-        .projects-layout { display: grid; grid-template-columns: 1fr 340px; gap: 2rem; }
+        .tabs {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0.5rem;
+        }
+
+        .tab {
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--text2);
+            cursor: pointer;
+            font-family: var(--font-head);
+            font-size: 0.95rem;
+            font-weight: 700;
+            padding: 0.6rem 1.1rem;
+            margin-bottom: -1px;
+            transition: var(--transition);
+            border-radius: var(--radius-sm);
+        }
+
+        .tab:hover { color: #0f172a; background: #f1f5f9; }
+        .tab.active { border-bottom-color: var(--accent); color: var(--accent); background: rgba(16, 138, 0, 0.08); }
+
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        .projects-layout {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 1.5rem;
+        }
+
+        .search-bar { display: flex; gap: 0.75rem; margin-bottom: 1.25rem; }
+        .search-bar input { flex: 1; }
+
         .project-card {
             background: #ffffff;
             border: 1px solid var(--border);
@@ -22,78 +56,101 @@
         }
         .project-card:hover {
             border-color: var(--border-hover);
-            transform: translateY(-3px);
-            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08), var(--shadow-glow);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
         }
-        .project-title { font-family: var(--font-head); font-size: 1.15rem; font-weight: 800; color: #0f172a; margin-bottom: 0.35rem; }
-        .project-company { color: var(--text2); font-size: 0.85rem; margin-bottom: 0.85rem; font-weight: 500; }
-        .project-desc { color: var(--text2); font-size: 0.92rem; line-height: 1.55; margin-bottom: 0.85rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-        .project-meta { display: flex; align-items: center; gap: 1.1rem; flex-wrap: wrap; margin-bottom: 0.85rem; font-weight: 500; }
-        .project-budget { color: #108a00; font-family: var(--font-head); font-size: 0.95rem; font-weight: 700; }
-        .project-skills { display: flex; flex-wrap: wrap; gap: 0.45rem; margin-bottom: 1.1rem; }
-        .project-actions { display: flex; gap: 0.6rem; }
-        .project-actions .btn { font-size: 0.85rem; padding: 0.5rem 1rem; }
-        .post-panel { position: sticky; top: 90px; }
-        .tabs { display: flex; gap: 0.6rem; border-bottom: 1px solid var(--border); margin-bottom: 1.8rem; padding-bottom: 0.5rem; overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; }
-        .tab { background: none; border: none; border-bottom: 2px solid transparent; color: var(--text2); cursor: pointer; font-family: var(--font-head); font-size: 0.95rem; font-weight: 700; margin-bottom: -1px; padding: 0.65rem 1.1rem; transition: var(--transition); border-radius: var(--radius-sm); white-space: nowrap; }
-        .tab:hover { color: #0f172a; background: #f1f5f9; }
-        .tab.active { border-bottom-color: var(--accent); color: var(--accent); background: rgba(16, 138, 0, 0.08); }
-        .tab-panel { display: none; }
-        .tab-panel.active { display: block; }
-        .apply-modal-bg { background: rgba(15, 23, 42, 0.6); display: none; align-items: center; justify-content: center; height: 100%; left: 0; position: fixed; top: 0; width: 100%; z-index: 999; padding: 1rem; }
-        .apply-modal { background: #ffffff; border: 1px solid var(--border); border-radius: var(--radius-lg); max-width: 480px; max-height: 88vh; overflow-y: auto; padding: 2rem; width: 95%; box-shadow: 0 25px 60px rgba(15, 23, 42, 0.15); }
-        .search-bar { display: flex; gap: 0.85rem; margin-bottom: 1.8rem; }
-        .search-bar input { flex: 1; }
-        @media (max-width: 768px) {
-            .projects-layout { grid-template-columns: 1fr; gap: 1.25rem; }
-            .post-panel { position: static; }
-            .apply-modal { padding: 1.35rem; }
+
+        .project-title { font-family: var(--font-head); font-weight: 800; font-size: 1.15rem; color: #0f172a; margin-bottom: 0.35rem; }
+        .project-meta { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; font-size: 0.88rem; color: var(--text2); }
+        .project-budget { font-weight: 800; color: var(--accent); font-size: 1rem; }
+        .project-desc { color: var(--text2); font-size: 0.92rem; line-height: 1.55; margin-bottom: 1rem; }
+
+        .tag { background: #f1f5f9; border: 1px solid var(--border); color: var(--text2); font-size: 0.75rem; font-weight: 600; padding: 0.25rem 0.55rem; border-radius: var(--radius-sm); }
+
+        .apply-modal-bg, .review-modal-bg, .profile-modal-bg {
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            padding: 1rem;
+        }
+
+        .modal-box {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            max-width: 580px;
+            width: 100%;
+            max-height: 88vh;
+            overflow-y: auto;
+            padding: 1.8rem;
+            box-shadow: 0 20px 50px rgba(15, 23, 42, 0.2);
+        }
+
+        .applicant-card {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 900px) {
+            .projects-layout { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
+
+    <!-- Unified Upwork-Style Navigation Header -->
     <nav class="nav">
         <a href="/" class="nav-logo">Swipe<span style="color:var(--accent)">Collab</span></a>
         <div class="nav-right-actions">
             <div class="sc-lang-switcher-container"></div>
         </div>
         <div class="nav-links" id="nav-links">
-            <a href="/dashboard/" class="nav-link" data-i18n="nav_home">Home</a>
-            <a href="/swipe/" class="nav-link" data-i18n="nav_swipe">Swipe</a>
-            <a href="/matches/" class="nav-link" data-i18n="nav_matches">Matches</a>
-            <a href="/projects/" class="nav-link active" data-i18n="nav_projects">Projects</a>
-            <a href="/profile/" class="nav-link" data-i18n="nav_profile">Profile</a>
-            <a href="/moderation/" class="nav-link" style="color:var(--red);" data-i18n="nav_moderation">🛡️ Safety</a>
-            <button class="btn btn-ghost" style="padding:0.4rem 0.85rem;font-size:0.8rem;" onclick="logout()" data-i18n="nav_logout">Logout</button>
+            <a href="/dashboard/" class="nav-link">Home</a>
+            <a href="/discover/" class="nav-link">Discover</a>
+            <a href="/projects/" class="nav-link active" style="color:var(--accent); font-weight:700;">Projects</a>
+            <a href="/workspace/" class="nav-link">Workspace</a>
+            <a href="/matches/" class="nav-link">Matches</a>
+            <a href="/chat/" class="nav-link">Messages</a>
+            <a href="/swipe/" class="nav-link">Quick Match</a>
+            <a href="/profile/" class="nav-link">Profile</a>
+            <button class="btn btn-ghost" style="padding:0.4rem 0.85rem;font-size:0.8rem;" onclick="logout()">Logout</button>
         </div>
     </nav>
 
-
-    <div class="page">
+    <div class="page" style="padding: 2rem 2.5rem;">
         <div class="tabs">
-            <button class="tab active" onclick="switchTab('browse', this)">Browse projects</button>
-            <button class="tab" id="tab-mine-btn" onclick="switchTab('mine', this)" style="display:none">My projects</button>
-            <button class="tab" id="tab-apps-btn" onclick="switchTab('applications', this)" style="display:none">My applications</button>
+            <button class="tab active" onclick="switchTab('browse', this)">Browse Open Projects</button>
+            <button class="tab" id="tab-mine-btn" onclick="switchTab('mine', this)" style="display:none">My Posted Projects & Applicants</button>
+            <button class="tab" id="tab-apps-btn" onclick="switchTab('applications', this)" style="display:none">My Submitted Proposals</button>
         </div>
 
+        <!-- Tab 1: Browse Projects -->
         <div id="tab-browse" class="tab-panel active">
             <div class="projects-layout">
                 <div>
                     <div class="search-bar">
-                        <input type="text" id="search-skill" placeholder="Search by skill...">
+                        <input type="text" id="search-skill" placeholder="Search projects by skill (e.g. Django, React, Flutter)...">
                         <button class="btn btn-primary" onclick="loadProjects()">Search</button>
                     </div>
                     <div id="projects-list"></div>
-                    <div class="empty-state" id="projects-empty" style="display:none;"><div class="empty-state-icon">📋</div><strong>No projects found</strong></div>
+                    <div class="empty-state" id="projects-empty" style="display:none;"><div class="empty-state-icon">📋</div><strong>No open projects found</strong></div>
                 </div>
                 <div class="post-panel" id="post-panel" style="display:none;">
-                    <div class="card">
-                        <h3 style="font-size:1rem;margin-bottom:1.25rem;">Post a project</h3>
-                        <div class="form-group"><label>Title *</label><input type="text" id="p-title" placeholder="e.g. Build a Django REST API"></div>
+                    <div class="card" style="position:sticky; top:90px;">
+                        <h3 style="font-family:var(--font-head); font-size:1.1rem; font-weight:800; color:#0f172a; margin-bottom:1.25rem;">🚀 Post a New Project</h3>
+                        <div class="form-group"><label>Project Title *</label><input type="text" id="p-title" placeholder="e.g. Build a Django REST API"></div>
                         <div class="form-group"><label>Description *</label><textarea id="p-desc" rows="3" placeholder="What do you need built?"></textarea></div>
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
-                            <div class="form-group"><label>Budget min (₹) *</label><input type="number" id="p-bmin" placeholder="5000"></div>
-                            <div class="form-group"><label>Budget max (₹) *</label><input type="number" id="p-bmax" placeholder="20000"></div>
+                            <div class="form-group"><label>Min Budget (₹) *</label><input type="number" id="p-bmin" placeholder="10000"></div>
+                            <div class="form-group"><label>Max Budget (₹) *</label><input type="number" id="p-bmax" placeholder="50000"></div>
                         </div>
                         <div class="form-group"><label>Duration</label>
                             <select id="p-duration">
@@ -104,239 +161,381 @@
                             </select>
                         </div>
                         <div class="form-group"><label>Required Skills (comma-separated)</label><input type="text" id="p-skills" placeholder="e.g. Python, Django, React"></div>
-                        <div class="form-group"><label>Deadline (Optional)</label><input type="date" id="p-deadline"></div>
-                        <button class="btn btn-primary btn-full" onclick="postProject()">Post project</button>
+                        <button class="btn btn-primary btn-full" onclick="postProject()" style="margin-top:1rem;">Post Project</button>
                     </div>
                 </div>
             </div>
         </div>
 
+        <!-- Tab 2: My Projects (Company view) -->
         <div id="tab-mine" class="tab-panel">
             <div id="my-projects-list"></div>
             <div class="empty-state" id="mine-empty" style="display:none;"><div class="empty-state-icon">📝</div><strong>No projects posted yet</strong></div>
         </div>
 
+        <!-- Tab 3: My Applications (Freelancer view) -->
         <div id="tab-applications" class="tab-panel">
             <div id="my-applications-list"></div>
-            <div class="empty-state" id="apps-empty" style="display:none;"><div class="empty-state-icon">📨</div><strong>No applications sent yet</strong></div>
+            <div class="empty-state" id="apps-empty" style="display:none;"><div class="empty-state-icon">📨</div><strong>No proposals submitted yet</strong></div>
         </div>
     </div>
 
+    <!-- Apply Modal -->
     <div class="apply-modal-bg" id="apply-modal">
-        <div class="apply-modal">
+        <div class="modal-box">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">
-                <h3 style="font-size:1rem;">Apply to project</h3>
-                <button onclick="closeApply()" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:1.25rem;">×</button>
+                <h3 style="font-family:var(--font-head); font-weight:800; font-size:1.15rem; color:#0f172a; margin:0;">Submit Proposal to Project</h3>
+                <button onclick="closeApply()" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:1.4rem;">×</button>
             </div>
-            <div class="form-group"><label>Cover letter</label><textarea id="cover-letter" rows="4" placeholder="Why are you a great fit for this project?"></textarea></div>
-            <div class="form-group"><label>Proposed rate (₹)</label><input type="number" id="proposed-rate" placeholder="e.g. 15000"></div>
-            <button class="btn btn-primary btn-full" onclick="submitApplication()">Send application</button>
+            <div class="form-group"><label>Cover Letter & Proposal</label><textarea id="cover-letter" rows="4" placeholder="Why are you a great fit for this project? Mention your relevant experience..."></textarea></div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.85rem;">
+                <div class="form-group"><label>Proposed Rate (₹)</label><input type="number" id="proposed-rate" placeholder="e.g. 25000"></div>
+                <div class="form-group"><label>Estimated Delivery (Days)</label><input type="number" id="estimated-days" placeholder="e.g. 14"></div>
+            </div>
+            <button class="btn btn-primary btn-full" onclick="submitApplication()" style="margin-top:1rem;">Submit Application</button>
+        </div>
+    </div>
+
+    <!-- Review Applicants Modal for Company Users -->
+    <div class="review-modal-bg" id="review-modal">
+        <div class="modal-box" style="max-width:680px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;border-bottom:1px solid var(--border);padding-bottom:0.75rem;">
+                <div>
+                    <h3 id="review-modal-title" style="font-family:var(--font-head); font-weight:800; font-size:1.2rem; color:#0f172a; margin:0;">Review Applicants</h3>
+                    <p style="color:var(--text2); font-size:0.85rem; margin:0.2rem 0 0 0;">Inspect freelancer proposals, view full profiles, and accept or decline candidates.</p>
+                </div>
+                <button onclick="closeReviewModal()" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:1.4rem;">×</button>
+            </div>
+            <div id="applicants-list-container">
+                <div style="text-align:center; padding:2rem; color:var(--text3);">Loading applicants...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Freelancer Profile View Modal -->
+    <div class="profile-modal-bg" id="profile-modal">
+        <div class="modal-box" style="max-width:600px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;border-bottom:1px solid var(--border);padding-bottom:0.75rem;">
+                <h3 style="font-family:var(--font-head); font-weight:800; font-size:1.15rem; color:#0f172a; margin:0;">Freelancer Profile</h3>
+                <button onclick="closeProfileModal()" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:1.4rem;">×</button>
+            </div>
+            <div id="freelancer-profile-content">
+                <div style="text-align:center; padding:2rem; color:var(--text3);">Loading profile details...</div>
+            </div>
         </div>
     </div>
 
     <script src="/static/js/api.js"></script>
-    <script src="/static/js/i18n.js"></script>
     <script>
-        requireAuth()
-        const user = getUser()
-        let activeProjectId = null
+        requireAuth();
+        const user = getUser();
+        let activeProjectId = null;
 
-        async function handleTranslateProject(projId, originalText) {
-            const descEl = document.getElementById(`proj-desc-${projId}`)
-            const btn = document.getElementById(`proj-tr-btn-${projId}`)
-            if (!descEl) return
-
-            if (descEl.getAttribute('data-translated') === 'true') {
-                descEl.textContent = originalText
-                descEl.removeAttribute('data-translated')
-                if (btn) btn.textContent = '🌐 Translate'
-                return
+        document.addEventListener('DOMContentLoaded', () => {
+            if (user?.role === 'company') {
+                document.getElementById('post-panel').style.display = 'block';
+                document.getElementById('tab-mine-btn').style.display = 'inline-block';
             }
-
-            if (btn) btn.textContent = '... Translating'
-            const translated = await translateDynamicText(originalText)
-            descEl.textContent = translated
-            descEl.setAttribute('data-translated', 'true')
-            if (btn) btn.textContent = '↩ Original'
-        }
+            if (user?.role === 'freelancer') {
+                document.getElementById('tab-apps-btn').style.display = 'inline-block';
+            }
+            loadProjects();
+        });
 
         function switchTab(tab, el) {
-            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'))
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'))
-            document.getElementById(`tab-${tab}`).classList.add('active')
-            el.classList.add('active')
-            if (tab === 'mine') loadMyProjects()
-            if (tab === 'applications') loadMyApplications()
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(`tab-${tab}`).classList.add('active');
+            el.classList.add('active');
+            if (tab === 'mine') loadMyProjects();
+            if (tab === 'applications') loadMyApplications();
         }
 
         async function loadProjects() {
-            const skill = document.getElementById('search-skill').value.trim()
-            const url = `/projects/${skill ? `?skill=${encodeURIComponent(skill)}` : ''}`
+            const skill = document.getElementById('search-skill').value.trim();
+            const url = `/projects/${skill ? `?skill=${encodeURIComponent(skill)}` : ''}`;
+            const container = document.getElementById('projects-list');
+            container.innerHTML = `<div style="text-align:center; padding:2rem; color:var(--text3);">Loading projects...</div>`;
+
             try {
-                const res = await api(url)
+                const res = await api(url);
                 if (res && res.ok) {
-                    const data = await res.json()
-                    const list = document.getElementById('projects-list')
-                    list.innerHTML = ''
-                    if (!data.length) { document.getElementById('projects-empty').style.display = 'flex'; return }
-                    document.getElementById('projects-empty').style.display = 'none'
-                    data.forEach(p => list.appendChild(buildProjectCard(p, false)))
+                    const data = await res.json();
+                    if (!data || data.length === 0) {
+                        container.innerHTML = '';
+                        document.getElementById('projects-empty').style.display = 'block';
+                        return;
+                    }
+                    document.getElementById('projects-empty').style.display = 'none';
+                    container.innerHTML = data.map(p => `
+                        <div class="project-card">
+                            <div class="project-title">${p.title}</div>
+                            <div class="project-meta">
+                                <span class="project-budget">₹${Number(p.budget_min).toLocaleString()} – ₹${Number(p.budget_max).toLocaleString()}</span>
+                                <span>Company: <strong>${p.company_name || 'Creator'}</strong></span>
+                            </div>
+                            <div class="project-desc">${p.description}</div>
+                            <div style="display:flex; flex-wrap:wrap; gap:0.4rem; margin-bottom:1rem;">
+                                ${(p.skills || []).map(s => `<span class="tag">${s.name}</span>`).join('')}
+                            </div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:0.85rem;">
+                                <span style="font-size:0.8rem; color:var(--text3);">${p.location_type || 'Remote'}</span>
+                                ${user?.role === 'freelancer' ? `<button class="btn btn-primary" style="font-size:0.85rem; padding:0.5rem 1rem;" onclick="openApply('${p.id}')">Apply to Project</button>` : ''}
+                            </div>
+                        </div>
+                    `).join('');
                 }
-            } catch {}
+            } catch (e) {
+                container.innerHTML = `<div style="text-align:center; color:var(--red);">Error loading projects.</div>`;
+            }
         }
-
-        function buildProjectCard(p, isMine) {
-            const div = document.createElement('div')
-            div.className = 'project-card'
-            const skills = (p.skills || []).map(s => `<span class="skill-tag">${s.name}</span>`).join('')
-            const safeDesc = escapeHtml(p.description)
-            div.innerHTML = `
-                <div class="project-title">${p.title}</div>
-                <div class="project-company">by ${p.company_name || 'Company'} · ${p.application_count || 0} applicants</div>
-                <div class="project-desc" id="proj-desc-${p.id}">${safeDesc}</div>
-                <button class="btn-translate" id="proj-tr-btn-${p.id}" onclick="handleTranslateProject(${p.id}, '${safeDesc.replace(/'/g, "\\'")}')">🌐 Translate</button>
-                <div class="project-meta" style="margin-top:0.6rem;">
-                    <span class="project-budget">₹${Number(p.budget_min).toLocaleString()} – ₹${Number(p.budget_max).toLocaleString()}</span>
-                    <span class="badge badge-yellow">${(p.duration || '').replace(/_/g,' ')}</span>
-                    <span class="badge badge-green">${p.status}</span>
-                </div>
-                <div class="project-skills">${skills}</div>
-                <div class="project-actions">
-                    ${!isMine && user?.role === 'freelancer' ? `<button class="btn btn-primary" onclick="openApply(${p.id})">Apply now</button>` : ''}
-                    ${isMine ? `<button class="btn btn-ghost" onclick="deleteProject(${p.id})">Delete</button>` : ''}
-                </div>`
-            return div
-        }
-
 
         async function loadMyProjects() {
+            const container = document.getElementById('my-projects-list');
+            container.innerHTML = `<div style="text-align:center; padding:2rem; color:var(--text3);">Loading your posted projects...</div>`;
+
             try {
-                const res = await api('/projects/mine/')
+                const res = await api('/projects/my/');
                 if (res && res.ok) {
-                    const data = await res.json()
-                    const list = document.getElementById('my-projects-list')
-                    list.innerHTML = ''
-                    if (!data.length) { document.getElementById('mine-empty').style.display = 'flex'; return }
-                    document.getElementById('mine-empty').style.display = 'none'
-                    data.forEach(p => list.appendChild(buildProjectCard(p, true)))
+                    const data = await res.json();
+                    if (!data || data.length === 0) {
+                        container.innerHTML = '';
+                        document.getElementById('mine-empty').style.display = 'block';
+                        return;
+                    }
+                    document.getElementById('mine-empty').style.display = 'none';
+                    container.innerHTML = data.map(p => `
+                        <div class="project-card">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+                                <div class="project-title">${p.title}</div>
+                                <span style="background:rgba(16,138,0,0.1); color:var(--accent); font-weight:700; font-size:0.8rem; padding:0.25rem 0.65rem; border-radius:999px;">Status: ${p.status}</span>
+                            </div>
+                            <div class="project-meta">
+                                <span class="project-budget">₹${Number(p.budget_min).toLocaleString()} – ₹${Number(p.budget_max).toLocaleString()}</span>
+                            </div>
+                            <div class="project-desc">${p.description}</div>
+                            <div style="display:flex; gap:0.75rem; border-top:1px solid var(--border); padding-top:0.85rem; margin-top:0.85rem;">
+                                <button class="btn btn-primary" style="font-size:0.85rem; padding:0.5rem 1.1rem;" onclick="openReviewModal('${p.id}', '${p.title.replace(/'/g, "\\'")}')">
+                                    📥 Review Applicants & Proposals
+                                </button>
+                                <button class="btn btn-ghost" style="font-size:0.85rem; padding:0.5rem 1rem; color:var(--red);" onclick="deleteProject('${p.id}')">Delete Project</button>
+                            </div>
+                        </div>
+                    `).join('');
                 }
-            } catch {}
+            } catch (e) {
+                container.innerHTML = `<div style="text-align:center; color:var(--red);">Error loading your projects.</div>`;
+            }
+        }
+
+        async function openReviewModal(projectId, title) {
+            document.getElementById('review-modal-title').textContent = `Applicants for "${title}"`;
+            document.getElementById('review-modal').style.display = 'flex';
+            const container = document.getElementById('applicants-list-container');
+            container.innerHTML = `<div style="text-align:center; padding:2rem; color:var(--text3);">Loading proposals...</div>`;
+
+            try {
+                const res = await api(`/projects/${projectId}/applications/`);
+                if (res && res.ok) {
+                    const apps = await res.json();
+                    if (!apps || apps.length === 0) {
+                        container.innerHTML = `<div style="text-align:center; padding:2.5rem; color:var(--text3);">No applications received yet for this project.</div>`;
+                        return;
+                    }
+                    container.innerHTML = apps.map(a => {
+                        const f = a.freelancer || {};
+                        const avatarHtml = f.avatar_data ? 
+                            `<img src="${f.avatar_data}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;">` : 
+                            `<div style="width:44px;height:44px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;">${(f.name || 'F')[0]}</div>`;
+                        
+                        return `
+                        <div class="applicant-card">
+                            <div style="display:flex; gap:1rem; align-items:flex-start; margin-bottom:0.75rem;">
+                                ${avatarHtml}
+                                <div style="flex:1;">
+                                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                                        <h4 style="font-family:var(--font-head); font-weight:800; color:#0f172a; margin:0; font-size:1.05rem;">${f.name || 'Freelancer'}</h4>
+                                        <span style="font-weight:800; color:var(--accent); font-size:0.95rem;">Proposal: ₹${Number(a.proposed_rate).toLocaleString()}</span>
+                                    </div>
+                                    <div style="color:var(--text2); font-size:0.85rem; margin-top:0.15rem;">${f.title || 'Developer / Designer'} · ${a.estimated_days || 14} days delivery</div>
+                                </div>
+                            </div>
+                            <div style="background:#ffffff; border:1px solid var(--border); padding:0.85rem; border-radius:8px; font-size:0.88rem; color:var(--text2); line-height:1.5; margin-bottom:0.85rem;">
+                                <strong>Cover Letter:</strong> ${a.cover_letter || 'No cover letter provided.'}
+                            </div>
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <button class="btn btn-ghost" style="font-size:0.8rem; padding:0.4rem 0.75rem;" onclick="viewFreelancerProfile('${f.id}')">👁️ View Full Profile</button>
+                                <div style="display:flex; gap:0.5rem;">
+                                    ${a.status === 'accepted' ? `<span style="color:var(--accent); font-weight:700; font-size:0.85rem;">✓ Accepted — Workspace Active</span>` :
+                                      a.status === 'declined' ? `<span style="color:var(--red); font-weight:700; font-size:0.85rem;">Declined</span>` :
+                                      `
+                                      <button class="btn btn-primary" style="font-size:0.8rem; padding:0.45rem 0.95rem;" onclick="respondApplication('${projectId}', '${a.id}', 'accepted')">✅ Accept Proposal</button>
+                                      <button class="btn btn-ghost" style="font-size:0.8rem; padding:0.45rem 0.85rem; color:var(--red);" onclick="respondApplication('${projectId}', '${a.id}', 'declined')">✕ Decline</button>
+                                      `}
+                                </div>
+                            </div>
+                        </div>`;
+                    }).join('');
+                }
+            } catch (e) {
+                container.innerHTML = `<div style="text-align:center; color:var(--red);">Error loading applicants.</div>`;
+            }
+        }
+
+        async function respondApplication(projectId, applicationId, status) {
+            try {
+                const res = await api(`/projects/${projectId}/applications/${applicationId}/`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ status })
+                });
+                if (res && res.ok) {
+                    showToast(status === 'accepted' ? 'Proposal accepted! Workspace created.' : 'Proposal declined.');
+                    openReviewModal(projectId, 'Updated Project');
+                } else {
+                    showToast('Failed to update proposal status.', 'error');
+                }
+            } catch (e) {
+                showToast('Error responding to proposal.', 'error');
+            }
+        }
+
+        function closeReviewModal() { document.getElementById('review-modal').style.display = 'none'; }
+        function closeProfileModal() { document.getElementById('profile-modal').style.display = 'none'; }
+
+        async function viewFreelancerProfile(freelancerId) {
+            document.getElementById('profile-modal').style.display = 'flex';
+            const container = document.getElementById('freelancer-profile-content');
+            container.innerHTML = `<div style="text-align:center; padding:2rem; color:var(--text3);">Loading profile...</div>`;
+
+            try {
+                const res = await api(`/projects/talent/`);
+                if (res && res.ok) {
+                    const list = await res.json();
+                    const f = list.find(item => item.id == freelancerId) || list[0];
+                    if (f) {
+                        const skills = f.skills || [];
+                        container.innerHTML = `
+                            <div style="display:flex; gap:1.25rem; align-items:center; margin-bottom:1rem;">
+                                ${f.avatar_data ? `<img src="${f.avatar_data}" style="width:64px;height:64px;border-radius:50%;object-fit:cover;">` : `<div style="width:64px;height:64px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:800;">${(f.name||'F')[0]}</div>`}
+                                <div>
+                                    <h3 style="font-family:var(--font-head); font-weight:800; font-size:1.2rem; color:#0f172a; margin:0;">${f.name}</h3>
+                                    <div style="color:var(--text2); font-size:0.9rem;">${f.title || 'Developer'}</div>
+                                    <div style="color:var(--accent); font-weight:700; font-size:0.85rem; margin-top:0.2rem;">${f.hourly_rate ? '₹' + f.hourly_rate + '/hr' : 'Flexible Rate'} · ${f.city || ''}, ${f.country || ''}</div>
+                                </div>
+                            </div>
+                            <div style="margin-bottom:1rem; color:var(--text2); font-size:0.9rem; line-height:1.5;">${f.bio || 'No bio provided.'}</div>
+                            <div style="font-size:0.85rem; font-weight:700; color:#0f172a; margin-bottom:0.4rem;">Skills:</div>
+                            <div style="display:flex; flex-wrap:wrap; gap:0.4rem; margin-bottom:1.25rem;">
+                                ${skills.map(s => `<span class="tag">${s.name}</span>`).join('')}
+                            </div>
+                            <div style="display:flex; gap:0.75rem;">
+                                ${f.github_url ? `<a href="${f.github_url}" target="_blank" class="btn btn-ghost" style="font-size:0.8rem; padding:0.4rem 0.75rem;">🔗 GitHub</a>` : ''}
+                                ${f.portfolio_url ? `<a href="${f.portfolio_url}" target="_blank" class="btn btn-ghost" style="font-size:0.8rem; padding:0.4rem 0.75rem;">🌐 Portfolio</a>` : ''}
+                            </div>`;
+                        return;
+                    }
+                }
+                container.innerHTML = `<div style="text-align:center; color:var(--red);">Profile details unavailable.</div>`;
+            } catch (e) {
+                container.innerHTML = `<div style="text-align:center; color:var(--red);">Error loading profile.</div>`;
+            }
         }
 
         async function loadMyApplications() {
+            const container = document.getElementById('my-applications-list');
+            container.innerHTML = `<div style="text-align:center; padding:2rem; color:var(--text3);">Loading submitted proposals...</div>`;
+
             try {
-                const res = await api('/projects/applications/mine/')
+                const res = await api('/projects/applications/my/');
                 if (res && res.ok) {
-                    const data = await res.json()
-                    const list = document.getElementById('my-applications-list')
-                    list.innerHTML = ''
-                    if (!data.length) { document.getElementById('apps-empty').style.display = 'flex'; return }
-                    document.getElementById('apps-empty').style.display = 'none'
-                    data.forEach(a => {
-                        const div = document.createElement('div')
-                        div.className = 'project-card'
-                        div.innerHTML = `
-                            <div class="project-title">${a.project_title}</div>
-                            <div class="project-meta">
-                                <span class="project-budget">₹${Number(a.proposed_rate).toLocaleString()}</span>
-                                <span class="badge ${a.status === 'accepted' ? 'badge-green' : a.status === 'rejected' ? 'badge-red' : 'badge-yellow'}">${a.status}</span>
+                    const data = await res.json();
+                    if (!data || data.length === 0) {
+                        container.innerHTML = '';
+                        document.getElementById('apps-empty').style.display = 'block';
+                        return;
+                    }
+                    document.getElementById('apps-empty').style.display = 'none';
+                    container.innerHTML = data.map(a => `
+                        <div class="project-card">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+                                <div class="project-title">${a.project_title}</div>
+                                <span class="tag" style="background:${a.status === 'accepted' ? 'rgba(16,138,0,0.1)' : 'rgba(245,158,11,0.1)'}; color:${a.status === 'accepted' ? 'var(--accent)' : '#d97706'}; font-weight:700;">
+                                    ${a.status === 'accepted' ? '🎉 Proposal Accepted' : a.status === 'declined' ? '✕ Proposal Declined' : '⏳ Pending Review'}
+                                </span>
                             </div>
-                            <div class="project-desc">${a.cover_letter || 'No cover letter.'}</div>`
-                        list.appendChild(div)
-                    })
+                            <div class="project-meta">
+                                <span class="project-budget">Proposed Rate: ₹${Number(a.proposed_rate).toLocaleString()}</span>
+                                <span>Estimated Delivery: ${a.estimated_days || 14} days</span>
+                            </div>
+                            <div class="project-desc"><strong>Your Cover Letter:</strong> ${a.cover_letter || 'No cover letter.'}</div>
+                            ${a.status === 'accepted' ? `
+                                <div style="border-top:1px solid var(--border); padding-top:0.85rem; margin-top:0.85rem;">
+                                    <a href="/workspace/" class="btn btn-primary" style="font-size:0.85rem; padding:0.5rem 1rem;">🗂 Open Active Workspace & Task Board</a>
+                                </div>` : ''}
+                        </div>
+                    `).join('');
                 }
-            } catch {}
+            } catch (e) {
+                container.innerHTML = `<div style="text-align:center; color:var(--red);">Error loading proposals.</div>`;
+            }
         }
 
         async function postProject() {
-            const title = document.getElementById('p-title').value.trim()
-            const description = document.getElementById('p-desc').value.trim()
-            const budget_min = parseFloat(document.getElementById('p-bmin').value)
-            const budget_max = parseFloat(document.getElementById('p-bmax').value)
-            const duration = document.getElementById('p-duration').value
-            const skillsRaw = document.getElementById('p-skills').value.trim()
-            const deadlineRaw = document.getElementById('p-deadline').value
+            const title = document.getElementById('p-title').value.trim();
+            const description = document.getElementById('p-desc').value.trim();
+            const budget_min = parseFloat(document.getElementById('p-bmin').value);
+            const budget_max = parseFloat(document.getElementById('p-bmax').value);
+            const duration = document.getElementById('p-duration').value;
+            const skillsRaw = document.getElementById('p-skills').value.trim();
 
             if (!title || !description || isNaN(budget_min) || isNaN(budget_max)) {
-                return showToast('Please fill all required fields (*).', 'error')
+                return showToast('Please fill all required fields (*).', 'error');
             }
-            if (budget_min > budget_max) {
-                return showToast('Budget min cannot exceed budget max.', 'error')
-            }
-
-            const skill_names = skillsRaw ? skillsRaw.split(',').map(s => s.trim()).filter(Boolean) : []
-            const body = { title, description, budget_min, budget_max, duration }
-            if (skill_names.length) body.skill_names = skill_names
-            if (deadlineRaw) body.deadline = deadlineRaw
+            const skill_names = skillsRaw ? skillsRaw.split(',').map(s => s.trim()).filter(Boolean) : [];
+            const body = { title, description, budget_min, budget_max, duration };
+            if (skill_names.length) body.skill_names = skill_names;
 
             try {
-                const res = await api('/projects/create/', { method: 'POST', body: JSON.stringify(body) })
+                const res = await api('/projects/create/', { method: 'POST', body: JSON.stringify(body) });
                 if (res && res.ok) {
-                    showToast('Project posted successfully!')
-                    document.getElementById('p-title').value = ''
-                    document.getElementById('p-desc').value = ''
-                    document.getElementById('p-bmin').value = ''
-                    document.getElementById('p-bmax').value = ''
-                    document.getElementById('p-skills').value = ''
-                    document.getElementById('p-deadline').value = ''
-                    loadProjects()
-                    loadMyProjects()
+                    showToast('Project posted successfully!');
+                    document.getElementById('p-title').value = '';
+                    document.getElementById('p-desc').value = '';
+                    document.getElementById('p-bmin').value = '';
+                    document.getElementById('p-bmax').value = '';
+                    document.getElementById('p-skills').value = '';
+                    loadProjects();
+                    loadMyProjects();
                 } else if (res) {
-                    const d = await res.json()
-                    const firstErr = typeof d === 'object' ? Object.values(d).flat()[0] : 'Failed to post project.'
-                    showToast(firstErr || d.detail || 'Failed to post project.', 'error')
+                    const d = await res.json();
+                    showToast(d.detail || 'Failed to post project.', 'error');
                 }
             } catch (e) {
-                showToast('Error posting project. Try again.', 'error')
+                showToast('Error posting project.', 'error');
             }
         }
 
         async function deleteProject(id) {
-            if (!confirm('Delete this project?')) return
-            const res = await api(`/projects/${id}/`, { method: 'DELETE' })
-            if (res && res.ok) { showToast('Project deleted.'); loadMyProjects() }
+            if (!confirm('Delete this project?')) return;
+            const res = await api(`/projects/${id}/`, { method: 'DELETE' });
+            if (res && res.ok) { showToast('Project deleted.'); loadMyProjects(); }
         }
 
-        function openApply(projectId) { activeProjectId = projectId; document.getElementById('apply-modal').style.display = 'flex' }
-        function closeApply() { document.getElementById('apply-modal').style.display = 'none' }
+        function openApply(projectId) { activeProjectId = projectId; document.getElementById('apply-modal').style.display = 'flex'; }
+        function closeApply() { document.getElementById('apply-modal').style.display = 'none'; }
 
         async function submitApplication() {
-            if (!activeProjectId) return
-            const body = { cover_letter: document.getElementById('cover-letter').value, proposed_rate: parseFloat(document.getElementById('proposed-rate').value) }
-            if (!body.proposed_rate) return showToast('Enter your proposed rate.', 'error')
-            const res = await api(`/projects/${activeProjectId}/applications/`, { method: 'POST', body: JSON.stringify(body) })
-            if (res && res.ok) { showToast('Application sent!'); closeApply() }
-            else { const d = await res.json(); showToast(d.detail || 'Failed to apply.', 'error') }
+            if (!activeProjectId) return;
+            const body = {
+                cover_letter: document.getElementById('cover-letter').value,
+                proposed_rate: parseFloat(document.getElementById('proposed-rate').value),
+                estimated_days: parseInt(document.getElementById('estimated-days').value) || 14
+            };
+            if (!body.proposed_rate) return showToast('Enter your proposed rate.', 'error');
+            const res = await api(`/projects/${activeProjectId}/applications/`, { method: 'POST', body: JSON.stringify(body) });
+            if (res && res.ok) { showToast('Application sent successfully!'); closeApply(); loadMyApplications(); }
+            else { const d = await res.json(); showToast(d.detail || 'Failed to apply.', 'error'); }
         }
-
-        if (user?.role === 'company') { document.getElementById('post-panel').style.display = 'block'; document.getElementById('tab-mine-btn').style.display = 'inline-block' }
-        if (user?.role === 'freelancer') { document.getElementById('tab-apps-btn').style.display = 'inline-block' }
-        loadProjects()
-
-        // ── Mobile nav toggle ──
-        function toggleNav() {
-            const links = document.getElementById('nav-links');
-            const btn   = document.getElementById('nav-toggle');
-            const open  = links.classList.toggle('open');
-            btn.textContent = open ? '✕' : '☰';
-        }
-        document.addEventListener('click', function(e) {
-            const links = document.getElementById('nav-links');
-            const btn   = document.getElementById('nav-toggle');
-            if (links && btn && !links.contains(e.target) && !btn.contains(e.target)) {
-                links.classList.remove('open');
-                btn.textContent = '☰';
-            }
-        });
     </script>
-
-    <!-- Mobile bottom tab bar -->
-    <nav class="mobile-tab-bar">
-        <a href="/dashboard/" class="tab-item"><span class="tab-icon">🏠</span>Home</a>
-        <a href="/swipe/" class="tab-item"><span class="tab-icon">🃏</span>Swipe</a>
-        <a href="/matches/" class="tab-item"><span class="tab-icon">🤝</span>Matches</a>
-        <a href="/chat/" class="tab-item"><span class="tab-icon">💬</span>Chat</a>
-        <a href="/profile/" class="tab-item"><span class="tab-icon">👤</span>Profile</a>
-    </nav>
 </body>
 </html>

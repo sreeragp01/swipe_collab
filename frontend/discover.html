@@ -259,6 +259,12 @@
             <p>Find open collaboration projects, hire verified developers & designers, or match co-founders with intelligent AI recommendations.</p>
         </div>
 
+        <!-- Pending Invitations Banner for Freelancers -->
+        <div id="received-invitations-banner" style="display:none; margin-bottom:1.5rem; background:rgba(16,138,0,0.06); border:1px solid var(--border-hover); border-radius:var(--radius); padding:1.25rem;">
+            <h3 style="font-family:var(--font-head); font-weight:800; font-size:1.05rem; color:var(--accent); margin:0 0 0.75rem 0;">📩 Pending Direct Project Invitations</h3>
+            <div id="invitations-list-container"></div>
+        </div>
+
         <div class="tabs">
             <button class="tab active" onclick="switchTab('projects', this)">📂 Find Projects</button>
             <button class="tab" onclick="switchTab('talent', this)">👨‍💻 Find Talent</button>
@@ -322,6 +328,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             requireAuth();
             loadDiscoverData();
+            loadReceivedInvitations();
         });
 
         function switchTab(tab, btn) {
@@ -495,6 +502,49 @@
                 const data = await res.json();
                 showToast(data.detail || 'Failed to submit application', 'error');
             }
+        }
+        async function loadReceivedInvitations() {
+            const user = getUser();
+            if (!user || user.role !== 'freelancer') return;
+            try {
+                const res = await api('/invitations/received/');
+                if (res && res.ok) {
+                    const list = await res.json();
+                    const banner = document.getElementById('received-invitations-banner');
+                    const container = document.getElementById('invitations-list-container');
+                    if (list && list.length > 0) {
+                        banner.style.display = 'block';
+                        container.innerHTML = list.map(inv => `
+                            <div style="background:#ffffff; border:1px solid var(--border); border-radius:var(--radius-sm); padding:1rem; margin-bottom:0.75rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.75rem;">
+                                <div>
+                                    <strong style="color:#0f172a; font-size:0.95rem;">${inv.project_title}</strong>
+                                    <div style="color:var(--text2); font-size:0.85rem; margin-top:0.15rem;">Invited by: <strong>${inv.sender_email}</strong> · ${inv.message || 'We invite you to join our project.'}</div>
+                                </div>
+                                <div style="display:flex; gap:0.5rem;">
+                                    <button class="btn btn-primary" style="font-size:0.8rem; padding:0.45rem 0.85rem;" onclick="respondInvitation('${inv.id}', 'accept')">✅ Accept & Open Workspace</button>
+                                    <button class="btn btn-ghost" style="font-size:0.8rem; padding:0.45rem 0.75rem; color:var(--red);" onclick="respondInvitation('${inv.id}', 'decline')">✕ Decline</button>
+                                </div>
+                            </div>
+                        `).join('');
+                    } else {
+                        banner.style.display = 'none';
+                    }
+                }
+            } catch {}
+        }
+
+        async function respondInvitation(id, action) {
+            try {
+                const res = await api(`/invitations/${id}/respond/`, {
+                    method: 'POST',
+                    body: JSON.stringify({ action })
+                });
+                if (res && res.ok) {
+                    showToast(action === 'accept' ? 'Invitation accepted! Workspace created.' : 'Invitation declined.');
+                    loadReceivedInvitations();
+                    if (action === 'accept') setTimeout(() => { window.location.href = '/workspace/'; }, 1000);
+                }
+            } catch {}
         }
     </script>
 </body>

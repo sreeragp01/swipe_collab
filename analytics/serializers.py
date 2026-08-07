@@ -13,6 +13,10 @@ class ProfileViewSerializer(serializers.ModelSerializer):
 
 class EngagementStatSerializer(serializers.ModelSerializer):
     user_email = serializers.EmailField(source='user.email', read_only=True)
+    mutual_matches = serializers.IntegerField(source='match_count', read_only=True)
+    profile_views = serializers.IntegerField(source='profile_view_count', read_only=True)
+    likes_received = serializers.IntegerField(source='total_likes_received', read_only=True)
+    messages_sent = serializers.IntegerField(source='message_count', read_only=True)
 
     class Meta:
         model = EngagementStat
@@ -20,6 +24,7 @@ class EngagementStatSerializer(serializers.ModelSerializer):
             'id', 'user_email',
             'total_swipes_made', 'total_likes_received', 'total_passes_received',
             'match_count', 'message_count', 'profile_view_count',
+            'mutual_matches', 'profile_views', 'likes_received', 'messages_sent',
             'projects_posted', 'applications_received', 'applications_sent',
             'updated_at',
         ]

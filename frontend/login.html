@@ -626,6 +626,22 @@
         <div class="auth-footer">
             Don't have an account? <a href="/register/">Create one free →</a>
         </div>
+
+        <!-- 1-Click Demo User Switcher -->
+        <div style="margin-top:1.5rem; padding:1rem; background:#f8fafc; border:1px solid var(--border); border-radius:12px;">
+            <div style="font-size:0.75rem; font-weight:800; color:var(--accent); margin-bottom:0.6rem; text-transform:uppercase; letter-spacing:0.05em;">⚡ 1-Click Test Account Quick Login</div>
+            <div style="display:flex; flex-direction:column; gap:0.45rem;">
+                <button type="button" class="btn btn-ghost" style="font-size:0.8rem; padding:0.5rem 0.75rem; justify-content:space-between; text-align:left; border:1px solid var(--border);" onclick="quickLogin('psreerag304@gmail.com', 'Test@1234')">
+                    <span>👤 <strong>psreerag304@gmail.com</strong> (Sreerag - Full Activated Profile)</span> <span>→</span>
+                </button>
+                <button type="button" class="btn btn-ghost" style="font-size:0.8rem; padding:0.5rem 0.75rem; justify-content:space-between; text-align:left; border:1px solid var(--border);" onclick="quickLogin('arjun@test.com', 'Test@1234')">
+                    <span>👨‍💻 <strong>arjun@test.com</strong> (Arjun - Senior DevOps)</span> <span>→</span>
+                </button>
+                <button type="button" class="btn btn-ghost" style="font-size:0.8rem; padding:0.5rem 0.75rem; justify-content:space-between; text-align:left; border:1px solid var(--border);" onclick="quickLogin('techcorp@test.com', 'Test@1234')">
+                    <span>🏢 <strong>techcorp@test.com</strong> (TechCorp - Company Account)</span> <span>→</span>
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -635,6 +651,12 @@
 <script src="/static/js/i18n.js"></script>
 <script>
     if (typeof getToken !== 'undefined' && getToken()) window.location.href = '/dashboard/'
+
+    async function quickLogin(email, password) {
+        document.getElementById('email').value = email;
+        document.getElementById('password').value = password;
+        await login();
+    }
 
     // ── Particle canvas ──
     ;(function () {

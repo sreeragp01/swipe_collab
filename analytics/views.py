@@ -16,11 +16,7 @@ class MyStatsView(APIView):
 
     def get(self, request):
         stat, created = EngagementStat.objects.get_or_create(user=request.user)
-
-        # Auto sync on first create or if all zeros
-        if created or (stat.match_count == 0 and stat.total_swipes_made == 0):
-            stat = sync_stats_for_user(request.user, stat)
-
+        stat = sync_stats_for_user(request.user, stat)
         return Response(EngagementStatSerializer(stat).data)
 
 

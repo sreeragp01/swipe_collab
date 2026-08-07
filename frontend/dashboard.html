@@ -386,17 +386,42 @@
             loadDashProjects();
         });
 
-        function loadUserData() {
-            const user = getUser();
+        async function loadUserData() {
+            let user = getUser();
             if (user) {
-                const name = user.email.split('@')[0];
-                document.getElementById('welcome-name').textContent = `Welcome back, ${name} 👋`;
-                document.getElementById('welcome-sub').textContent = user.role === 'freelancer' ? 'Freelancer Account' : 'Company Account';
-                document.getElementById('sidebar-avatar').textContent = name[0].toUpperCase();
-                document.getElementById('sidebar-name').textContent = user.email;
-                document.getElementById('sidebar-role').textContent = user.role === 'freelancer' ? 'Freelancer' : 'Company';
+                renderUserHeader(user);
+            }
+            const freshUser = await fetchCurrentUser();
+            if (freshUser) {
+                renderUserHeader(freshUser);
             }
             fetchAnalytics();
+        }
+
+        function renderUserHeader(user) {
+            if (!user) return;
+            const name = (user.first_name ? `${user.first_name} ${user.last_name || ''}`.trim() : null) || user.email.split('@')[0];
+            document.getElementById('welcome-name').textContent = `Welcome back, ${name} 👋`;
+            document.getElementById('welcome-sub').textContent = user.role === 'freelancer' ? 'Freelancer Account' : 'Company Account';
+            
+            const avatarEl = document.getElementById('sidebar-avatar');
+            let avatarUrl = null;
+            if (user.role === 'freelancer' && user.freelancer_profile && user.freelancer_profile.avatar_data) {
+                avatarUrl = user.freelancer_profile.avatar_data;
+            } else if (user.role === 'company' && user.company_profile && user.company_profile.logo_data) {
+                avatarUrl = user.company_profile.logo_data;
+            } else if (user.avatar_data) {
+                avatarUrl = user.avatar_data;
+            }
+
+            if (avatarUrl) {
+                avatarEl.innerHTML = `<img src="${avatarUrl}" alt="${name}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+            } else {
+                avatarEl.textContent = name[0].toUpperCase();
+            }
+
+            document.getElementById('sidebar-name').textContent = user.email;
+            document.getElementById('sidebar-role').textContent = user.role === 'freelancer' ? 'Freelancer' : 'Company';
         }
 
         async function fetchAnalytics() {
@@ -404,10 +429,10 @@
                 const res = await api('/analytics/');
                 if (res && res.ok) {
                     const data = await res.json();
-                    document.getElementById('stat-views').textContent = data.profile_views || 0;
-                    document.getElementById('stat-likes').textContent = data.likes_received || 0;
-                    document.getElementById('stat-matches').textContent = data.mutual_matches || 0;
-                    document.getElementById('stat-messages').textContent = data.messages_sent || 0;
+                    document.getElementById('stat-views').textContent = data.profile_views ?? data.profile_view_count ?? 0;
+                    document.getElementById('stat-likes').textContent = data.likes_received ?? data.total_likes_received ?? 0;
+                    document.getElementById('stat-matches').textContent = data.mutual_matches ?? data.match_count ?? 0;
+                    document.getElementById('stat-messages').textContent = data.messages_sent ?? data.message_count ?? 0;
                 }
             } catch {}
         }
