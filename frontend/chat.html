@@ -940,12 +940,17 @@
         function scrollToBottom() { const a = document.getElementById('messages-area'); a.scrollTop = a.scrollHeight }
         function escapeHtml(t) { return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') }
 
-        loadRooms()
         let chatOtherUserId = null
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            requireAuth();
+            try { await fetchCurrentUser(); } catch(e) {}
+            await loadRooms();
+        });
 
         function viewChatProfile() {
             if (!chatOtherUserId) return showToast('Profile not available.', 'error')
-            window.open('/view-profile/?id=' + chatOtherUserId + '&from=chat', '_blank')
+            window.open('/profile-view/?id=' + chatOtherUserId, '_blank')
         }
 
         function openChatReport() {
