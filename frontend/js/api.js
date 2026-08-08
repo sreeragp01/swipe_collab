@@ -45,6 +45,14 @@ function requireAuth() {
     if (!getToken()) window.location.href = '/login/'
 }
 
+function goBackOrHome(fallbackUrl = '/dashboard/') {
+    if (document.referrer && document.referrer.includes(window.location.host) && window.history.length > 1) {
+        window.history.back();
+    } else {
+        window.location.href = fallbackUrl;
+    }
+}
+
 async function requireSuperAdmin() {
     requireAuth()
     const user = await fetchCurrentUser()

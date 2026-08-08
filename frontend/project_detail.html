@@ -89,11 +89,12 @@
         <a href="/" class="nav-logo">Swipe<span style="color:var(--accent)">Collab</span></a>
         <div class="nav-right-actions"></div>
         <div class="nav-links" id="nav-links">
-            <a href="/discover/" class="nav-link">← Back to Discover</a>
+            <a href="javascript:void(0)" onclick="goBackOrHome('/discover/')" class="nav-link">← Back</a>
         </div>
     </nav>
 
     <div class="page">
+        <a href="javascript:void(0)" onclick="goBackOrHome('/discover/')" class="btn btn-ghost" style="margin-bottom:1rem;display:inline-flex;align-items:center;gap:0.4rem;padding:0.45rem 0.85rem;font-size:0.88rem;color:var(--text2);">← Back</a>
         <div class="detail-card" id="project-card">
             <div style="text-align: center; padding: 3rem; color: var(--text3);">Loading project details...</div>
         </div>

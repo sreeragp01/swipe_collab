@@ -97,7 +97,7 @@
     <div class="page" style="max-width:720px;">
 
         <!-- Back button -->
-        <a class="back-btn" id="back-btn" href="javascript:history.back()">← Back</a>
+        <a class="back-btn" id="back-btn" href="javascript:void(0)" onclick="handleBackClick()">← Back</a>
 
         <!-- Loading -->
         <div class="loading-state" id="loading-state">
@@ -226,9 +226,13 @@
         }
 
         // ── Set back button destination ────────────
+        function handleBackClick() {
+            if (fromSwipe) window.location.href = '/swipe/'
+            else if (fromMatch || fromInterests) window.location.href = '/matches/'
+            else goBackOrHome('/discover/')
+        }
         const backBtn = document.getElementById('back-btn')
-        if (fromSwipe)           backBtn.href = '/swipe/'
-        else if (fromMatch || fromInterests) backBtn.href = '/matches/'
+        if (backBtn) backBtn.onclick = handleBackClick
 
         if (fromSwipe || fromInterests) {
             document.getElementById('swipe-action-bar').style.display = 'flex'
