@@ -31,6 +31,11 @@ class SwipeAction(models.Model):
         db_table = "swipe_action"
         unique_together = ("swiper", "target")
         ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=['swiper', 'action']),
+            models.Index(fields=['target', 'action']),
+            models.Index(fields=['swiper', 'target']),
+        ]
 
     def __str__(self):
         return f"{self.swiper} → {self.target} [{self.action}]"

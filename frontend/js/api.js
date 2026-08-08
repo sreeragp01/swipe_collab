@@ -27,18 +27,42 @@ function getUser() {
     return u ? JSON.parse(u) : null
 }
 
-async function fetchCurrentUser() {
-    const token = getToken()
-    if (!token) return null
-    try {
-        const res = await api('/auth/me/')
-        if (res && res.ok) {
-            const data = await res.json()
-            saveUser(data)
-            return data
+let _currentUserPromise = null;
+let _lastUserFetchTime = 0;
+
+async function fetchCurrentUser(force = false) {
+    const token = getToken();
+    if (!token) return null;
+
+    const cachedUser = getUser();
+    const now = Date.now();
+
+    if (!force && cachedUser && (now - _lastUserFetchTime < 30000)) {
+        return cachedUser;
+    }
+
+    if (_currentUserPromise) {
+        return _currentUserPromise;
+    }
+
+    _currentUserPromise = (async () => {
+        try {
+            const res = await api('/auth/me/');
+            if (res && res.ok) {
+                const data = await res.json();
+                saveUser(data);
+                _lastUserFetchTime = Date.now();
+                return data;
+            }
+        } catch (e) {
+            console.error('fetchCurrentUser error:', e);
+        } finally {
+            _currentUserPromise = null;
         }
-    } catch (e) {}
-    return getUser()
+        return cachedUser;
+    })();
+
+    return _currentUserPromise;
 }
 
 function requireAuth() {
@@ -314,21 +338,28 @@ function initMobileNav() {
 }
 
 async function checkSuperAdminNav() {
-    if (!getToken()) return
-    const user = await fetchCurrentUser()
-    if (user && (user.is_staff || user.is_superuser)) {
-        const navLinks = document.querySelector('.nav-links')
+    if (!getToken()) return;
+
+    function renderAdminLink(user) {
+        if (!user || (!user.is_staff && !user.is_superuser)) return;
+        const navLinks = document.querySelector('.nav-links');
         if (navLinks && !document.getElementById('superadmin-nav-link')) {
-            const link = document.createElement('a')
-            link.id = 'superadmin-nav-link'
-            link.href = '/superadmin/'
-            link.className = 'nav-link'
-            link.style.color = '#ef4444'
-            link.style.fontWeight = '700'
-            link.textContent = '🛡️ Super Admin'
-            navLinks.appendChild(link)
+            const link = document.createElement('a');
+            link.id = 'superadmin-nav-link';
+            link.href = '/superadmin/';
+            link.className = 'nav-link';
+            link.style.color = '#ef4444';
+            link.style.fontWeight = '700';
+            link.textContent = '🛡️ Super Admin';
+            navLinks.appendChild(link);
         }
     }
+
+    const cached = getUser();
+    if (cached) renderAdminLink(cached);
+
+    const fresh = await fetchCurrentUser();
+    if (fresh) renderAdminLink(fresh);
 }
 
 document.addEventListener('DOMContentLoaded', () => {

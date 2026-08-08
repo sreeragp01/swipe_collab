@@ -37,6 +37,10 @@ class ProjectSerializer(serializers.ModelSerializer):
         return "Individual"
 
     def get_application_count(self, obj):
+        if hasattr(obj, 'application_count_annotated'):
+            return obj.application_count_annotated
+        if hasattr(obj, '_prefetched_objects_cache') and 'applications' in obj._prefetched_objects_cache:
+            return len(obj.applications.all())
         return obj.applications.count()
 
     def create(self, validated_data):

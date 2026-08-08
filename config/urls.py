@@ -49,13 +49,20 @@ urlpatterns = [
     path('portfolio-show/', TemplateView.as_view(template_name='portfolio_show.html'), name='portfolio-show'),
 ]
 
-# Serve media and static files in both local dev and production
+# Serve media and static files with caching headers
 from django.views.static import serve
 from django.urls import re_path
+
+def cached_static_serve(request, path, document_root=None, show_indexes=False):
+    response = serve(request, path, document_root=document_root, show_indexes=show_indexes)
+    if response.status_code == 200:
+        response['Cache-Control'] = 'public, max-age=86400'
+    return response
+
 urlpatterns += [
     re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
-    re_path(r'^css/(?P<path>.*)$', serve, {'document_root': settings.BASE_DIR / 'frontend' / 'css'}),
-    re_path(r'^js/(?P<path>.*)$', serve, {'document_root': settings.BASE_DIR / 'frontend' / 'js'}),
-    re_path(r'^static/css/(?P<path>.*)$', serve, {'document_root': settings.BASE_DIR / 'frontend' / 'css'}),
-    re_path(r'^static/js/(?P<path>.*)$', serve, {'document_root': settings.BASE_DIR / 'frontend' / 'js'}),
+    re_path(r'^css/(?P<path>.*)$', cached_static_serve, {'document_root': settings.BASE_DIR / 'frontend' / 'css'}),
+    re_path(r'^js/(?P<path>.*)$', cached_static_serve, {'document_root': settings.BASE_DIR / 'frontend' / 'js'}),
+    re_path(r'^static/css/(?P<path>.*)$', cached_static_serve, {'document_root': settings.BASE_DIR / 'frontend' / 'css'}),
+    re_path(r'^static/js/(?P<path>.*)$', cached_static_serve, {'document_root': settings.BASE_DIR / 'frontend' / 'js'}),
 ]

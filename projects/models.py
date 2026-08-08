@@ -75,12 +75,12 @@ class Project(models.Model):
     experience_level = models.CharField(max_length=20, choices=EXP_CHOICES, default=EXP_INTERMEDIATE)
     location_type = models.CharField(max_length=20, choices=LOCATION_CHOICES, default=LOCATION_REMOTE)
     duration = models.CharField(max_length=20, choices=DURATION_CHOICES, blank=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_OPEN)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_OPEN, db_index=True)
     budget_min = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     budget_max = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     skills = models.ManyToManyField("profiles.Skill", blank=True, related_name="projects")
     deadline = models.DateField(null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:

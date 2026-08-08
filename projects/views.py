@@ -2,7 +2,7 @@ from rest_framework import status, generics
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.db.models import Q
+from django.db.models import Q, Count
 
 from profiles.models import CompanyProfile, FreelancerProfile
 from matches.models import Match
@@ -18,7 +18,14 @@ class ProjectListView(generics.ListAPIView):
     serializer_class = ProjectSerializer
 
     def get_queryset(self):
-        queryset = Project.objects.filter(status=Project.STATUS_OPEN)
+        queryset = Project.objects.filter(status=Project.STATUS_OPEN).select_related(
+            'owner', 'company'
+        ).prefetch_related(
+            'skills', 'applications'
+        ).annotate(
+            application_count_annotated=Count('applications', distinct=True)
+        )
+
         skill = self.request.query_params.get('skill')
         category = self.request.query_params.get('category')
         duration = self.request.query_params.get('duration')
@@ -41,16 +48,24 @@ class ProjectListView(generics.ListAPIView):
         return queryset.distinct()
 
     def list(self, request, *args, **kwargs):
-        response = super().list(request, *args, **kwargs)
-        freelancer_profile = getattr(request.user, 'freelancer_profile', None)
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
+        projects = list(page) if page is not None else list(queryset)
 
-        if freelancer_profile and response.data:
-            project_dict = {p.id: p for p in Project.objects.filter(id__in=[item['id'] for item in response.data])}
-            for item in response.data:
-                proj = project_dict.get(item['id'])
+        serializer = self.get_serializer(projects, many=True)
+        data = serializer.data
+
+        freelancer_profile = getattr(request.user, 'freelancer_profile', None)
+        if freelancer_profile and data:
+            proj_dict = {p.id: p for p in projects}
+            for item in data:
+                proj = proj_dict.get(item['id'])
                 if proj:
                     item['ai_match'] = AIMatchService.calculate_match(freelancer_profile, proj)
-        return response
+
+        if page is not None:
+            return self.get_paginated_response(data)
+        return Response(data)
 
 
 class ProjectCreateView(APIView):

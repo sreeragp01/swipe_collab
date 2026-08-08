@@ -83,7 +83,7 @@ class SwipeFeedView(APIView):
                 card['skill_match_score'] = scores.get(str(p.user_id))
                 feed.append(card)
         else:
-            queryset = FreelancerProfile.objects.exclude(user_id__in=exclude_ids)
+            queryset = FreelancerProfile.objects.exclude(user_id__in=exclude_ids).select_related('user').prefetch_related('skills', 'portfolio_items')
             if swipe_filter:
                 if swipe_filter.experience_min:
                     queryset = queryset.filter(experience_years__gte=swipe_filter.experience_min)

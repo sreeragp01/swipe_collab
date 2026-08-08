@@ -58,6 +58,10 @@ class Message(models.Model):
     class Meta:
         db_table = "chat_message"
         ordering = ["created_at"]
+        indexes = [
+            models.Index(fields=['room', 'created_at']),
+            models.Index(fields=['room', 'is_read']),
+        ]
 
     def __str__(self):
         return f"Msg#{self.pk} by {self.sender} in Room({self.room.room_key})"
