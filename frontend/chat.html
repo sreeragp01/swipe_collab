@@ -439,9 +439,12 @@
             if (!m || !m.id) return
             if (document.getElementById(`msg-${m.id}`)) return // Guard against duplicate message elements
 
-            const userEmail = (currentUser?.email || '').toLowerCase()
+            const curUser = getUser() || {}
+            const userEmail = (curUser.email || '').toLowerCase()
             const msgEmail = (m.sender_email || '').toLowerCase()
-            const isMine = (userEmail && msgEmail && userEmail === msgEmail) || (currentUser?.id && String(m.sender) === String(currentUser.id))
+            const curUserId = String(curUser.id || curUser.user_id || '')
+            const msgSenderId = String(m.sender_id || m.sender?.id || m.sender || '')
+            const isMine = (userEmail && msgEmail && userEmail === msgEmail) || (curUserId && msgSenderId && curUserId === msgSenderId)
 
             const area = document.getElementById('messages-area')
             const time = new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -904,15 +907,32 @@
             }
 
             ws.onmessage = (event) => {
-                const data = JSON.parse(event.data)
-                if (data.type === 'message') { appendMessage({ id: data.message_id, sender_email: data.sender_email, content: data.content, message_type: data.message_type, file: data.file, is_read: false, created_at: data.created_at }); scrollToBottom(); loadRooms() }
-                if (data.type === 'message_deleted') { markMessageDeletedLocally(data.message_id) }
-                if (data.type === 'typing') {
-                    const typingName = data.sender_username || (data.sender_email ? data.sender_email.split('@')[0] : 'User')
-                    document.getElementById('typing-indicator').textContent = data.is_typing ? `${typingName} is typing...` : ''
+                try {
+                    const data = JSON.parse(event.data)
+                    if (data.type === 'message') {
+                        appendMessage({
+                            id: data.message_id,
+                            sender_id: data.sender_id,
+                            sender_email: data.sender_email,
+                            content: data.content,
+                            message_type: data.message_type,
+                            file: data.file,
+                            is_read: false,
+                            created_at: data.created_at
+                        })
+                        scrollToBottom()
+                        loadRooms()
+                    }
+                    if (data.type === 'message_deleted') { markMessageDeletedLocally(data.message_id) }
+                    if (data.type === 'typing') {
+                        const typingName = data.sender_username || (data.sender_email ? data.sender_email.split('@')[0] : 'User')
+                        document.getElementById('typing-indicator').textContent = data.is_typing ? `${typingName} is typing...` : ''
+                    }
+                    if (data.type === 'read_receipt') { const el = document.getElementById(`msg-${data.message_id}`); if (el) { const tick = el.querySelector('.read-tick'); if (tick) tick.textContent = '✓✓' } }
+                    if (data.type === 'reaction') { const row = document.getElementById(`reactions-${data.message_id}`); if (row) { const b = document.createElement('span'); b.className = 'reaction-badge'; b.textContent = data.emoji; row.appendChild(b) } }
+                } catch (e) {
+                    console.error('onmessage error:', e)
                 }
-                if (data.type === 'read_receipt') { const el = document.getElementById(`msg-${data.message_id}`); if (el) { const tick = el.querySelector('.read-tick'); if (tick) tick.textContent = '✓✓' } }
-                if (data.type === 'reaction') { const row = document.getElementById(`reactions-${data.message_id}`); if (row) { const b = document.createElement('span'); b.className = 'reaction-badge'; b.textContent = data.emoji; row.appendChild(b) } }
             }
 
         }

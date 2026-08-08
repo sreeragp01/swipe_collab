@@ -12,19 +12,22 @@ class ChatConsumer(AsyncWebsocketConsumer):
         self.room_key   = self.scope['url_route']['kwargs']['room_key']
         self.group_name = f"chat_{self.room_key.replace('-', '')}"
 
+        await self.accept()
+
         user = self.scope.get('user')
 
         if not user or not user.is_authenticated:
+            await self.send(text_data=json.dumps({'type': 'error', 'detail': 'Authentication required.'}))
             await self.close(code=4001)
             return
 
         is_member = await self.is_room_member(user, self.room_key)
         if not is_member:
+            await self.send(text_data=json.dumps({'type': 'error', 'detail': 'Forbidden.'}))
             await self.close(code=4003)
             return
 
         await self.channel_layer.group_add(self.group_name, self.channel_name)
-        await self.accept()
 
         await self.send(text_data=json.dumps({
             'type':    'connection_established',
@@ -216,7 +219,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
         room = get_room_by_key_or_id(room_key)
         if not room:
             return False
-        return room.match.user1_id == user.id or room.match.user2_id == user.id
+        uid = str(user.id)
+        return str(room.match.user1_id) == uid or str(room.match.user2_id) == uid
 
     @database_sync_to_async
     def save_message(self, user, room_key, content, message_type, file_url=None):
