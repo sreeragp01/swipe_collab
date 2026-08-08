@@ -53,6 +53,23 @@ function goBackOrHome(fallbackUrl = '/dashboard/') {
     }
 }
 
+function toggleNav() {
+    const links = document.getElementById('nav-links');
+    const btn   = document.getElementById('nav-toggle');
+    if (!links) return;
+    const open  = links.classList.toggle('open');
+    if (btn) btn.textContent = open ? '✕' : '☰';
+}
+
+document.addEventListener('click', function(e) {
+    const links = document.getElementById('nav-links');
+    const btn   = document.getElementById('nav-toggle');
+    if (links && btn && !links.contains(e.target) && !btn.contains(e.target)) {
+        links.classList.remove('open');
+        btn.textContent = '☰';
+    }
+});
+
 async function requireSuperAdmin() {
     requireAuth()
     const user = await fetchCurrentUser()

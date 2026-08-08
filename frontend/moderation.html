@@ -59,7 +59,11 @@
 <body>
     <nav class="nav">
         <a href="/" class="nav-logo">Swipe<span style="color:var(--accent)">Collab</span></a>
-        <div class="nav-links">
+        <div class="nav-right-actions">
+            <div class="sc-lang-switcher-container"></div>
+            <button class="nav-toggle-btn" id="nav-toggle" onclick="toggleNav()" aria-label="Toggle navigation menu">☰</button>
+        </div>
+        <div class="nav-links" id="nav-links">
             <a href="/dashboard/" class="nav-link">Home</a>
             <a href="/swipe/" class="nav-link">Swipe</a>
             <a href="/matches/" class="nav-link">Matches</a>

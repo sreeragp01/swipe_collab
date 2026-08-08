@@ -1120,3 +1120,106 @@ label {
     border-radius: 999px;
     background: #108a00;
 }
+
+/* ============================================================
+   UNIVERSAL RESPONSIVE DESIGN SYSTEM & MOBILE POLISH
+   ============================================================ */
+
+/* Ensure media assets and tables never overflow viewport */
+img, video, canvas, iframe, object {
+    max-width: 100%;
+    height: auto;
+}
+
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Tablet & Mobile Layout Adaptations (<= 992px) */
+@media (max-width: 992px) {
+    .dash-wrapper {
+        grid-template-columns: 1fr !important;
+    }
+    .sidebar {
+        display: none !important;
+    }
+    .dash-main {
+        padding: 1.5rem 1.25rem 5.5rem !important;
+    }
+    .settings-container {
+        padding: 1.5rem 1rem 5.5rem !important;
+    }
+    .chat-layout {
+        grid-template-columns: 1fr !important;
+        height: calc(100vh - 60px) !important;
+    }
+}
+
+/* Small Tablet & Mobile Adaptations (<= 768px) */
+@media (max-width: 768px) {
+    .nav {
+        padding: 0.75rem 1rem !important;
+    }
+    .page {
+        padding: 1.25rem 1rem 5.5rem !important;
+    }
+    .page-sm {
+        padding: 1.5rem 1rem 5.5rem !important;
+    }
+    .card, .detail-card, .settings-card, .report-card, .bento-card {
+        padding: 1.25rem 1rem !important;
+    }
+    .modal-box, .apply-modal, .modal-content {
+        max-width: 95vw !important;
+        padding: 1.35rem 1rem !important;
+    }
+    .bento-grid, .stats-grid, .kpi-grid, .grid {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+    }
+    .btn {
+        padding: 0.7rem 1.2rem !important;
+        font-size: 0.9rem !important;
+    }
+    .sc-toast {
+        left: 1rem !important;
+        right: 1rem !important;
+        max-width: none !important;
+        bottom: 4.8rem !important;
+    }
+    /* Touch friendly form inputs */
+    input, textarea, select {
+        font-size: 16px !important; /* Prevents auto-zoom on iOS Safari */
+        padding: 0.75rem 1rem !important;
+    }
+}
+
+/* Ultra Small Mobile Screens (<= 480px) */
+@media (max-width: 480px) {
+    html {
+        font-size: 15px;
+    }
+    h1 {
+        font-size: 1.55rem !important;
+    }
+    h2 {
+        font-size: 1.35rem !important;
+    }
+    h3 {
+        font-size: 1.15rem !important;
+    }
+    .nav-logo {
+        font-size: 1.15rem !important;
+    }
+    .page {
+        padding: 1rem 0.75rem 6rem !important;
+    }
+    .form-panel {
+        padding: 2rem 1.15rem !important;
+    }
+    .btn-full-mobile {
+        width: 100% !important;
+    }
+}
