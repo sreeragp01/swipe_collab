@@ -411,6 +411,7 @@
     <script src="/static/js/i18n.js"></script>
     <script>
         requireAuth()
+        let activeRoomKey = null, lastMsgId = null, ws = null, typingTimeout = null
         const params = new URLSearchParams(location.search)
         const autoRoom = params.get('room')
         const autoMatch = params.get('match')
@@ -725,40 +726,6 @@
             const pct = (e.clientX - rect.left) / rect.width
             audio.currentTime = pct * audio.duration
         }
-
-
-
-        async function loadRooms() {
-            try {
-                const res = await api('/chat/rooms/')
-                let rooms = []
-                if (res && res.ok) {
-                    const data = await res.json()
-                    rooms = data.rooms || []
-                }
-
-                // Fallback: Fetch /matches/ to ensure 100% of matched connections render for Quick Chat
-                try {
-                    const matchRes = await api('/matches/')
-                    if (matchRes && matchRes.ok) {
-                        const matchData = await matchRes.json()
-                        const matchesList = Array.isArray(matchData) ? matchData : (matchData.matches || [])
-                        matchesList.forEach(m => {
-                            const exists = rooms.some(r => String(r.match_id) === String(m.id) || String(r.room_key) === String(m.room_key));
-                            if (!exists) {
-                                const partner = m.partner || m.other_user || {};
-                                rooms.push({
-                                    id: m.id,
-                                    match_id: m.id,
-                                    room_key: m.room_key || `match_${m.id}`,
-                                    last_message: null,
-                                    unread_count: 0,
-                                    other_user: partner
-                                });
-                            }
-                        });
-                    }
-                } catch (e) {}
 
         function getDisplayName(u) {
             if (!u) return 'Collaborator';
