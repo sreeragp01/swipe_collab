@@ -16,9 +16,9 @@ class MyStatsView(APIView):
 
     def get(self, request):
         stat, created = EngagementStat.objects.get_or_create(user=request.user)
-        if created or request.query_params.get('force') == 'true':
-            stat = sync_stats_for_user(request.user, stat)
+        stat = sync_stats_for_user(request.user, stat)
         return Response(EngagementStatSerializer(stat).data)
+
 
 
 class SyncMyStatsView(APIView):
