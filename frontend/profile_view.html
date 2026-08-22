@@ -242,19 +242,23 @@
         async function loadProfile() {
             try {
                 let res = null
-                if (userId) {
-                    res = await api(`/profiles/freelancer/by-user/${userId}/`)
-                    if (!res || !res.ok) {
-                        res = await api(`/profiles/company/by-user/${userId}/`)
-                    }
-                } else if (profileId) {
-                    res = await api(`/profiles/freelancer/${profileId}/`)
-                    if (!res || !res.ok) {
-                        res = await api(`/profiles/company/${profileId}/`)
-                    }
-                } else {
+                const targetId = userId || profileId
+                if (!targetId) {
                     document.getElementById('loading-state').style.display = 'none'
                     return
+                }
+
+                // 1. Try by-user UUID endpoint
+                res = await api(`/profiles/freelancer/by-user/${targetId}/`)
+                if (!res || !res.ok) {
+                    res = await api(`/profiles/company/by-user/${targetId}/`)
+                }
+                // 2. Try by profile PK endpoint
+                if (!res || !res.ok) {
+                    res = await api(`/profiles/freelancer/${targetId}/`)
+                }
+                if (!res || !res.ok) {
+                    res = await api(`/profiles/company/${targetId}/`)
                 }
 
                 if (!res || !res.ok) {
@@ -266,13 +270,12 @@
                 const p = await res.json()
                 renderProfile(p)
 
+                const activeUserId = p.user_id || userId
                 // Record profile view
-                if (userId) {
-                    api(`/analytics/profile-views/${userId}/`, { method: 'POST', body: JSON.stringify({ source: fromSwipe ? 'swipe_feed' : 'matches' }) })
+                if (activeUserId) {
+                    api(`/analytics/profile-views/${activeUserId}/`, { method: 'POST', body: JSON.stringify({ source: fromSwipe ? 'swipe_feed' : 'matches' }) })
+                    loadRatings(activeUserId)
                 }
-
-                // Load ratings
-                if (userId) loadRatings(userId)
 
             } catch (e) {
                 console.error(e)
@@ -285,7 +288,7 @@
             document.getElementById('loading-state').style.display  = 'none'
             document.getElementById('profile-content').style.display = 'block'
 
-            const isCompany = role === 'company'
+            const isCompany = role === 'company' || p.role === 'company'
 
             // Avatar
             const avatarEl = document.getElementById('pv-avatar')

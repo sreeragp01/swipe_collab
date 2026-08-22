@@ -240,7 +240,7 @@
                             <span style="color:var(--text3); font-weight:500; font-size:0.85rem;">${t.experience_years || 2}+ yrs exp</span>
                         </div>
                         <div class="card-actions">
-                            <a href="/profile-view/?id=${t.id}" class="btn btn-outline">Profile</a>
+                            <a href="/profile-view/?id=${t.user_id || t.id}&profile_id=${t.id}" class="btn btn-outline">Profile</a>
                             <button class="btn btn-primary" onclick="showToast('Invitation sent to ${escapeQuotes(t.name)}!')">Invite to Project</button>
                         </div>
                     </div>
