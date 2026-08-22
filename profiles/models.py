@@ -172,6 +172,8 @@ class PortfolioItem(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField()
     experience_gained = models.TextField(blank=True)
+    code_language = models.CharField(max_length=50, blank=True, default="")
+    code_snippet = models.TextField(blank=True, default="")
     media_file = models.FileField(upload_to="portfolio_media/", blank=True, null=True)
     project_url = models.URLField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
