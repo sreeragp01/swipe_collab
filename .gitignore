@@ -6,3 +6,6 @@ __pycache__/
 .vscode/
 media/avatars/*
 !media/avatars/.gitkeep
+staticfiles/
+backups_temp/
+

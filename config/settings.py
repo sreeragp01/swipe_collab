@@ -30,6 +30,11 @@ CSRF_TRUSTED_ORIGINS = [
     if host.strip()
 ]
 
+render_host = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if render_host:
+    CSRF_TRUSTED_ORIGINS.append(f"https://{render_host}")
+
+
 INSTALLED_APPS = [
     'daphne',
     'django.contrib.admin',
@@ -96,7 +101,14 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 ASGI_APPLICATION = 'config.asgi.application'
 
-# Database configuration: Uses DATABASE_URL if present (Render/Railway), otherwise sqlite3 on Render or local MySQL
+# Reverse Proxy Header for HTTPS (AWS EC2 / App Runner / ALB / CloudFront)
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+if not DEBUG:
+    SESSION_COOKIE_SECURE = os.environ.get('SESSION_COOKIE_SECURE', 'True').lower() in ('true', '1')
+    CSRF_COOKIE_SECURE = os.environ.get('CSRF_COOKIE_SECURE', 'True').lower() in ('true', '1')
+    SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', 'False').lower() in ('true', '1')
+
+# Database configuration: Uses DATABASE_URL if present, or explicit DB_HOST (AWS RDS), else fallback to SQLite/MySQL
 DATABASE_URL = os.environ.get('DATABASE_URL')
 if DATABASE_URL:
     DATABASES = {
@@ -105,6 +117,19 @@ if DATABASE_URL:
             conn_max_age=600,
             conn_health_checks=True,
         )
+    }
+elif os.environ.get('DB_HOST'):
+    db_engine = os.environ.get('DB_ENGINE', 'django.db.backends.postgresql')
+    DATABASES = {
+        'default': {
+            'ENGINE': db_engine,
+            'NAME': os.environ.get('DB_NAME', 'swipecollab'),
+            'USER': os.environ.get('DB_USER', 'postgres'),
+            'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+            'HOST': os.environ.get('DB_HOST'),
+            'PORT': os.environ.get('DB_PORT', '5432' if 'postgresql' in db_engine else '3306'),
+            'CONN_MAX_AGE': 600,
+        }
     }
 elif os.environ.get('RENDER'):
     DATABASES = {
@@ -148,12 +173,29 @@ STATICFILES_DIRS = [
     BASE_DIR / 'frontend',
 ]
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
-# Media files — User uploads
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
-os.makedirs(MEDIA_ROOT, exist_ok=True)
+# AWS S3 Storage Settings (Free Tier S3 Bucket Integration)
+AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
+if AWS_STORAGE_BUCKET_NAME:
+    if 'storages' not in INSTALLED_APPS:
+        INSTALLED_APPS.append('storages')
+    AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
+    AWS_S3_REGION_NAME = os.environ.get('AWS_S3_REGION_NAME', 'us-east-1')
+    AWS_S3_CUSTOM_DOMAIN = os.environ.get('AWS_S3_CUSTOM_DOMAIN', f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com')
+    AWS_DEFAULT_ACL = None
+    AWS_S3_FILE_OVERWRITE = False
+    AWS_QUERYSTRING_AUTH = False
+
+    # Media files via AWS S3
+    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+    MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
+else:
+    # Media files — User uploads (Local storage)
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = BASE_DIR / 'media'
+    os.makedirs(MEDIA_ROOT, exist_ok=True)
 
 # Allow larger base64 upload payloads up to 10MB
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760
@@ -193,12 +235,26 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
-# Django Channels
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+# Django Channels Layer (Redis or In-Memory)
+REDIS_URL = os.environ.get('REDIS_URL') or os.environ.get('REDIS_HOST')
+if REDIS_URL:
+    if not REDIS_URL.startswith('redis://'):
+        REDIS_URL = f"redis://{REDIS_URL}:6379/0"
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels_redis.core.RedisChannelLayer',
+            'CONFIG': {
+                "hosts": [REDIS_URL],
+            },
+        },
     }
-}
+else:
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels.layers.InMemoryChannelLayer',
+        }
+    }
+
 
 # Razorpay
 RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID', 'your_key_id')
