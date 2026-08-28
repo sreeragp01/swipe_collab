@@ -10,7 +10,7 @@ class PaymentSerializer(serializers.ModelSerializer):
         model = Payment
         fields = [
             'id', 'rzp_order_id', 'rzp_payment_id',
-            'amount_paisa', 'amount_rupees',
+            'amount_paisa', 'amount_rupees', 'plan_name',
             'status', 'is_successful',
             'created_at', 'updated_at',
         ]
@@ -18,7 +18,8 @@ class PaymentSerializer(serializers.ModelSerializer):
 
 
 class CreateOrderSerializer(serializers.Serializer):
-    pass
+    plan_name = serializers.CharField(required=False, default='lifetime')
+    amount_inr = serializers.IntegerField(required=False, default=49)
 
 
 class VerifyPaymentSerializer(serializers.Serializer):

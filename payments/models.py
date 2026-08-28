@@ -28,6 +28,7 @@ class Payment(models.Model):
     rzp_payment_id = models.CharField(max_length=255, blank=True)
     rzp_signature = models.CharField(max_length=512, blank=True)
     amount_paisa = models.PositiveIntegerField(default=AMOUNT_INR * 100)
+    plan_name = models.CharField(max_length=50, default="lifetime")
     status = models.CharField(max_length=15, choices=STATUS_CHOICES, default=STATUS_CREATED)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
