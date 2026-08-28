@@ -1,3 +1,4 @@
+from decimal import Decimal
 from rest_framework import status, generics
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -8,8 +9,8 @@ from profiles.models import CompanyProfile, FreelancerProfile
 from matches.models import Match
 from workspaces.models import Workspace
 from notifications.models import notify_user, Notification
-from .models import Project, Application
-from .serializers import ProjectSerializer, ApplicationSerializer, CreateApplicationSerializer
+from .models import Project, Application, ProjectContribution
+from .serializers import ProjectSerializer, ApplicationSerializer, CreateApplicationSerializer, ProjectContributionSerializer
 from .services.ai_matcher import AIMatchService
 
 
@@ -297,3 +298,59 @@ class MyApplicationsView(APIView):
             return Response(ApplicationSerializer(applications, many=True).data)
         except Exception:
             return Response([])
+
+
+class ProjectContributionView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, project_id):
+        try:
+            project = Project.objects.get(pk=project_id)
+            contributions = ProjectContribution.objects.filter(project=project).select_related('contributor')
+            return Response(ProjectContributionSerializer(contributions, many=True).data)
+        except Project.DoesNotExist:
+            return Response({'detail': 'Project not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+    def post(self, request, project_id):
+        try:
+            project = Project.objects.get(pk=project_id)
+        except Project.DoesNotExist:
+            return Response({'detail': 'Project not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        amount = request.data.get('amount')
+        upi_ref = request.data.get('upi_reference_id', '')
+        qr_type = request.data.get('qr_type_used', project.qr_code_option or 'our_qr')
+
+        try:
+            amount_val = float(amount)
+            if amount_val <= 0:
+                return Response({'detail': 'Contribution amount must be greater than 0.'}, status=status.HTTP_400_BAD_REQUEST)
+        except (TypeError, ValueError):
+            return Response({'detail': 'Invalid contribution amount.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        contribution = ProjectContribution.objects.create(
+            project=project,
+            contributor=request.user,
+            amount=amount_val,
+            upi_reference_id=upi_ref,
+            qr_type_used=qr_type,
+            status=ProjectContribution.STATUS_VERIFIED,
+        )
+
+        # Increment raised fund amount
+        project.raised_fund_amount = (project.raised_fund_amount or Decimal('0.00')) + Decimal(str(amount_val))
+        project.save(update_fields=['raised_fund_amount'])
+
+        # Notify project owner
+        owner_user = project.owner or (project.company.user if project.company else None)
+        if owner_user and owner_user != request.user:
+            notify_user(
+                user=owner_user,
+                notification_type=Notification.TYPE_SYSTEM,
+                title="New Project Contribution! 💖",
+                message=f"{request.user.email} contributed ₹{amount_val:.2f} to '{project.title}' via UPI QR Code!",
+                sender=request.user,
+                link=f"/projects/?detail={project.id}",
+            )
+
+        return Response(ProjectContributionSerializer(contribution).data, status=status.HTTP_201_CREATED)

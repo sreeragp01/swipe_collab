@@ -70,3 +70,36 @@ class ProjectAPITestCase(APITestCase):
         self.assertIn("Flutter", skill_names)
         self.assertIn("Dart", skill_names)
         self.assertIn("Firebase", skill_names)
+
+    def test_create_fundraising_project_and_contribute(self):
+        self.client.force_authenticate(user=self.company_user)
+        data = {
+            "title": "Open Source AI Crowdfund",
+            "description": "Crowdfunded open source AI toolkit",
+            "budget_min": "10000.00",
+            "budget_max": "50000.00",
+            "is_fundraising": True,
+            "target_fund_amount": "50000.00",
+            "qr_code_option": "own_qr",
+            "custom_upi_id": "creator@okaxis",
+        }
+        response = self.client.post("/api/v1/projects/create/", data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        project_id = response.data["id"]
+
+        project = Project.objects.get(pk=project_id)
+        self.assertTrue(project.is_fundraising)
+        self.assertEqual(project.custom_upi_id, "creator@okaxis")
+
+        # Now freelancer contributes via QR code
+        self.client.force_authenticate(user=self.freelancer_user)
+        contrib_data = {
+            "amount": 1000,
+            "upi_reference_id": "UTR123456789",
+            "qr_type_used": "own_qr",
+        }
+        contrib_resp = self.client.post(f"/api/v1/projects/{project_id}/contribute/", contrib_data, format="json")
+        self.assertEqual(contrib_resp.status_code, status.HTTP_201_CREATED)
+
+        project.refresh_from_db()
+        self.assertEqual(float(project.raised_fund_amount), 1000.0)

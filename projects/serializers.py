@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Project, Application
+from .models import Project, Application, ProjectContribution
 from profiles.serializers import SkillSerializer, FreelancerProfileCardSerializer
 from users.serializers import UserPublicSerializer
 
@@ -24,10 +24,12 @@ class ProjectSerializer(serializers.ModelSerializer):
             'id', 'owner', 'owner_detail', 'company', 'company_name', 'title', 'description',
             'category', 'project_type', 'experience_level', 'location_type',
             'duration', 'status', 'budget_min', 'budget_max',
+            'is_fundraising', 'target_fund_amount', 'raised_fund_amount',
+            'qr_code_option', 'custom_upi_id', 'custom_qr_image',
             'skills', 'skill_ids', 'skill_names', 'deadline',
             'application_count', 'ai_match', 'created_at', 'updated_at',
         ]
-        read_only_fields = ['id', 'owner', 'company', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'owner', 'company', 'raised_fund_amount', 'created_at', 'updated_at']
 
     def get_company_name(self, obj):
         if obj.company:
@@ -97,3 +99,21 @@ class CreateApplicationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Application
         fields = ['cover_letter', 'proposed_rate', 'estimated_days']
+
+
+class ProjectContributionSerializer(serializers.ModelSerializer):
+    contributor_email = serializers.EmailField(source='contributor.email', read_only=True)
+    contributor_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ProjectContribution
+        fields = [
+            'id', 'project', 'contributor', 'contributor_email', 'contributor_name',
+            'amount', 'upi_reference_id', 'qr_type_used', 'status', 'created_at',
+        ]
+        read_only_fields = ['id', 'project', 'contributor', 'created_at']
+
+    def get_contributor_name(self, obj):
+        if obj.contributor:
+            return f"{obj.contributor.first_name} {obj.contributor.last_name}".strip() or obj.contributor.email.split('@')[0]
+        return "Anonymous Supporter"

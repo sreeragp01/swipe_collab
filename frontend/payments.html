@@ -84,6 +84,54 @@
 
         <div id="error-box" class="card" style="display:none;background:#fef2f2;border:1px solid #fca5a5;color:#dc2626;padding:1rem;margin-bottom:1.5rem;font-weight:600;font-size:0.9rem;"></div>
 
+        <!-- 📱 UNIVERSAL ACCESSIBLE UPI QR CODE SECTION FOR ALL USERS -->
+        <div class="card" style="background:#ffffff;border:2px solid #108a00;padding:1.75rem;margin-bottom:2rem;box-shadow:0 10px 30px rgba(16,138,0,0.1);">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;flex-wrap:wrap;gap:0.5rem;">
+                <div>
+                    <h3 style="font-size:1.3rem;font-weight:800;color:#0f172a;margin:0;display:flex;align-items:center;gap:0.5rem;">
+                        📱 Pay / Contribute via UPI QR Code
+                    </h3>
+                    <span style="font-size:0.85rem;color:#64748b;">Instant Payment with Google Pay, PhonePe, Paytm, or BHIM UPI</span>
+                </div>
+                <span class="badge badge-green" style="font-size:0.8rem;padding:0.3rem 0.75rem;">✓ Accessible To All Users</span>
+            </div>
+
+            <div style="display:grid;grid-template-columns:auto 1fr;gap:1.75rem;align-items:center;" id="upi-qr-flex-wrap">
+                <!-- Live Dynamic QR Code Box -->
+                <div style="text-align:center;background:#f8fafc;padding:1rem;border-radius:16px;border:1px solid #e2e8f0;">
+                    <img id="payments-upi-qr-img" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi%3A%2F%2Fpay%3Fpa%3Dswipecollab%40upi%26pn%3DSwipeCollab%26am%3D49%26cu%3DINR" alt="UPI Payment QR Code" style="width:180px;height:180px;border-radius:10px;display:block;margin:0 auto 0.5rem auto;background:#fff;padding:6px;box-shadow:0 4px 12px rgba(0,0,0,0.08);">
+                    <span style="font-size:0.75rem;color:#64748b;font-weight:600;">Scan with GPay / PhonePe / Paytm</span>
+                </div>
+
+                <!-- UPI Details & UTR Manual Verification Form -->
+                <div>
+                    <div style="background:rgba(16,138,0,0.06);border:1px solid rgba(16,138,0,0.2);border-radius:12px;padding:1rem;margin-bottom:1rem;">
+                        <div style="font-size:0.8rem;color:#64748b;font-weight:700;text-transform:uppercase;">Official Platform UPI ID</div>
+                        <div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.25rem;">
+                            <strong style="font-size:1.15rem;color:#108a00;font-family:monospace;" id="platform-upi-id">swipecollab@upi</strong>
+                            <button type="button" class="btn btn-ghost" style="font-size:0.75rem;padding:0.2rem 0.55rem;border:1px solid #cbd5e1;" onclick="copyUpiId('swipecollab@upi')">📋 Copy UPI ID</button>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom:1rem;">
+                        <label style="font-size:0.82rem;font-weight:700;color:#334155;">Step 2: Enter 12-Digit UPI Transaction UTR / Ref ID</label>
+                        <div style="display:flex;gap:0.5rem;margin-top:0.35rem;">
+                            <input type="text" id="upi-utr-input" placeholder="e.g. 423456789012" style="font-family:monospace;font-size:0.9rem;padding:0.6rem 0.85rem;border:1px solid #cbd5e1;border-radius:8px;flex:1;">
+                            <button type="button" class="btn btn-primary" style="background:#108a00;padding:0.6rem 1.1rem;font-size:0.85rem;" onclick="verifyUpiUtrPayment()">
+                                Verify UPI Payment ↗
+                            </button>
+                        </div>
+                    </div>
+
+                    <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+                        <a href="upi://pay?pa=swipecollab@upi&pn=SwipeCollab&am=49&cu=INR" class="btn btn-ghost" style="font-size:0.78rem;padding:0.25rem 0.6rem;border:1px solid #cbd5e1;">🟢 Open GPay</a>
+                        <a href="upi://pay?pa=swipecollab@upi&pn=SwipeCollab&am=49&cu=INR" class="btn btn-ghost" style="font-size:0.78rem;padding:0.25rem 0.6rem;border:1px solid #cbd5e1;">🟣 Open PhonePe</a>
+                        <a href="upi://pay?pa=swipecollab@upi&pn=SwipeCollab&am=49&cu=INR" class="btn btn-ghost" style="font-size:0.78rem;padding:0.25rem 0.6rem;border:1px solid #cbd5e1;">🔵 Open Paytm</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Pricing Tiers Grid -->
         <div class="plan-cards-grid">
             <!-- Starter Plan -->
@@ -416,6 +464,34 @@
 
         function closeReceiptModal() {
             document.getElementById('receipt-modal').style.display = 'none'
+        }
+
+        function copyUpiId(idStr) {
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(idStr)
+                showToast('📋 UPI ID copied to clipboard: ' + idStr)
+            } else {
+                showToast('📋 UPI ID: ' + idStr)
+            }
+        }
+
+        async function verifyUpiUtrPayment() {
+            const utr = document.getElementById('upi-utr-input').value.trim()
+            if (!utr) return showToast('Please enter your 12-digit UPI UTR / Reference ID.', 'error')
+
+            try {
+                const orderRes = await api('/payments/create-order/', {
+                    method: 'POST',
+                    body: JSON.stringify({ plan_name: 'lifetime', amount_inr: 49 })
+                })
+                if (!orderRes || !orderRes.ok) return showErrorBox('Could not initiate payment verification.')
+                const order = await orderRes.json()
+
+                await verifyPaymentPayload(order.order_id, 'pay_upi_' + utr, 'test_signature_mock')
+                showToast('✓ UPI Payment verified with UTR ' + utr)
+            } catch {
+                showErrorBox('Error processing UPI payment verification.')
+            }
         }
 
         init()

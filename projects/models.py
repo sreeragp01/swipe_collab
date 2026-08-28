@@ -76,10 +76,26 @@ class Project(models.Model):
     location_type = models.CharField(max_length=20, choices=LOCATION_CHOICES, default=LOCATION_REMOTE)
     duration = models.CharField(max_length=20, choices=DURATION_CHOICES, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_OPEN, db_index=True)
+    QR_OUR = "our_qr"
+    QR_OWN = "own_qr"
+    QR_CHOICES = [
+        (QR_OUR, "Platform Default QR"),
+        (QR_OWN, "Custom UPI QR / ID"),
+    ]
+
     budget_min = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     budget_max = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     skills = models.ManyToManyField("profiles.Skill", blank=True, related_name="projects")
     deadline = models.DateField(null=True, blank=True)
+    
+    # Fundraising & QR Code Fields
+    is_fundraising = models.BooleanField(default=False)
+    target_fund_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    raised_fund_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    qr_code_option = models.CharField(max_length=20, choices=QR_CHOICES, default=QR_OUR)
+    custom_upi_id = models.CharField(max_length=100, blank=True, default="")
+    custom_qr_image = models.TextField(blank=True, default="")
+
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -127,3 +143,29 @@ class Application(models.Model):
 
     def __str__(self):
         return f"Application by {self.freelancer} → {self.project.title} [{self.status}]"
+
+
+class ProjectContribution(models.Model):
+    STATUS_PENDING = "pending"
+    STATUS_VERIFIED = "verified"
+    STATUS_REJECTED = "rejected"
+    STATUS_CHOICES = [
+        (STATUS_PENDING, "Pending Verification"),
+        (STATUS_VERIFIED, "Verified"),
+        (STATUS_REJECTED, "Rejected"),
+    ]
+
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="contributions")
+    contributor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="contributions")
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    upi_reference_id = models.CharField(max_length=100, blank=True, default="")
+    qr_type_used = models.CharField(max_length=20, default="our_qr")
+    status = models.CharField(max_length=15, choices=STATUS_CHOICES, default=STATUS_VERIFIED)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "projects_contribution"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Contribution ₹{self.amount} by {self.contributor.email} to {self.project.title}"
