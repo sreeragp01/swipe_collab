@@ -273,15 +273,15 @@ def _clean_env(val):
 # SMTP Email Configuration
 EMAIL_HOST = _clean_env(os.environ.get('EMAIL_HOST', 'smtp.gmail.com'))
 EMAIL_PORT = int(_clean_env(os.environ.get('EMAIL_PORT', '587')) or 587)
-EMAIL_USE_TLS = _clean_env(os.environ.get('EMAIL_USE_TLS', 'True')).lower() in ('true', '1')
+EMAIL_USE_SSL = _clean_env(os.environ.get('EMAIL_USE_SSL', 'False')).lower() in ('true', '1') or EMAIL_PORT == 465
+EMAIL_USE_TLS = not EMAIL_USE_SSL and _clean_env(os.environ.get('EMAIL_USE_TLS', 'True')).lower() in ('true', '1')
 EMAIL_HOST_USER = _clean_env(os.environ.get('EMAIL_HOST_USER', ''))
-EMAIL_HOST_PASSWORD = _clean_env(os.environ.get('EMAIL_HOST_PASSWORD', ''))
-DEFAULT_FROM_EMAIL = _clean_env(os.environ.get('DEFAULT_FROM_EMAIL', '')) or 'SwipeCollab <noreply@swipecollab.com>'
+EMAIL_HOST_PASSWORD = _clean_env(os.environ.get('EMAIL_HOST_PASSWORD', '')).replace(' ', '')
+DEFAULT_FROM_EMAIL = _clean_env(os.environ.get('DEFAULT_FROM_EMAIL', '')) or (f"SwipeCollab <{EMAIL_HOST_USER}>" if EMAIL_HOST_USER else 'SwipeCollab <noreply@swipecollab.com>')
+EMAIL_TIMEOUT = int(_clean_env(os.environ.get('EMAIL_TIMEOUT', '10')) or 10)
 
 if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD:
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-    if not os.environ.get('DEFAULT_FROM_EMAIL'):
-        DEFAULT_FROM_EMAIL = f"SwipeCollab <{EMAIL_HOST_USER}>"
 else:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
