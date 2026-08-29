@@ -149,14 +149,21 @@ class VerifyEmailView(APIView):
 
     def get(self, request, token):
         user, error = verify_token(token)
+        is_html = 'text/html' in request.headers.get('Accept', '')
+
         if error:
+            if is_html:
+                from django.shortcuts import redirect
+                return redirect(f"/verify-email/?error={error}")
             return Response({'detail': error}, status=status.HTTP_400_BAD_REQUEST)
 
-        if user.is_verified:
-            return Response({'message': 'Email already verified.', 'is_verified': True})
+        if not user.is_verified:
+            user.is_verified = True
+            user.save(update_fields=['is_verified'])
 
-        user.is_verified = True
-        user.save(update_fields=['is_verified'])
+        if is_html:
+            from django.shortcuts import redirect
+            return redirect("/verify-email/?status=success")
 
         return Response({
             'message': 'Email verified successfully!',

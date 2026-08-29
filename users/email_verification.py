@@ -48,7 +48,7 @@ def send_verification_email(user, request=None, base_url=None):
         else:
             base_url = getattr(settings, 'SITE_URL', 'http://127.0.0.1:8000')
 
-    verify_url = f"{base_url}/api/v1/auth/verify-email/{token}/"
+    verify_url = f"{base_url}/verify-email/?token={token}"
     username = user.email.split('@')[0]
 
     subject = "Verify your SwipeCollab email address"
