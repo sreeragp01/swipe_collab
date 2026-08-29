@@ -141,40 +141,18 @@ If you did not create a SwipeCollab account, please ignore this email.
 </html>
     """.strip()
 
-    has_credentials = bool(getattr(settings, 'EMAIL_HOST_USER', None) and getattr(settings, 'EMAIL_HOST_PASSWORD', None))
-
     print(f"==================================================")
     print(f"EMAIL VERIFICATION DISPATCH: {user.email}")
     print(f"Verify Link: {verify_url}")
     print(f"Token: {token}")
     print(f"==================================================")
 
-    if not has_credentials:
-        info_msg = "SMTP Credentials not set in environment. Generated token for in-app verification."
-        print(f"SMTP skipped. {info_msg}")
-        return False, info_msg
-
-    import threading
-
-    def _async_send():
-        try:
-            send_mail(
-                subject=subject,
-                message=plain_message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[user.email],
-                html_message=html_message,
-                fail_silently=False,
-            )
-            print(f"Verification email sent successfully to {user.email} via SMTP.")
-        except Exception as e:
-            err_msg = f"SMTP error while sending to {user.email}: {str(e)}"
-            print(f"==================================================")
-            print(f"{err_msg}")
-            print(f"Fallback Token: {token}")
-            print(f"==================================================")
-
-    thread = threading.Thread(target=_async_send, daemon=True)
-    thread.start()
+    from .email_service import send_email_async
+    send_email_async(
+        subject=subject,
+        plain_message=plain_message,
+        html_message=html_message,
+        recipient_email=user.email
+    )
 
     return True, f"Verification email dispatch initiated for {user.email}."

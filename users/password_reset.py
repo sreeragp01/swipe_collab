@@ -171,40 +171,18 @@ https://swipecollab.com
 </html>
     """.strip()
 
-    has_credentials = bool(getattr(settings, 'EMAIL_HOST_USER', None) and getattr(settings, 'EMAIL_HOST_PASSWORD', None))
-
     print("==================================================")
     print(f"PASSWORD RESET REQUEST: {user.email}")
     print(f"Reset Link: {reset_url}")
     print(f"UID: {uidb64} | Token: {token}")
     print("==================================================")
 
-    if not has_credentials:
-        info_msg = "SMTP Credentials not set in environment. Link printed to server logs."
-        return False, reset_url
+    from .email_service import send_email_async
+    send_email_async(
+        subject=subject,
+        plain_message=plain_message,
+        html_message=html_message,
+        recipient_email=user.email
+    )
 
-    import threading
-
-    def _async_send():
-        try:
-            send_mail(
-                subject=subject,
-                message=plain_message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[user.email],
-                html_message=html_message,
-                fail_silently=False,
-            )
-            print(f"Password reset email delivered successfully to {user.email} via SMTP.")
-        except Exception as e:
-            err_msg = f"SMTP error sending password reset email to {user.email}: {str(e)}"
-            logger.error(err_msg)
-            print("==================================================")
-            print(f"{err_msg}")
-            print(f"Fallback Reset Link: {reset_url}")
-            print("==================================================")
-
-    thread = threading.Thread(target=_async_send, daemon=True)
-    thread.start()
-
-    return True, "Email dispatch initiated in background."
+    return True, "Email dispatch initiated."

@@ -285,5 +285,10 @@ if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD:
 else:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
+# Email Provider Keys (HTTPS APIs for Cloud/Render bypass)
+RESEND_API_KEY = _clean_env(os.environ.get('RESEND_API_KEY', ''))
+BREVO_API_KEY = _clean_env(os.environ.get('BREVO_API_KEY', ''))
+SENDGRID_API_KEY = _clean_env(os.environ.get('SENDGRID_API_KEY', ''))
+
 # Site URL — domain URL in production
 SITE_URL = os.environ.get('SITE_URL', 'http://127.0.0.1:8000')
