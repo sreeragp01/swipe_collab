@@ -125,3 +125,39 @@ class ChangePasswordSerializer(serializers.Serializer):
 
 class FaceVerifySerializer(serializers.Serializer):
     face_image = serializers.ImageField()
+
+
+class PasswordResetRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+
+    def validate_email(self, value):
+        return value.strip().lower()
+
+
+class PasswordResetValidateSerializer(serializers.Serializer):
+    uid = serializers.CharField(required=True)
+    token = serializers.CharField(required=True)
+
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    uid = serializers.CharField(required=True)
+    token = serializers.CharField(required=True)
+    new_password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
+    new_password2 = serializers.CharField(write_only=True, required=True)
+
+    def validate(self, attrs):
+        if attrs['new_password'] != attrs['new_password2']:
+            raise serializers.ValidationError({'new_password': 'Passwords do not match.'})
+
+        from .password_reset import verify_password_reset_token
+        user, error = verify_password_reset_token(attrs['uid'], attrs['token'])
+        if error or not user:
+            raise serializers.ValidationError({'token': error or 'Invalid or expired password reset token.'})
+
+        self.user = user
+        return attrs
+
+    def save(self):
+        self.user.set_password(self.validated_data['new_password'])
+        self.user.save()
+        return self.user

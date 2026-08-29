@@ -9,12 +9,16 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 
 from .email_verification import send_verification_email, verify_token
 from .face_verification import verify_face_with_opencv
+from .password_reset import send_password_reset_email, verify_password_reset_token
 from .serializers import (
     RegisterSerializer,
     LoginSerializer,
     UserSerializer,
     ChangePasswordSerializer,
     FaceVerifySerializer,
+    PasswordResetRequestSerializer,
+    PasswordResetValidateSerializer,
+    PasswordResetConfirmSerializer,
 )
 
 User = get_user_model()
@@ -263,3 +267,79 @@ class FaceVerifyView(APIView):
             'face_verified': False,
             'face_count': result.get('face_count', 0),
         }, status=status.HTTP_400_BAD_REQUEST)
+
+
+class PasswordResetRequestView(APIView):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = PasswordResetRequestSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        email = serializer.validated_data['email']
+        user = User.objects.filter(email__iexact=email, is_active=True).first()
+
+        sent = False
+        info = None
+        if user:
+            try:
+                sent, info = send_password_reset_email(user, request=request)
+            except Exception as e:
+                sent = False
+                info = str(e)
+
+        return Response({
+            'message': 'If an account with that email address exists, we have sent instructions to reset your password.',
+            'email_sent': True,
+            'dev_info': info if getattr(request, 'user', None) and request.user.is_staff else None
+        }, status=status.HTTP_200_OK)
+
+
+class PasswordResetValidateView(APIView):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = PasswordResetValidateSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        uid = serializer.validated_data['uid']
+        token = serializer.validated_data['token']
+
+        user, error = verify_password_reset_token(uid, token)
+        if error or not user:
+            return Response({
+                'valid': False,
+                'detail': error or 'Invalid or expired password reset link.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # Mask email for safety: e.g. j***@example.com
+        parts = user.email.split('@')
+        name_part = parts[0]
+        masked_name = name_part[0] + '***' + name_part[-1] if len(name_part) > 2 else name_part[0] + '***'
+        masked_email = f"{masked_name}@{parts[1]}" if len(parts) > 1 else user.email
+
+        return Response({
+            'valid': True,
+            'email': masked_email,
+            'message': 'Reset link is valid.'
+        }, status=status.HTTP_200_OK)
+
+
+class PasswordResetConfirmView(APIView):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = PasswordResetConfirmSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer.save()
+        return Response({
+            'message': 'Password has been reset successfully! You can now sign in with your new password.',
+            'success': True
+        }, status=status.HTTP_200_OK)

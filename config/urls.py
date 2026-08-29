@@ -45,6 +45,8 @@ urlpatterns = [
     path('moderation/',   TemplateView.as_view(template_name='moderation.html'),     name='moderation'),
     path('superadmin/',   TemplateView.as_view(template_name='superadmin.html'),     name='superadmin'),
     path('verify-email/', TemplateView.as_view(template_name='verify_email.html'),   name='verify-email'),
+    path('forgot-password/', TemplateView.as_view(template_name='forgot_password.html'), name='forgot-password'),
+    path('reset-password/', TemplateView.as_view(template_name='reset_password.html'), name='reset-password'),
     path('settings/',     TemplateView.as_view(template_name='settings.html'),       name='settings'),
     path('portfolio-show/', TemplateView.as_view(template_name='portfolio_show.html'), name='portfolio-show'),
 ]
