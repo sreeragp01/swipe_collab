@@ -8,4 +8,8 @@ media/avatars/*
 !media/avatars/.gitkeep
 staticfiles/
 backups_temp/
+.env
+.env.*
+!.env.example
+!.env.aws.example
 
